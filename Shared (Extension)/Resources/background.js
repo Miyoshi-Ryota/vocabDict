@@ -855,10 +855,75 @@ async function handleUpdateStats({ stats }) {
     return await db.updateStats(learningStats);
 }
 
-
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log("Received request: ", request);
-
-    if (request.greeting === "hello")
-        return Promise.resolve({ farewell: "goodbye" });
+// Context menu handler
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (info.menuItemId === 'vocabdict-lookup') {
+        const selectedText = info.selectionText.trim();
+        if (selectedText) {
+            // Send message to content script to show floating widget
+            try {
+                await browser.tabs.sendMessage(tab.id, {
+                    type: MessageTypes.SHOW_FLOATING_WIDGET,
+                    payload: { word: selectedText }
+                });
+            } catch (error) {
+                // If content script not loaded, open popup instead
+                console.log('Opening popup for word lookup:', selectedText);
+                await browser.action.openPopup();
+            }
+        }
+    }
 });
+
+// Keyboard command handler
+browser.commands.onCommand.addListener(async (command) => {
+    if (command === 'lookup-selection') {
+        const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
+        if (activeTab) {
+            // Get selected text from content script
+            try {
+                await browser.tabs.sendMessage(activeTab.id, {
+                    type: MessageTypes.SELECTION_LOOKUP,
+                    payload: {}
+                });
+            } catch (error) {
+                console.error('Failed to trigger selection lookup:', error);
+            }
+        }
+    }
+});
+
+// Initialize on installation
+browser.runtime.onInstalled.addListener(() => {
+    console.log('VocabDict: onInstalled event fired');
+    initialize().catch(error => {
+        console.error('VocabDict: Initialization failed on install:', error);
+    });
+});
+
+// Initialize on startup (only if not already initialized)
+if (!db) {
+    initialize().catch(error => {
+    console.error('VocabDict: Critical initialization error:', error);
+    // Register at least the basic handlers even if DB fails
+    messageHandlers.set('get_all_lists', async () => {
+        return [{ 
+            id: 'fallback_list', 
+            name: 'Fallback List (DB not initialized)', 
+            wordIds: [],
+            isDefault: true 
+        }];
+    });
+    messageHandlers.set('lookup_word', async ({ word }) => {
+        return {
+            word: word,
+            definitions: [{ 
+                partOfSpeech: 'unknown', 
+                meaning: 'Database not initialized - cannot lookup words' 
+            }],
+            error: 'Database initialization failed'
+        };
+    });
+    console.log('VocabDict: Registered fallback handlers');
+    });
+}
