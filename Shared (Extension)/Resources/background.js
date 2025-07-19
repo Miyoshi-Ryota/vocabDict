@@ -1,5 +1,8 @@
 // VocabDict Background Script - All-in-one bundle for Safari compatibility
 
+// Import dictionary data
+importScripts('dictionary.js');
+
 // Message Types
 const MessageTypes = {
     // Dictionary operations
@@ -780,23 +783,41 @@ async function handleMessage(request, sender) {
 
 // Dictionary handlers
 async function handleLookupWord({ word }) {
-    // For now, return mock data - will be replaced with toy dictionary in Phase 2
+    const normalizedWord = word.toLowerCase().trim();
+    
+    // Check cache first
+    const cached = await db.getCachedDictionaryEntry(normalizedWord);
+    if (cached) {
+        return { ...cached, word: normalizedWord };
+    }
+    
+    // Look up in toy dictionary
+    const entry = TOY_DICTIONARY[normalizedWord];
+    if (entry) {
+        const result = {
+            word: normalizedWord,
+            ...entry
+        };
+        
+        // Cache the result
+        await db.cacheDictionaryEntry(normalizedWord, result);
+        return result;
+    }
+    
+    // Word not found in dictionary
     return {
-        word: word,
-        pronunciations: [
-            { type: 'US', phonetic: '/həˈloʊ/' },
-            { type: 'UK', phonetic: '/həˈləʊ/' }
-        ],
+        word: normalizedWord,
+        pronunciations: [],
         definitions: [
             {
-                partOfSpeech: 'noun',
-                meaning: 'A greeting or expression of goodwill',
-                examples: ['She gave him a warm hello.']
+                partOfSpeech: 'unknown',
+                meaning: 'Word not found in dictionary',
+                examples: []
             }
         ],
-        synonyms: ['hi', 'greetings'],
-        antonyms: ['goodbye'],
-        examples: ['Hello! How are you?']
+        synonyms: [],
+        antonyms: [],
+        examples: []
     };
 }
 
