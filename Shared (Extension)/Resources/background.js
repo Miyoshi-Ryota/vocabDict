@@ -694,6 +694,167 @@ messageHandlers.set('check_status', async () => {
     };
 });
 
+// Message listener
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    handleMessage(request, sender)
+        .then(response => {
+            sendResponse(response);
+        })
+        .catch(error => {
+            console.error('Message handling error:', error);
+            sendResponse({
+                status: MessageStatus.ERROR,
+                error: error.message
+            });
+        });
+    
+    // Return true to indicate async response
+    return true;
+});
+
+async function handleMessage(request, sender) {
+    const { type, payload } = request;
+    
+    if (!type) {
+        throw new Error('Message type is required');
+    }
+
+    const handler = messageHandlers.get(type);
+    
+    if (!handler) {
+        throw new Error(`No handler registered for message type: ${type}`);
+    }
+
+    try {
+        const result = await handler(payload, sender);
+        return {
+            status: MessageStatus.SUCCESS,
+            data: result
+        };
+    } catch (error) {
+        console.error(`Error handling message ${type}:`, error);
+        return {
+            status: MessageStatus.ERROR,
+            error: error.message
+        };
+    }
+}
+
+// Dictionary handlers
+async function handleLookupWord({ word }) {
+    // For now, return mock data - will be replaced with toy dictionary in Phase 2
+    return {
+        word: word,
+        pronunciations: [
+            { type: 'US', phonetic: '/həˈloʊ/' },
+            { type: 'UK', phonetic: '/həˈləʊ/' }
+        ],
+        definitions: [
+            {
+                partOfSpeech: 'noun',
+                meaning: 'A greeting or expression of goodwill',
+                examples: ['She gave him a warm hello.']
+            }
+        ],
+        synonyms: ['hi', 'greetings'],
+        antonyms: ['goodbye'],
+        examples: ['Hello! How are you?']
+    };
+}
+
+// Word handlers
+async function handleAddWord({ wordData }) {
+    return await db.addWord(wordData);
+}
+
+async function handleGetWord({ id }) {
+    return await db.getWord(id);
+}
+
+async function handleGetAllWords() {
+    return await db.getAllWords();
+}
+
+async function handleUpdateWord({ word }) {
+    return await db.updateWord(word);
+}
+
+async function handleDeleteWord({ id }) {
+    return await db.deleteWord(id);
+}
+
+async function handleGetWordsDueForReview() {
+    return await db.getWordsDueForReview();
+}
+
+// List handlers
+async function handleAddList({ listData }) {
+    return await db.addList(listData);
+}
+
+async function handleGetList({ id }) {
+    return await db.getList(id);
+}
+
+async function handleGetAllLists() {
+    const lists = await db.getAllLists();
+    return lists.map(list => list.toJSON());
+}
+
+async function handleUpdateList({ list }) {
+    return await db.updateList(list);
+}
+
+async function handleDeleteList({ id }) {
+    return await db.deleteList(id);
+}
+
+async function handleGetDefaultList() {
+    return await db.getDefaultList();
+}
+
+async function handleAddWordToList({ wordId, listId }) {
+    const word = await db.getWord(wordId);
+    if (word && !word.listIds.includes(listId)) {
+        word.listIds.push(listId);
+        await db.updateWord(word);
+    }
+    return word;
+}
+
+async function handleRemoveWordFromList({ wordId, listId }) {
+    const word = await db.getWord(wordId);
+    if (word) {
+        word.listIds = word.listIds.filter(id => id !== listId);
+        await db.updateWord(word);
+    }
+    return word;
+}
+
+// Settings handlers
+async function handleGetSettings() {
+    const settings = await db.getSettings();
+    return settings.toJSON();
+}
+
+async function handleUpdateSettings({ settings }) {
+    // Convert plain object to UserSettings instance
+    const userSettings = new UserSettings(settings);
+    return await db.updateSettings(userSettings);
+}
+
+// Stats handlers
+async function handleGetStats() {
+    const stats = await db.getStats();
+    return stats.toJSON();
+}
+
+async function handleUpdateStats({ stats }) {
+    // Convert plain object to LearningStats instance
+    const learningStats = new LearningStats(stats);
+    return await db.updateStats(learningStats);
+}
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
