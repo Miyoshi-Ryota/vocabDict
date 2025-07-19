@@ -597,6 +597,11 @@ async function initialize() {
 async function doInitialize() {
     console.log('VocabDict: Starting initialization...');
     
+    // Register message handlers first to handle early popup messages
+    console.log('VocabDict: Registering message handlers...');
+    registerMessageHandlers();
+    console.log('VocabDict: Registered handlers:', messageHandlers.size, 'handlers');
+    
     // Check if IndexedDB is available
     if (!('indexedDB' in self)) {
         console.error('VocabDict: IndexedDB is not available!');
@@ -649,11 +654,6 @@ async function doInitialize() {
             console.error('VocabDict: Context menu error:', menuError);
             // Continue anyway
         }
-        
-        // Register message handlers
-        console.log('VocabDict: Registering message handlers...');
-        registerMessageHandlers();
-        console.log('VocabDict: Registered handlers:', messageHandlers.size, 'handlers');
         
         console.log('VocabDict: Extension initialized successfully');
     } catch (error) {
@@ -871,11 +871,20 @@ async function handleRemoveWordFromList({ wordId, listId }) {
 
 // Settings handlers
 async function handleGetSettings() {
+    if (!db || !db.db) {
+        // Return default settings if database not ready
+        const defaultSettings = new UserSettings();
+        return defaultSettings.toJSON();
+    }
     const settings = await db.getSettings();
     return settings.toJSON();
 }
 
 async function handleUpdateSettings({ settings }) {
+    if (!db || !db.db) {
+        console.warn('Database not ready, settings update ignored');
+        return;
+    }
     // Convert plain object to UserSettings instance
     const userSettings = new UserSettings(settings);
     return await db.updateSettings(userSettings);
