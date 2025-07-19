@@ -168,3 +168,258 @@ body {
     color: white;
     border-color: var(--primary);
 }
+
+/* Dictionary View Styles */
+.dictionary-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top: 2px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.dictionary-result {
+    padding: 0;
+}
+
+.word-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.word-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.add-word-btn {
+    padding: 6px 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.add-word-btn:hover {
+    background: var(--secondary);
+}
+
+.add-word-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.pronunciations {
+    margin-bottom: 16px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.pronunciation {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: var(--surface);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.definitions {
+    margin-bottom: 20px;
+}
+
+.definition-item {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.definition-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.definition-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.part-of-speech {
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.definition-number {
+    background: var(--surface);
+    color: var(--text-secondary);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.definition-meaning {
+    margin: 0;
+    color: var(--text-primary);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.definition-examples {
+    margin-top: 8px;
+}
+
+.example {
+    margin: 4px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 13px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+}
+
+.word-relations {
+    margin-bottom: 20px;
+}
+
+.word-group {
+    margin-bottom: 12px;
+}
+
+.word-group:last-child {
+    margin-bottom: 0;
+}
+
+.word-group h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.word-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.word-tag {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.word-tag.synonym {
+    background: #e6f7ff;
+    color: #0066cc;
+    border: 1px solid #b3e0ff;
+}
+
+.word-tag.synonym:hover {
+    background: #cceeff;
+}
+
+.word-tag.antonym {
+    background: #fff2e6;
+    color: #cc6600;
+    border: 1px solid #ffcc99;
+}
+
+.word-tag.antonym:hover {
+    background: #ffe6cc;
+}
+
+.additional-examples {
+    margin-bottom: 16px;
+}
+
+.additional-examples h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.dictionary-error {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.error-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.error-message {
+    margin: 0 0 8px 0;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.error-suggestion {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Dark theme adjustments for dictionary */
+[data-theme="dark"] .word-tag.synonym {
+    background: #003d66;
+    color: #66b3ff;
+    border-color: #0066cc;
+}
+
+[data-theme="dark"] .word-tag.synonym:hover {
+    background: #004d80;
+}
+
+[data-theme="dark"] .word-tag.antonym {
+    background: #663300;
+    color: #ff9933;
+    border-color: #cc6600;
+}
+
+[data-theme="dark"] .word-tag.antonym:hover {
+    background: #804000;
+}
