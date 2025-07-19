@@ -90,6 +90,36 @@ class VocabularyWord {
     }
 }
 
+class VocabularyList {
+    constructor(data = {}) {
+        this.id = data.id || this.generateId();
+        this.name = data.name || 'Untitled List';
+        this.description = data.description || '';
+        this.wordIds = data.wordIds || [];
+        this.createdDate = data.createdDate ? new Date(data.createdDate) : new Date();
+        this.modifiedDate = data.modifiedDate ? new Date(data.modifiedDate) : new Date();
+        this.isDefault = data.isDefault || false;
+        this.sortOrder = data.sortOrder || 0;
+    }
+
+    generateId() {
+        return `list_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            wordIds: this.wordIds,
+            createdDate: this.createdDate.toISOString(),
+            modifiedDate: this.modifiedDate.toISOString(),
+            isDefault: this.isDefault,
+            sortOrder: this.sortOrder
+        };
+    }
+}
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
