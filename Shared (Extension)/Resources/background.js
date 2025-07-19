@@ -304,6 +304,76 @@ class VocabDictDatabase {
         });
     }
 
+    // Vocabulary word operations
+    async addWord(wordData) {
+        const word = new VocabularyWord(wordData);
+        
+        // Check if word already exists
+        const existingWords = await this.getWordsByWord(word.word);
+        if (existingWords.length > 0) {
+            // Update lookup count instead of adding duplicate
+            const existing = existingWords[0];
+            existing.lookupCount++;
+            await this.updateWord(existing);
+            return existing;
+        }
+        
+        await this.add('vocabulary_words', word.toJSON());
+        return word;
+    }
+
+    async getWord(id) {
+        const data = await this.get('vocabulary_words', id);
+        return data ? new VocabularyWord(data) : null;
+    }
+
+    async getWordsByWord(word) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['vocabulary_words'], 'readonly');
+            const store = transaction.objectStore('vocabulary_words');
+            const index = store.index('word');
+            const request = index.getAll(word);
+
+            request.onsuccess = () => {
+                const words = request.result.map(data => new VocabularyWord(data));
+                resolve(words);
+            };
+            request.onerror = () => reject(new Error('Failed to get words by word'));
+        });
+    }
+
+    async getAllWords() {
+        const data = await this.getAll('vocabulary_words');
+        return data.map(wordData => new VocabularyWord(wordData));
+    }
+
+    async updateWord(word) {
+        await this.update('vocabulary_words', word.toJSON());
+    }
+
+    async deleteWord(id) {
+        await this.delete('vocabulary_words', id);
+    }
+
+    async getWordsDueForReview() {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['vocabulary_words'], 'readonly');
+            const store = transaction.objectStore('vocabulary_words');
+            const index = store.index('nextReview');
+            const now = new Date();
+            const range = IDBKeyRange.upperBound(now.toISOString());
+            const request = index.getAll(range);
+
+            request.onsuccess = () => {
+                const words = request.result
+                    .filter(data => data.nextReview !== null)
+                    .map(data => new VocabularyWord(data));
+                resolve(words);
+            };
+            request.onerror = () => reject(new Error('Failed to get words due for review'));
+        });
+    }
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
