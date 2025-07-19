@@ -171,6 +171,78 @@ class LearningStats {
     }
 }
 
+// Database wrapper
+class VocabDictDatabase {
+    constructor() {
+        this.dbName = 'vocabdict_db';
+        this.version = 1;
+        this.db = null;
+    }
+
+    async initialize() {
+        return new Promise((resolve, reject) => {
+            
+            const request = indexedDB.open(this.dbName, this.version);
+
+            request.onerror = (event) => {
+                console.error('VocabDict DB: Failed to open database:', event.target.error);
+                reject(new Error(`Failed to open database: ${event.target.error}`));
+            };
+
+            request.onsuccess = (event) => {
+                this.db = event.target.result;
+                
+                if (!this.db) {
+                    reject(new Error('Database is null after successful open'));
+                } else {
+                    resolve();
+                }
+            };
+
+            request.onupgradeneeded = (event) => {
+                console.log('VocabDict DB: Upgrading database schema...');
+                const db = event.target.result;
+                this.db = db; // Set db reference early for upgrade
+
+                // Dictionary cache store
+                if (!db.objectStoreNames.contains('dictionary_cache')) {
+                    console.log('Creating dictionary_cache store');
+                    db.createObjectStore('dictionary_cache', { keyPath: 'word' });
+                }
+
+                // Vocabulary words store
+                if (!db.objectStoreNames.contains('vocabulary_words')) {
+                    console.log('Creating vocabulary_words store');
+                    const wordStore = db.createObjectStore('vocabulary_words', { keyPath: 'id' });
+                    wordStore.createIndex('word', 'word', { unique: false });
+                    wordStore.createIndex('dateAdded', 'dateAdded', { unique: false });
+                    wordStore.createIndex('nextReview', 'nextReview', { unique: false });
+                }
+
+                // Vocabulary lists store
+                if (!db.objectStoreNames.contains('vocabulary_lists')) {
+                    console.log('Creating vocabulary_lists store');
+                    const listStore = db.createObjectStore('vocabulary_lists', { keyPath: 'id' });
+                    listStore.createIndex('name', 'name', { unique: false });
+                    listStore.createIndex('isDefault', 'isDefault', { unique: false });
+                }
+
+                // User settings store (single record)
+                if (!db.objectStoreNames.contains('user_settings')) {
+                    console.log('Creating user_settings store');
+                    db.createObjectStore('user_settings');
+                }
+
+                // Learning stats store (single record)
+                if (!db.objectStoreNames.contains('learning_stats')) {
+                    console.log('Creating learning_stats store');
+                    db.createObjectStore('learning_stats');
+                }
+                
+                console.log('VocabDict DB: Schema upgrade complete');
+            };
+        });
+    }
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
