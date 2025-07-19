@@ -485,6 +485,74 @@ class VocabDictDatabase {
         return null;
     }
 
+    // Utility methods
+    async clearAllData() {
+        const storeNames = ['vocabulary_words', 'vocabulary_lists', 'dictionary_cache'];
+        
+        for (const storeName of storeNames) {
+            const transaction = this.db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            await new Promise((resolve, reject) => {
+                const request = store.clear();
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(new Error(`Failed to clear ${storeName}`));
+            });
+        }
+    }
+
+    async initializeDefaultData() {
+        try {
+            // Check if database is initialized
+            if (!this.db) {
+                console.error('VocabDict DB: Cannot initialize default data - database not ready');
+                return;
+            }
+            
+            // Check if default list exists
+            let defaultList = await this.getDefaultList();
+            if (!defaultList) {
+                // Create default list
+                defaultList = await this.addList({
+                    name: 'My Vocabulary',
+                    description: 'Default vocabulary list',
+                    isDefault: true,
+                    sortOrder: 0
+                });
+                console.log('Created default list:', defaultList.id);
+            }
+
+            // Initialize settings if not exists
+            try {
+                const settings = await this.getSettings();
+                if (!settings.defaultListId && defaultList) {
+                    settings.defaultListId = defaultList.id;
+                    await this.updateSettings(settings);
+                }
+            } catch (error) {
+                console.error('Error initializing settings:', error);
+                // Continue initialization even if settings fail
+            }
+
+            // Initialize stats if not exists
+            try {
+                await this.getStats(); // This creates default stats if none exist
+            } catch (error) {
+                console.error('Error initializing stats:', error);
+                // Continue initialization even if stats fail
+            }
+        } catch (error) {
+            console.error('Error in initializeDefaultData:', error);
+            throw error;
+        }
+    }
+}
+
+// Global variables
+let db = null;
+let isInitializing = false;
+let initializationPromise = null;
+const messageHandlers = new Map();
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
