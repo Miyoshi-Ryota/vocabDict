@@ -120,6 +120,57 @@ class VocabularyList {
     }
 }
 
+class UserSettings {
+    constructor(data = {}) {
+        this.theme = data.theme || 'auto';
+        this.autoAddToList = data.autoAddToList !== undefined ? data.autoAddToList : true;
+        this.defaultListId = data.defaultListId || null;
+        this.dailyReviewReminder = data.dailyReviewReminder || false;
+        this.reminderTime = data.reminderTime || '09:00';
+        this.reviewSessionSize = data.reviewSessionSize || 20;
+        this.keyboardShortcuts = data.keyboardShortcuts || {
+            lookup: 'Command+Shift+L',
+            addToList: 'Command+Shift+A'
+        };
+    }
+
+    toJSON() {
+        return {
+            theme: this.theme,
+            autoAddToList: this.autoAddToList,
+            defaultListId: this.defaultListId,
+            dailyReviewReminder: this.dailyReviewReminder,
+            reminderTime: this.reminderTime,
+            reviewSessionSize: this.reviewSessionSize,
+            keyboardShortcuts: this.keyboardShortcuts
+        };
+    }
+}
+
+class LearningStats {
+    constructor(data = {}) {
+        this.totalWords = data.totalWords || 0;
+        this.wordsLearned = data.wordsLearned || 0;
+        this.currentStreak = data.currentStreak || 0;
+        this.longestStreak = data.longestStreak || 0;
+        this.lastReviewDate = data.lastReviewDate ? new Date(data.lastReviewDate) : null;
+        this.totalReviews = data.totalReviews || 0;
+        this.accuracyRate = data.accuracyRate || 0;
+    }
+
+    toJSON() {
+        return {
+            totalWords: this.totalWords,
+            wordsLearned: this.wordsLearned,
+            currentStreak: this.currentStreak,
+            longestStreak: this.longestStreak,
+            lastReviewDate: this.lastReviewDate ? this.lastReviewDate.toISOString() : null,
+            totalReviews: this.totalReviews,
+            accuracyRate: this.accuracyRate
+        };
+    }
+}
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
