@@ -171,11 +171,18 @@ class LearningStats {
     }
 }
 
+// Database configuration constants
+const DB_CONFIG = {
+    NAME: 'vocabdict_db',
+    VERSION: 1,
+    CACHE_EXPIRY_HOURS: 24
+};
+
 // Database wrapper
 class VocabDictDatabase {
     constructor() {
-        this.dbName = 'vocabdict_db';
-        this.version = 1;
+        this.dbName = DB_CONFIG.NAME;
+        this.version = DB_CONFIG.VERSION;
         this.db = null;
     }
 
@@ -473,12 +480,12 @@ class VocabDictDatabase {
     async getCachedDictionaryEntry(word) {
         const data = await this.get('dictionary_cache', word);
         if (data) {
-            // Check if cache is still valid (24 hours)
+            // Check if cache is still valid
             const cachedDate = new Date(data.cachedAt);
             const now = new Date();
             const hoursDiff = (now - cachedDate) / (1000 * 60 * 60);
             
-            if (hoursDiff < 24) {
+            if (hoursDiff < DB_CONFIG.CACHE_EXPIRY_HOURS) {
                 return data.entry;
             }
         }
