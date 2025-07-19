@@ -1,7 +1,128 @@
 // VocabDict Background Script - All-in-one bundle for Safari compatibility
 
-// Import dictionary data
-importScripts('dictionary.js');
+// Toy Dictionary - 20 Common English Words for VocabDict
+const TOY_DICTIONARY = {
+  "hello": {
+    pronunciations: [
+      { type: "US", phonetic: "/həˈloʊ/" },
+      { type: "UK", phonetic: "/həˈləʊ/" }
+    ],
+    definitions: [
+      {
+        partOfSpeech: "noun",
+        meaning: "A greeting or expression of goodwill",
+        examples: ["She gave him a warm hello."]
+      },
+      {
+        partOfSpeech: "verb", 
+        meaning: "To greet with 'hello'",
+        examples: ["I helloed him from across the street."]
+      }
+    ],
+    synonyms: ["hi", "greetings", "salutations"],
+    antonyms: ["goodbye", "farewell"],
+    examples: [
+      "Hello! How are you today?",
+      "She said hello to everyone in the room."
+    ]
+  },
+  "world": {
+    pronunciations: [
+      { type: "US", phonetic: "/wɜːrld/" },
+      { type: "UK", phonetic: "/wɜːld/" }
+    ],
+    definitions: [
+      {
+        partOfSpeech: "noun",
+        meaning: "The earth and all the people and things on it",
+        examples: ["The world is a beautiful place."]
+      },
+      {
+        partOfSpeech: "noun",
+        meaning: "A particular area of activity or experience",
+        examples: ["The world of technology is constantly changing."]
+      }
+    ],
+    synonyms: ["earth", "globe", "planet"],
+    antonyms: [],
+    examples: [
+      "Welcome to the world!",
+      "The world is your oyster."
+    ]
+  },
+  "good": {
+    pronunciations: [
+      { type: "US", phonetic: "/ɡʊd/" },
+      { type: "UK", phonetic: "/ɡʊd/" }
+    ],
+    definitions: [
+      {
+        partOfSpeech: "adjective",
+        meaning: "Of high quality; satisfactory",
+        examples: ["This is a good book."]
+      },
+      {
+        partOfSpeech: "noun",
+        meaning: "Something that is beneficial or advantageous",
+        examples: ["Exercise is good for your health."]
+      }
+    ],
+    synonyms: ["excellent", "fine", "great"],
+    antonyms: ["bad", "poor", "terrible"],
+    examples: [
+      "Have a good day!",
+      "That's a good idea."
+    ]
+  },
+  "time": {
+    pronunciations: [
+      { type: "US", phonetic: "/taɪm/" },
+      { type: "UK", phonetic: "/taɪm/" }
+    ],
+    definitions: [
+      {
+        partOfSpeech: "noun",
+        meaning: "The indefinite continued progress of existence",
+        examples: ["Time flies when you're having fun."]
+      },
+      {
+        partOfSpeech: "verb",
+        meaning: "To plan or schedule",
+        examples: ["I need to time this correctly."]
+      }
+    ],
+    synonyms: ["duration", "period", "moment"],
+    antonyms: [],
+    examples: [
+      "What time is it?",
+      "Time is money."
+    ]
+  },
+  "work": {
+    pronunciations: [
+      { type: "US", phonetic: "/wɜːrk/" },
+      { type: "UK", phonetic: "/wɜːk/" }
+    ],
+    definitions: [
+      {
+        partOfSpeech: "noun",
+        meaning: "Activity involving mental or physical effort",
+        examples: ["I have a lot of work to do."]
+      },
+      {
+        partOfSpeech: "verb",
+        meaning: "To engage in physical or mental activity",
+        examples: ["I work from home."]
+      }
+    ],
+    synonyms: ["job", "labor", "employment"],
+    antonyms: ["rest", "leisure", "play"],
+    examples: [
+      "All work and no play makes Jack a dull boy.",
+      "Work hard, play hard."
+    ]
+  }
+};
 
 // Message Types
 const MessageTypes = {

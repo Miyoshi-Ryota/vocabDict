@@ -310,13 +310,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload: {}
             });
             
-            if (response.status === 'success') {
+            if (response && response.status === 'success') {
                 currentSettings = response.data;
+                autoAddToggle.checked = currentSettings.autoAddToList;
+                reminderToggle.checked = currentSettings.dailyReviewReminder;
+            } else {
+                console.warn('Settings response:', response);
+                // Use default settings
+                currentSettings = {
+                    autoAddToList: true,
+                    dailyReviewReminder: false
+                };
                 autoAddToggle.checked = currentSettings.autoAddToList;
                 reminderToggle.checked = currentSettings.dailyReviewReminder;
             }
         } catch (error) {
             console.error('Failed to load settings:', error);
+            // Use default settings on error
+            currentSettings = {
+                autoAddToList: true,
+                dailyReviewReminder: false
+            };
+            autoAddToggle.checked = currentSettings.autoAddToList;
+            reminderToggle.checked = currentSettings.dailyReviewReminder;
         }
     }
     
