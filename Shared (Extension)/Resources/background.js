@@ -429,6 +429,62 @@ class VocabDictDatabase {
         });
     }
 
+    // Settings operations
+    async getSettings() {
+        const data = await this.get('user_settings', 'settings');
+        return new UserSettings(data || {});
+    }
+
+    async updateSettings(settings) {
+        // For stores without keyPath, use put with explicit key
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['user_settings'], 'readwrite');
+            const store = transaction.objectStore('user_settings');
+            const request = store.put(settings.toJSON(), 'settings');
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error('Failed to update settings'));
+        });
+    }
+
+    // Stats operations
+    async getStats() {
+        const data = await this.get('learning_stats', 'stats');
+        return new LearningStats(data || {});
+    }
+
+    async updateStats(stats) {
+        // For stores without keyPath, use put with explicit key
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['learning_stats'], 'readwrite');
+            const store = transaction.objectStore('learning_stats');
+            const request = store.put(stats.toJSON(), 'stats');
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error('Failed to update stats'));
+        });
+    }
+
+    // Dictionary cache operations
+    async cacheDictionaryEntry(word, entry) {
+        await this.update('dictionary_cache', { word, entry, cachedAt: new Date().toISOString() });
+    }
+
+    async getCachedDictionaryEntry(word) {
+        const data = await this.get('dictionary_cache', word);
+        if (data) {
+            // Check if cache is still valid (24 hours)
+            const cachedDate = new Date(data.cachedAt);
+            const now = new Date();
+            const hoursDiff = (now - cachedDate) / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+                return data.entry;
+            }
+        }
+        return null;
+    }
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
