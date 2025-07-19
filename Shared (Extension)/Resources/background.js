@@ -374,6 +374,61 @@ class VocabDictDatabase {
         });
     }
 
+    // Vocabulary list operations
+    async addList(listData) {
+        const list = new VocabularyList(listData);
+        await this.add('vocabulary_lists', list.toJSON());
+        return list;
+    }
+
+    async getList(id) {
+        const data = await this.get('vocabulary_lists', id);
+        return data ? new VocabularyList(data) : null;
+    }
+
+    async getAllLists() {
+        const data = await this.getAll('vocabulary_lists');
+        return data.map(listData => new VocabularyList(listData));
+    }
+
+    async updateList(list) {
+        list.modifiedDate = new Date();
+        await this.update('vocabulary_lists', list.toJSON());
+    }
+
+    async deleteList(id) {
+        // Remove list ID from all words
+        const allWords = await this.getAllWords();
+        for (const word of allWords) {
+            if (word.listIds.includes(id)) {
+                word.listIds = word.listIds.filter(listId => listId !== id);
+                await this.updateWord(word);
+            }
+        }
+        
+        await this.delete('vocabulary_lists', id);
+    }
+
+    async getDefaultList() {
+        if (!this.db) {
+            console.error('VocabDict DB: Database not initialized in getDefaultList');
+            return null;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['vocabulary_lists'], 'readonly');
+            const store = transaction.objectStore('vocabulary_lists');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                // Find the default list from all lists
+                const defaultList = request.result.find(list => list.isDefault === true);
+                resolve(defaultList ? new VocabularyList(defaultList) : null);
+            };
+            request.onerror = () => reject(new Error('Failed to get default list'));
+        });
+    }
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
