@@ -244,6 +244,67 @@ class VocabDictDatabase {
         });
     }
 
+    // Generic CRUD operations
+    async add(storeName, data) {
+        if (!this.db) {
+            throw new Error('Database not initialized');
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.add(data);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error(`Failed to add to ${storeName}`));
+        });
+    }
+
+    async get(storeName, key) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.get(key);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error(`Failed to get from ${storeName}`));
+        });
+    }
+
+    async getAll(storeName) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error(`Failed to get all from ${storeName}`));
+        });
+    }
+
+    async update(storeName, data) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.put(data);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error(`Failed to update in ${storeName}`));
+        });
+    }
+
+    async delete(storeName, key) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.delete(key);
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(new Error(`Failed to delete from ${storeName}`));
+        });
+    }
+
+
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
 
