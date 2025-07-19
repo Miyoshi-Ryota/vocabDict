@@ -71,7 +71,11 @@ class VocabularyWord {
     }
 
     generateId() {
-        return `word_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return `word_${crypto.randomUUID()}`;
+        } else {
+            return `word_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
     }
 
     toJSON() {
@@ -103,7 +107,11 @@ class VocabularyList {
     }
 
     generateId() {
-        return `list_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return `list_${crypto.randomUUID()}`;
+        } else {
+            return `list_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
     }
 
     toJSON() {
@@ -701,6 +709,29 @@ messageHandlers.set('check_status', async () => {
     };
 });
 
+// Fallback handlers for when database initialization fails
+function registerFallbackHandlers() {
+    messageHandlers.set('get_all_lists', async () => {
+        return [{ 
+            id: 'fallback_list', 
+            name: 'Fallback List (DB not initialized)', 
+            wordIds: [],
+            isDefault: true 
+        }];
+    });
+    messageHandlers.set('lookup_word', async ({ word }) => {
+        return {
+            word: word,
+            definitions: [{ 
+                partOfSpeech: 'unknown', 
+                meaning: 'Database not initialized - cannot lookup words' 
+            }],
+            error: 'Database initialization failed'
+        };
+    });
+    console.log('VocabDict: Registered fallback handlers');
+}
+
 // Message listener
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleMessage(request, sender)
@@ -911,26 +942,8 @@ browser.runtime.onInstalled.addListener(() => {
 // Initialize on startup (only if not already initialized)
 if (!db) {
     initialize().catch(error => {
-    console.error('VocabDict: Critical initialization error:', error);
-    // Register at least the basic handlers even if DB fails
-    messageHandlers.set('get_all_lists', async () => {
-        return [{ 
-            id: 'fallback_list', 
-            name: 'Fallback List (DB not initialized)', 
-            wordIds: [],
-            isDefault: true 
-        }];
-    });
-    messageHandlers.set('lookup_word', async ({ word }) => {
-        return {
-            word: word,
-            definitions: [{ 
-                partOfSpeech: 'unknown', 
-                meaning: 'Database not initialized - cannot lookup words' 
-            }],
-            error: 'Database initialization failed'
-        };
-    });
-    console.log('VocabDict: Registered fallback handlers');
+        console.error('VocabDict: Critical initialization error:', error);
+        // Register fallback handlers when DB initialization fails
+        registerFallbackHandlers();
     });
 }
