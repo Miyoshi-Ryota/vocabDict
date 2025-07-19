@@ -554,6 +554,147 @@ let initializationPromise = null;
 const messageHandlers = new Map();
 
 
+// Initialize extension
+async function initialize() {
+    // Prevent double initialization
+    if (isInitializing) {
+        return initializationPromise;
+    }
+    
+    if (db && db.db) {
+        console.log('VocabDict: Already initialized');
+        return;
+    }
+    
+    isInitializing = true;
+    
+    initializationPromise = doInitialize();
+    
+    try {
+        await initializationPromise;
+    } finally {
+        isInitializing = false;
+    }
+    
+    return initializationPromise;
+}
+
+async function doInitialize() {
+    console.log('VocabDict: Starting initialization...');
+    
+    // Check if IndexedDB is available
+    if (!('indexedDB' in self)) {
+        console.error('VocabDict: IndexedDB is not available!');
+        throw new Error('IndexedDB is not available');
+    }
+    
+    
+    try {
+        // Initialize database
+        console.log('VocabDict: Creating database instance...');
+        db = new VocabDictDatabase();
+        
+        try {
+            await db.initialize();
+        } catch (dbError) {
+            console.error('VocabDict: Database initialization failed:', dbError);
+            throw dbError;
+        }
+        
+        // Double-check database is ready
+        if (!db.db) {
+            console.error('VocabDict: Database not ready after initialize!');
+            throw new Error('Database initialization did not complete properly');
+        }
+        
+        console.log('VocabDict: Initializing default data...');
+        try {
+            await db.initializeDefaultData();
+            console.log('VocabDict: Default data initialized');
+        } catch (dataError) {
+            console.error('VocabDict: Default data initialization failed:', dataError);
+            // Continue anyway - the db is at least open
+        }
+        
+        console.log('VocabDict: Database initialized successfully');
+        
+        // Set up context menu
+        console.log('VocabDict: Setting up context menu...');
+        try {
+            // Remove existing menu first
+            await browser.contextMenus.removeAll();
+            
+            browser.contextMenus.create({
+                id: 'vocabdict-lookup',
+                title: 'Look up "%s" in VocabDict',
+                contexts: ['selection']
+            });
+            console.log('VocabDict: Context menu created');
+        } catch (menuError) {
+            console.error('VocabDict: Context menu error:', menuError);
+            // Continue anyway
+        }
+        
+        // Register message handlers
+        console.log('VocabDict: Registering message handlers...');
+        registerMessageHandlers();
+        console.log('VocabDict: Registered handlers:', messageHandlers.size, 'handlers');
+        
+        console.log('VocabDict: Extension initialized successfully');
+    } catch (error) {
+        console.error('VocabDict: Failed to initialize extension:', error);
+        console.error('VocabDict: Error stack:', error.stack);
+    }
+}
+
+// Register all message handlers
+function registerMessageHandlers() {
+    // Dictionary operations
+    messageHandlers.set(MessageTypes.LOOKUP_WORD, handleLookupWord);
+    
+    // Vocabulary word operations
+    messageHandlers.set(MessageTypes.ADD_WORD, handleAddWord);
+    messageHandlers.set(MessageTypes.GET_WORD, handleGetWord);
+    messageHandlers.set(MessageTypes.GET_ALL_WORDS, handleGetAllWords);
+    messageHandlers.set(MessageTypes.UPDATE_WORD, handleUpdateWord);
+    messageHandlers.set(MessageTypes.DELETE_WORD, handleDeleteWord);
+    messageHandlers.set(MessageTypes.GET_WORDS_DUE_FOR_REVIEW, handleGetWordsDueForReview);
+    
+    // Vocabulary list operations
+    messageHandlers.set(MessageTypes.ADD_LIST, handleAddList);
+    messageHandlers.set(MessageTypes.GET_LIST, handleGetList);
+    messageHandlers.set(MessageTypes.GET_ALL_LISTS, handleGetAllLists);
+    messageHandlers.set(MessageTypes.UPDATE_LIST, handleUpdateList);
+    messageHandlers.set(MessageTypes.DELETE_LIST, handleDeleteList);
+    messageHandlers.set(MessageTypes.GET_DEFAULT_LIST, handleGetDefaultList);
+    messageHandlers.set(MessageTypes.ADD_WORD_TO_LIST, handleAddWordToList);
+    messageHandlers.set(MessageTypes.REMOVE_WORD_FROM_LIST, handleRemoveWordFromList);
+    
+    // Settings operations
+    messageHandlers.set(MessageTypes.GET_SETTINGS, handleGetSettings);
+    messageHandlers.set(MessageTypes.UPDATE_SETTINGS, handleUpdateSettings);
+    
+    // Stats operations
+    messageHandlers.set(MessageTypes.GET_STATS, handleGetStats);
+    messageHandlers.set(MessageTypes.UPDATE_STATS, handleUpdateStats);
+}
+
+// Add a simple test handler
+messageHandlers.set('ping', async (payload) => {
+    return { message: 'pong', timestamp: Date.now() };
+});
+
+// Add test handler to check initialization status
+messageHandlers.set('check_status', async () => {
+    return {
+        dbInitialized: db !== null,
+        handlersRegistered: messageHandlers.size,
+        handlers: Array.from(messageHandlers.keys()),
+        dbError: db === null ? 'Database not initialized' : 'Database OK'
+    };
+});
+
+
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
 
