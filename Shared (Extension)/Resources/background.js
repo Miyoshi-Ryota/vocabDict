@@ -55,6 +55,41 @@ const MessageStatus = {
     PENDING: 'pending'
 };
 
+// Data Models
+class VocabularyWord {
+    constructor(data = {}) {
+        this.id = data.id || this.generateId();
+        this.word = data.word || '';
+        this.definitions = data.definitions || [];
+        this.dateAdded = data.dateAdded ? new Date(data.dateAdded) : new Date();
+        this.lookupCount = data.lookupCount || 1;
+        this.difficulty = data.difficulty || 'medium';
+        this.lastReviewed = data.lastReviewed ? new Date(data.lastReviewed) : null;
+        this.nextReview = data.nextReview ? new Date(data.nextReview) : null;
+        this.reviewHistory = data.reviewHistory || [];
+        this.listIds = data.listIds || [];
+    }
+
+    generateId() {
+        return `word_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            word: this.word,
+            definitions: this.definitions,
+            dateAdded: this.dateAdded.toISOString(),
+            lookupCount: this.lookupCount,
+            difficulty: this.difficulty,
+            lastReviewed: this.lastReviewed ? this.lastReviewed.toISOString() : null,
+            nextReview: this.nextReview ? this.nextReview.toISOString() : null,
+            reviewHistory: this.reviewHistory,
+            listIds: this.listIds
+        };
+    }
+}
+
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received request: ", request);
