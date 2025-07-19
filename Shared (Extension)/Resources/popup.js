@@ -70,6 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoAddToggle = document.getElementById('autoAddToggle');
     const reminderToggle = document.getElementById('reminderToggle');
     
+    // Local settings cache to prevent race conditions
+    let currentSettings = {};
+    
     // Load settings
     loadSettings();
     
@@ -81,9 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             if (response.status === 'success') {
-                const settings = response.data;
-                autoAddToggle.checked = settings.autoAddToList;
-                reminderToggle.checked = settings.dailyReviewReminder;
+                currentSettings = response.data;
+                autoAddToggle.checked = currentSettings.autoAddToList;
+                reminderToggle.checked = currentSettings.dailyReviewReminder;
             }
         } catch (error) {
             console.error('Failed to load settings:', error);
@@ -96,22 +99,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function updateSetting(key, value) {
         try {
-            const response = await browser.runtime.sendMessage({
-                type: 'get_settings',
-                payload: {}
-            });
+            // Update local cache to prevent race conditions
+            currentSettings[key] = value;
             
-            if (response.status === 'success') {
-                const settings = response.data;
-                settings[key] = value;
-                
-                await browser.runtime.sendMessage({
-                    type: 'update_settings',
-                    payload: { settings }
-                });
-            }
+            await browser.runtime.sendMessage({
+                type: 'update_settings',
+                payload: { settings: currentSettings }
+            });
         } catch (error) {
             console.error('Failed to update setting:', error);
+            // Reload settings to sync with backend if update failed
+            loadSettings();
         }
     }
 });
