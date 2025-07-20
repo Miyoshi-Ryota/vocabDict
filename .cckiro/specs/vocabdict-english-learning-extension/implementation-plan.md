@@ -430,8 +430,8 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 ## Implementation Notes (Actual vs Planned)
 
 ### Key Deviations:
-1. **Architecture**: Adopted single-file approach (background.js) due to Safari ES6 module limitations
-2. **Dictionary Size**: Reduced from 50 to 5 words for initial implementation
+1. **Architecture**: Initially adopted single-file approach, then successfully modularized into 5 files
+2. **Dictionary Size**: Expanded to 20 words (beyond initial 5 words)
 3. **Service Worker**: Changed from persistent background page to service worker
 4. **Data Model**: Removed bidirectional word-list relationship for simplicity
 
@@ -440,11 +440,16 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - Implemented consolidated message handling with error wrapper
 - Created comprehensive UI with theme switching
 - Added floating widget for better UX (not in original plan)
+- Successfully split monolithic background.js into logical modules (constants, models, database, handlers, init)
+- Attempted ES6 modules but reverted due to Safari compatibility issues
 
 ### Current Issues Fixed:
 - ✅ Settings persistence bug (toJSON error)
 - ✅ Missing vocabulary lists UI
 - ✅ Code duplication and magic numbers
 - ✅ Debug console.log cleanup
+- ✅ Memory leaks in content script
+- ✅ Monolithic background.js refactored into modules
+- ✅ Xcode project.pbxproj updated for new files
 
 See `technical-decisions.md` for detailed technical documentation.

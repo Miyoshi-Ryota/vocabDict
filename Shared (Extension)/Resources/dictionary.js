@@ -484,7 +484,3 @@ const TOY_DICTIONARY = {
   }
 };
 
-// Export for use in background script
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = TOY_DICTIONARY;
-}

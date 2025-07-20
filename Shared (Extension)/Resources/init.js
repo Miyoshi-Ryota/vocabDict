@@ -43,14 +43,14 @@ async function doInitialize() {
     console.log('VocabDict: Starting initialization...');
     
     try {
-        // Step 1: Register message handlers
-        await initializeMessageHandlers();
-        
-        // Step 2: Check environment
+        // Step 1: Check environment
         checkEnvironment();
         
-        // Step 3: Initialize database
+        // Step 2: Initialize database
         await initializeDatabase();
+        
+        // Step 3: Register message handlers
+        await initializeMessageHandlers();
         
         // Step 4: Create context menu
         await createContextMenu();
@@ -134,34 +134,38 @@ async function createContextMenu() {
 
 // Register all message handlers
 function registerMessageHandlers() {
+    // Create handlers with dependencies
+    const handlers = createHandlers(db, TOY_DICTIONARY);
+    
     // Dictionary operations
-    messageHandlers.set(MessageTypes.LOOKUP_WORD, createHandler(handleLookupWord));
+    messageHandlers.set(MessageTypes.LOOKUP_WORD, createHandler(handlers.handleLookupWord));
     
     // Vocabulary word operations
-    messageHandlers.set(MessageTypes.ADD_WORD, createHandler(handleAddWord));
-    messageHandlers.set(MessageTypes.GET_WORD, createHandler(handleGetWord));
-    messageHandlers.set(MessageTypes.GET_ALL_WORDS, createHandler(handleGetAllWords));
-    messageHandlers.set(MessageTypes.UPDATE_WORD, createHandler(handleUpdateWord));
-    messageHandlers.set(MessageTypes.DELETE_WORD, createHandler(handleDeleteWord));
-    messageHandlers.set(MessageTypes.GET_WORDS_DUE_FOR_REVIEW, createHandler(handleGetWordsDueForReview));
+    messageHandlers.set(MessageTypes.ADD_WORD, createHandler(handlers.handleAddWord));
+    messageHandlers.set(MessageTypes.GET_WORD, createHandler(handlers.handleGetWord));
+    messageHandlers.set(MessageTypes.GET_ALL_WORDS, createHandler(handlers.handleGetAllWords));
+    messageHandlers.set(MessageTypes.UPDATE_WORD, createHandler(handlers.handleUpdateWord));
+    messageHandlers.set(MessageTypes.DELETE_WORD, createHandler(handlers.handleDeleteWord));
+    messageHandlers.set(MessageTypes.GET_WORDS_DUE_FOR_REVIEW, createHandler(handlers.handleGetWordsDueForReview));
     
     // Vocabulary list operations
-    messageHandlers.set(MessageTypes.ADD_LIST, createHandler(handleAddList));
-    messageHandlers.set(MessageTypes.GET_LIST, createHandler(handleGetList));
-    messageHandlers.set(MessageTypes.GET_ALL_LISTS, createHandler(handleGetAllLists));
-    messageHandlers.set(MessageTypes.UPDATE_LIST, createHandler(handleUpdateList));
-    messageHandlers.set(MessageTypes.DELETE_LIST, createHandler(handleDeleteList));
-    messageHandlers.set(MessageTypes.GET_DEFAULT_LIST, createHandler(handleGetDefaultList));
-    messageHandlers.set(MessageTypes.ADD_WORD_TO_LIST, createHandler(handleAddWordToList));
-    messageHandlers.set(MessageTypes.REMOVE_WORD_FROM_LIST, createHandler(handleRemoveWordFromList));
+    messageHandlers.set(MessageTypes.ADD_LIST, createHandler(handlers.handleAddList));
+    messageHandlers.set(MessageTypes.GET_LIST, createHandler(handlers.handleGetList));
+    messageHandlers.set(MessageTypes.GET_ALL_LISTS, createHandler(handlers.handleGetAllLists));
+    messageHandlers.set(MessageTypes.UPDATE_LIST, createHandler(handlers.handleUpdateList));
+    messageHandlers.set(MessageTypes.DELETE_LIST, createHandler(handlers.handleDeleteList));
+    messageHandlers.set(MessageTypes.GET_DEFAULT_LIST, createHandler(handlers.handleGetDefaultList));
+    messageHandlers.set(MessageTypes.ADD_WORD_TO_LIST, createHandler(handlers.handleAddWordToList));
+    messageHandlers.set(MessageTypes.REMOVE_WORD_FROM_LIST, createHandler(handlers.handleRemoveWordFromList));
     
     // Settings operations
-    messageHandlers.set(MessageTypes.GET_SETTINGS, createHandler(handleGetSettings));
-    messageHandlers.set(MessageTypes.UPDATE_SETTINGS, createHandler(handleUpdateSettings));
+    messageHandlers.set(MessageTypes.GET_SETTINGS, createHandler(handlers.handleGetSettings));
+    messageHandlers.set(MessageTypes.UPDATE_SETTINGS, createHandler(handlers.handleUpdateSettings));
     
     // Stats operations
-    messageHandlers.set(MessageTypes.GET_STATS, createHandler(handleGetStats));
-    messageHandlers.set(MessageTypes.UPDATE_STATS, createHandler(handleUpdateStats));
+    messageHandlers.set(MessageTypes.GET_STATS, createHandler(handlers.handleGetStats));
+    messageHandlers.set(MessageTypes.UPDATE_STATS, createHandler(handlers.handleUpdateStats));
+    messageHandlers.set(MessageTypes.UPDATE_REVIEW_STATS, createHandler(handlers.handleUpdateReviewStats));
 }
 
 // Add test handlers for debugging

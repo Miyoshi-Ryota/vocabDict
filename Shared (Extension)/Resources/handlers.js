@@ -12,14 +12,17 @@ function createHandler(handler) {
     };
 }
 
-// Dictionary handlers
-/**
- * Looks up a word in the dictionary
- * @param {Object} payload - The request payload
- * @param {string} payload.word - The word to look up
- * @returns {Promise<Object>} Dictionary entry or null if not found
- */
-async function handleLookupWord({ word }) {
+// Create all handlers with dependencies injected
+function createHandlers(db, TOY_DICTIONARY) {
+    
+    // Dictionary handlers
+    /**
+     * Looks up a word in the dictionary
+     * @param {Object} payload - The request payload
+     * @param {string} payload.word - The word to look up
+     * @returns {Promise<Object>} Dictionary entry or null if not found
+     */
+    async function handleLookupWord({ word }) {
     // Input validation
     if (!word || typeof word !== 'string') {
         throw new Error('Word parameter is required and must be a string');
@@ -230,6 +233,31 @@ async function handleUpdateReviewStats({ wordId, correct }) {
     return {
         word: word.toJSON(),
         stats: stats.toJSON()
+    };
+}
+
+    // Return all handlers
+    return {
+        handleLookupWord,
+        handleAddWord,
+        handleGetWord,
+        handleGetAllWords,
+        handleUpdateWord,
+        handleDeleteWord,
+        handleGetWordsDueForReview,
+        handleAddList,
+        handleGetList,
+        handleGetAllLists,
+        handleUpdateList,
+        handleDeleteList,
+        handleGetDefaultList,
+        handleAddWordToList,
+        handleRemoveWordFromList,
+        handleGetSettings,
+        handleUpdateSettings,
+        handleGetStats,
+        handleUpdateStats,
+        handleUpdateReviewStats
     };
 }
 

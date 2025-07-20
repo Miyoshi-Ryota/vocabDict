@@ -13,36 +13,44 @@ This document captures the actual implementation details, technical decisions, w
 **Issue**: Safari extensions don't support ES6 modules (`import`/`export` statements)
 
 **Investigation Results**:
-- ES6 modules (`type="module"`) are NOT supported in Safari extension service workers
-- `import` and `export` statements fail with "Unexpected token" errors
+- ES6 modules (`type="module"`) are NOT supported in Safari extension service workers (tested 2025-07-20)
+- `import` and `export` statements fail with "The background content failed to load due to an error"
 - Dynamic imports (`import()`) also fail
+- Claude Opus claimed support exists, but testing proved otherwise
 - This is a WebExtensions API limitation in Safari, not a bug
 
 **Current Solution**: Multiple files loaded sequentially via manifest.json
 ```json
 "background": {
     "scripts": [
-        "file1.js",  // Loaded first, defines globals
-        "file2.js",  // Can use globals from file1.js
-        "file3.js"   // Can use globals from file1.js and file2.js
-    ]
+        "constants.js",   // Configuration and enums
+        "models.js",      // Data model classes
+        "database.js",    // Database operations
+        "dictionary.js",  // Toy dictionary data
+        "handlers.js",    // Message handlers
+        "init.js"         // Initialization and routing
+    ],
+    "persistent": false
 }
 ```
 
-**Implementation**:
-- Split monolithic `background.js` into logical files:
-  - `constants.js` - Constants and configuration
-  - `models.js` - Data model classes
-  - `database.js` - Database operations
-  - `handlers.js` - Message handlers
-  - `init.js` - Initialization logic
+**Implementation Details**:
+- Split monolithic `background.js` (1115 lines) into logical files:
+  - `constants.js` (71 lines) - Constants and configuration
+  - `models.js` (170 lines) - Data model classes
+  - `database.js` (344 lines) - Database operations
+  - `handlers.js` (279 lines) - Message handlers
+  - `init.js` (247 lines) - Initialization logic
 - Files share data via global scope (no modules)
 - Loading order matters - dependencies must load first
+- Xcode project.pbxproj updated with membershipExceptions for all new files
 
 **Trade-offs**:
 - ✅ Better code organization and maintainability
 - ✅ Works reliably in Safari
-- ✅ Easier to test individual components
+- ✅ Easier to debug specific functionality
+- ✅ Reduced cognitive load per file
+- ✅ Can still find code by functionality
 - ❌ No module encapsulation (everything is global)
 - ❌ Must manually manage loading order
 - ❌ Risk of global namespace pollution
@@ -125,13 +133,18 @@ messageHandlers.set(MessageTypes.LOOKUP_WORD, handleLookupWord);
 
 **Workaround**:
 ```javascript
-// Instead of:
+// Instead of ES6 modules:
 // import { VocabularyWord } from './models.js';
+// export class VocabularyWord { ... }
 
-// We use:
+// We use global scope with sequential loading:
+// In models.js:
 class VocabularyWord {
-    // Defined inline in background.js
+    // Defined globally
 }
+
+// In database.js (loaded after models.js):
+// Can use VocabularyWord directly
 ```
 
 ### 2. Content Script Context Issues
@@ -217,9 +230,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
    - Some async operations lack visual feedback
    - TODO: Add consistent loading indicators
 
-3. **Memory Management**
-   - Event listeners might accumulate
-   - TODO: Add cleanup on page navigation
+3. **Memory Management** ✅ FIXED (2025-07-20)
+   - **Issue**: Event listeners might accumulate
+   - **Fix Applied**: Added cleanup handlers in content script with page navigation detection
 
 ## Performance Optimizations Applied
 
@@ -331,25 +344,25 @@ function updateUI(data) {
 
 ## Next Technical Steps
 
-1. **Build Process**
-   - Set up webpack or rollup
-   - Maintain modular source code
-   - Output Safari-compatible bundles
-
-2. **Testing Framework**
+1. **Testing Framework**
    - Add Jest for unit tests
    - Puppeteer for E2E tests
    - Mock browser APIs
 
-3. **Error Tracking**
+2. **Error Tracking**
    - Implement proper logging
    - Add error reporting
    - Track user actions for debugging
 
-4. **Performance Monitoring**
+3. **Performance Monitoring**
    - Add timing measurements
    - Track memory usage
    - Monitor database size
+
+4. **Build Process Considerations**
+   - Current multi-file approach works well
+   - Consider bundling only if performance issues arise
+   - Keep global scope organized with namespacing
 
 ## Code Snippets for Common Tasks
 

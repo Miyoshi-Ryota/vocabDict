@@ -15,11 +15,11 @@
     },
 
     "background": {
-        "scripts": [ 
-            "dictionary.js",
+        "scripts": [
             "constants.js",
             "models.js",
             "database.js",
+            "dictionary.js",
             "handlers.js",
             "init.js"
         ],
