@@ -36,11 +36,16 @@ dictionary.js ──────────┘
 
 ### Critical Issues (Must Fix Before Phase 3)
 
-#### 1. **Monolithic Background Script**
+#### 1. **Monolithic Background Script** ✅ FIXED
 - **Location**: `background.js` (1115 lines)
 - **Issue**: All core logic in single file makes maintenance difficult
 - **Impact**: Hard to debug, test, and modify
-- **Solution**: Split into logical modules (even if concatenated for Safari)
+- **Solution**: Split into multiple files loaded sequentially:
+  - constants.js (71 lines) - Configuration
+  - models.js (170 lines) - Data models
+  - database.js (344 lines) - Database operations
+  - handlers.js (234 lines) - Message handlers
+  - init.js (160 lines) - Initialization
 
 #### 2. **Settings Persistence Bug** ✅ FIXED
 - **Location**: `background.js:handleUpdateSettings`

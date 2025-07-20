@@ -13,6 +13,36 @@
 3. Build and run (⌘R)
 4. Enable the extension in Safari Preferences → Extensions
 
+### Adding New JavaScript Files to the Extension
+**Important**: When adding new JavaScript files to the Safari extension, you must:
+
+1. **Add files to Xcode project**:
+   - Right-click on "Shared (Extension)/Resources" in Xcode
+   - Select "Add Files to vocabDict..."
+   - Select your new .js files
+   - Make sure "Copy items if needed" is unchecked (files should already be in the correct location)
+   - Ensure the target "vocabDict Extension" is checked
+
+2. **Update manifest.json**:
+   - Add the new files to the `background.scripts` array in the correct order
+   - Dependencies must be loaded before files that use them
+   
+3. **File loading order example**:
+   ```json
+   "background": {
+       "scripts": [
+           "dictionary.js",      // Data
+           "constants.js",       // Constants and config
+           "models.js",          // Data model classes
+           "database.js",        // Database operations
+           "handlers.js",        // Message handlers
+           "init.js"            // Initialization (must be last)
+       ]
+   }
+   ```
+
+**Note**: Safari does NOT support ES6 modules in extensions. You must use the global scope for sharing between files.
+
 ### Testing the Extension
 1. **Popup Testing**: Click extension icon in toolbar
 2. **Content Script Testing**: Visit any webpage, select text, right-click

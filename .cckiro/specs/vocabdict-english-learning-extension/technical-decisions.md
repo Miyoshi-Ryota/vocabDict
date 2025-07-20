@@ -7,23 +7,45 @@ This document captures the actual implementation details, technical decisions, w
 
 ## Technical Decisions Made
 
-### 1. Single-File Architecture
-**Decision**: Consolidate all JavaScript into large single files rather than modules
+### 1. Single-File Architecture → Multi-File Architecture (Updated 2025-07-20)
+**Original Decision**: Consolidate all JavaScript into large single files rather than modules
 
-**Rationale**:
-- Safari extensions have limitations with ES6 modules
-- Import/export statements were causing loading failures
-- Service worker context doesn't support dynamic imports
+**Issue**: Safari extensions don't support ES6 modules (`import`/`export` statements)
+
+**Investigation Results**:
+- ES6 modules (`type="module"`) are NOT supported in Safari extension service workers
+- `import` and `export` statements fail with "Unexpected token" errors
+- Dynamic imports (`import()`) also fail
+- This is a WebExtensions API limitation in Safari, not a bug
+
+**Current Solution**: Multiple files loaded sequentially via manifest.json
+```json
+"background": {
+    "scripts": [
+        "file1.js",  // Loaded first, defines globals
+        "file2.js",  // Can use globals from file1.js
+        "file3.js"   // Can use globals from file1.js and file2.js
+    ]
+}
+```
 
 **Implementation**:
-- All models, database logic, and handlers in `background.js`
-- Self-contained popup logic in `popup.js`
-- Separate content script in `content.js`
+- Split monolithic `background.js` into logical files:
+  - `constants.js` - Constants and configuration
+  - `models.js` - Data model classes
+  - `database.js` - Database operations
+  - `handlers.js` - Message handlers
+  - `init.js` - Initialization logic
+- Files share data via global scope (no modules)
+- Loading order matters - dependencies must load first
 
 **Trade-offs**:
+- ✅ Better code organization and maintainability
 - ✅ Works reliably in Safari
-- ❌ Harder to maintain and test
-- ❌ Large file sizes
+- ✅ Easier to test individual components
+- ❌ No module encapsulation (everything is global)
+- ❌ Must manually manage loading order
+- ❌ Risk of global namespace pollution
 
 ### 2. Database Design Simplification
 **Decision**: Remove bidirectional relationship between words and lists
