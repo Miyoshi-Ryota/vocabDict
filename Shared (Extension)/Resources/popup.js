@@ -118,51 +118,87 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
     
+    /**
+     * Render word header with title and add button
+     * @param {string} word - The word to display
+     * @returns {string} HTML string
+     */
+    function renderWordHeader(word) {
+        return `
+            <div class="word-header">
+                <h2 class="word-title">${escapeHtml(word)}</h2>
+                <button class="add-word-btn" title="Add to vocabulary list">+ Add to List</button>
+            </div>
+        `;
+    }
+    
+    /**
+     * Render pronunciations section
+     * @param {Array} pronunciations - Array of pronunciation objects
+     * @returns {string} HTML string
+     */
+    function renderPronunciations(pronunciations) {
+        if (!pronunciations || pronunciations.length === 0) return '';
+        
+        const pronunciationHTML = pronunciations
+            .map(p => `<span class="pronunciation">${p.type}: ${escapeHtml(p.phonetic)}</span>`)
+            .join('');
+            
+        return `<div class="pronunciations">${pronunciationHTML}</div>`;
+    }
+    
+    /**
+     * Render definitions section
+     * @param {Array} definitions - Array of definition objects
+     * @returns {string} HTML string
+     */
+    function renderDefinitions(definitions) {
+        if (!definitions || definitions.length === 0) return '';
+        
+        const definitionsHTML = definitions.map((def, index) => `
+            <div class="definition-item">
+                <div class="definition-header">
+                    <span class="part-of-speech">${def.partOfSpeech}</span>
+                    <span class="definition-number">${index + 1}</span>
+                </div>
+                <p class="definition-meaning">${escapeHtml(def.meaning)}</p>
+                ${renderExamples(def.examples)}
+            </div>
+        `).join('');
+        
+        return `<div class="definitions">${definitionsHTML}</div>`;
+    }
+    
+    /**
+     * Render examples for a definition
+     * @param {Array} examples - Array of example sentences
+     * @returns {string} HTML string
+     */
+    function renderExamples(examples) {
+        if (!examples || examples.length === 0) return '';
+        
+        const examplesHTML = examples
+            .map(example => `<p class="example">"${escapeHtml(example)}"</p>`)
+            .join('');
+            
+        return `<div class="definition-examples">${examplesHTML}</div>`;
+    }
+    
+    /**
+     * Display dictionary search result
+     * @param {Object} definition - The word definition object
+     */
     function showDictionaryResult(definition) {
         const { word, pronunciations, definitions, synonyms, antonyms, examples } = definition;
         
         let html = `
             <div class="dictionary-result">
-                <div class="word-header">
-                    <h2 class="word-title">${escapeHtml(word)}</h2>
-                    <button class="add-word-btn" title="Add to vocabulary list">+ Add to List</button>
-                </div>
+                ${renderWordHeader(word)}
+                ${renderPronunciations(pronunciations)}
+                ${renderDefinitions(definitions)}
         `;
         
-        // Pronunciations
-        if (pronunciations && pronunciations.length > 0) {
-            html += `<div class="pronunciations">`;
-            pronunciations.forEach(p => {
-                html += `<span class="pronunciation">${p.type}: ${escapeHtml(p.phonetic)}</span>`;
-            });
-            html += `</div>`;
-        }
-        
-        // Definitions
-        if (definitions && definitions.length > 0) {
-            html += `<div class="definitions">`;
-            definitions.forEach((def, index) => {
-                html += `
-                    <div class="definition-item">
-                        <div class="definition-header">
-                            <span class="part-of-speech">${def.partOfSpeech}</span>
-                            <span class="definition-number">${index + 1}</span>
-                        </div>
-                        <p class="definition-meaning">${escapeHtml(def.meaning)}</p>
-                `;
-                
-                if (def.examples && def.examples.length > 0) {
-                    html += `<div class="definition-examples">`;
-                    def.examples.forEach(example => {
-                        html += `<p class="example">"${escapeHtml(example)}"</p>`;
-                    });
-                    html += `</div>`;
-                }
-                
-                html += `</div>`;
-            });
-            html += `</div>`;
-        }
+        // Continue building HTML in next part
         
         // Synonyms and Antonyms
         if ((synonyms && synonyms.length > 0) || (antonyms && antonyms.length > 0)) {

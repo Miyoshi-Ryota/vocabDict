@@ -446,4 +446,36 @@
         initialize();
     }
     
+    // Cleanup function to prevent memory leaks
+    function cleanup() {
+        // Remove all event listeners
+        document.removeEventListener('mouseup', handleTextSelection);
+        document.removeEventListener('touchend', handleTextSelection);
+        document.removeEventListener('selectionchange', handleSelectionChange);
+        
+        // Remove floating widget if exists
+        hideFloatingWidget();
+        
+        // Clear any pending timeouts
+        if (selectionTimeout) {
+            clearTimeout(selectionTimeout);
+            selectionTimeout = null;
+        }
+    }
+    
+    // Listen for page navigation to cleanup
+    window.addEventListener('pagehide', cleanup);
+    window.addEventListener('unload', cleanup);
+    
+    // Also cleanup when the extension context is invalidated
+    if (browser.runtime?.id) {
+        // Check periodically if extension context is still valid
+        const contextCheckInterval = setInterval(() => {
+            if (!browser.runtime?.id) {
+                cleanup();
+                clearInterval(contextCheckInterval);
+            }
+        }, 5000);
+    }
+    
 })();

@@ -828,7 +828,17 @@ async function handleMessage(request, sender) {
  * @returns {Promise<Object>} Dictionary entry or null if not found
  */
 async function handleLookupWord({ word }) {
+    // Input validation
+    if (!word || typeof word !== 'string') {
+        throw new Error('Word parameter is required and must be a string');
+    }
+    
     const normalizedWord = word.toLowerCase().trim();
+    
+    if (normalizedWord.length < CONSTANTS.MIN_WORD_LENGTH || 
+        normalizedWord.length > CONSTANTS.MAX_WORD_LENGTH) {
+        throw new Error(`Word must be between ${CONSTANTS.MIN_WORD_LENGTH} and ${CONSTANTS.MAX_WORD_LENGTH} characters`);
+    }
     
     // Check cache first
     const cached = await db.getCachedDictionaryEntry(normalizedWord);
@@ -917,7 +927,29 @@ async function handleGetDefaultList() {
     return await db.getDefaultList();
 }
 
+/**
+ * Add a word to a vocabulary list
+ * @param {Object} payload - The request payload
+ * @param {string} [payload.wordId] - ID of existing word
+ * @param {string} [payload.listId] - Target list ID
+ * @param {Object} [payload.wordData] - New word data to add
+ * @returns {Promise<Object>} The word object
+ */
 async function handleAddWordToList({ wordId, listId, wordData }) {
+    // Input validation
+    if (!wordId && !wordData) {
+        throw new Error('Either wordId or wordData must be provided');
+    }
+    
+    if (wordData) {
+        if (!wordData.word || typeof wordData.word !== 'string') {
+            throw new Error('Word property is required in wordData');
+        }
+        if (!wordData.definitions || !Array.isArray(wordData.definitions)) {
+            throw new Error('Definitions array is required in wordData');
+        }
+    }
+    
     let word;
     let targetListId = listId;
     
