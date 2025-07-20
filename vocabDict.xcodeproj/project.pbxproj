@@ -111,7 +111,9 @@
 			membershipExceptions = (
 				Resources/_locales,
 				Resources/background.js,
+				Resources/content.css,
 				Resources/content.js,
+				Resources/dictionary.js,
 				Resources/images,
 				Resources/manifest.json,
 				Resources/popup.css,
@@ -126,7 +128,9 @@
 			membershipExceptions = (
 				Resources/_locales,
 				Resources/background.js,
+				Resources/content.css,
 				Resources/content.js,
+				Resources/dictionary.js,
 				Resources/images,
 				Resources/manifest.json,
 				Resources/popup.css,
