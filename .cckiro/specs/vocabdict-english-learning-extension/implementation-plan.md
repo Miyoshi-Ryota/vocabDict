@@ -3,9 +3,16 @@
 ## Overview
 This implementation plan breaks down the development of VocabDict into manageable tasks across 5 phases. Each task includes specific files to create/modify and acceptance criteria.
 
-## Phase 1: Core Infrastructure (Foundation)
+## Current Status (Last Updated: 2025-07-20)
+- **Phase 1**: ✅ COMPLETED
+- **Phase 2**: ✅ COMPLETED
+- **Phase 3**: 🔄 IN PROGRESS (List UI implemented, learning mode pending)
+- **Phase 4**: ⏳ NOT STARTED
+- **Phase 5**: ⏳ NOT STARTED
 
-### 1.1 Update Extension Manifest
+## Phase 1: Core Infrastructure (Foundation) ✅ COMPLETED
+
+### 1.1 Update Extension Manifest ✅ DONE
 **Files to modify:**
 - `Shared (Extension)/Resources/manifest.json`
 
@@ -20,7 +27,7 @@ This implementation plan breaks down the development of VocabDict into manageabl
 - All permissions properly declared
 - Icons display correctly in toolbar
 
-### 1.2 Implement Storage Layer
+### 1.2 Implement Storage Layer ✅ DONE
 **Files to create:**
 - `Shared (Extension)/Resources/js/storage/database.js`
 - `Shared (Extension)/Resources/js/storage/models.js`
@@ -38,7 +45,7 @@ This implementation plan breaks down the development of VocabDict into manageabl
 - Data persists across browser sessions
 - Handles storage errors gracefully
 
-### 1.3 Set Up Message Passing System
+### 1.3 Set Up Message Passing System ✅ DONE
 **Files to create:**
 - `Shared (Extension)/Resources/js/messaging/messageHandler.js`
 - `Shared (Extension)/Resources/js/messaging/messageTypes.js`
@@ -55,7 +62,7 @@ This implementation plan breaks down the development of VocabDict into manageabl
 - Async operations handled properly
 - Failed messages report errors appropriately
 
-### 1.4 Create Base UI Components
+### 1.4 Create Base UI Components ✅ DONE
 **Files to create:**
 - `Shared (Extension)/Resources/css/components.css`
 - `Shared (Extension)/Resources/js/components/base.js`
@@ -116,7 +123,7 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - Widget doesn't go off-screen
 - Can dismiss widget easily
 
-### 2.3 Add Context Menu Integration
+### 2.3 Add Context Menu Integration ✅ DONE
 **Files to modify:**
 - `Shared (Extension)/Resources/background.js`
 
@@ -132,7 +139,7 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - Context menu works on selected text
 - Keyboard shortcut triggers lookup
 
-### 2.4 Build Dictionary View in Popup
+### 2.4 Build Dictionary View in Popup ✅ DONE
 **Files to modify:**
 - `Shared (Extension)/Resources/popup.html`
 - `Shared (Extension)/Resources/popup.js`
@@ -195,7 +202,7 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - Sorting works correctly
 - Search filters results instantly
 
-### 3.3 Auto-add and Tracking Features
+### 3.3 Auto-add and Tracking Features ℹ️ TODO
 **Files to modify:**
 - `Shared (Extension)/Resources/js/dictionary/dictionaryService.js`
 - `Shared (Extension)/Resources/background.js`
@@ -213,7 +220,7 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - No duplicate words in lists
 - Can disable auto-add feature
 
-### 3.4 Import/Export Functionality
+### 3.4 Import/Export Functionality ℹ️ TODO
 **Files to create:**
 - `Shared (Extension)/Resources/js/services/importExportService.js`
 
@@ -419,3 +426,30 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - Focus on core functionality before polish
 - Maintain backward compatibility for future sync feature
 - Document all APIs for future development
+
+## Implementation Notes (Actual vs Planned)
+
+### Key Deviations:
+1. **Architecture**: Initially adopted single-file approach, then successfully modularized into 5 files
+2. **Dictionary Size**: Expanded to 20 words (beyond initial 5 words)
+3. **Service Worker**: Changed from persistent background page to service worker
+4. **Data Model**: Removed bidirectional word-list relationship for simplicity
+
+### Technical Decisions:
+- Used IndexedDB directly instead of browser.storage API
+- Implemented consolidated message handling with error wrapper
+- Created comprehensive UI with theme switching
+- Added floating widget for better UX (not in original plan)
+- Successfully split monolithic background.js into logical modules (constants, models, database, handlers, init)
+- Attempted ES6 modules but reverted due to Safari compatibility issues
+
+### Current Issues Fixed:
+- ✅ Settings persistence bug (toJSON error)
+- ✅ Missing vocabulary lists UI
+- ✅ Code duplication and magic numbers
+- ✅ Debug console.log cleanup
+- ✅ Memory leaks in content script
+- ✅ Monolithic background.js refactored into modules
+- ✅ Xcode project.pbxproj updated for new files
+
+See `technical-decisions.md` for detailed technical documentation.

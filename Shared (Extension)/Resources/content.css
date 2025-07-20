@@ -1,0 +1,263 @@
+/* VocabDict Content Script Styles */
+/* Floating widget for word definitions */
+
+.vocabdict-floating-widget {
+    position: fixed;
+    max-width: 320px;
+    min-width: 280px;
+    background: #ffffff;
+    border: 1px solid #e5e5e7;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    z-index: 10000;
+    animation: vocabdict-fade-in 0.2s ease-out;
+}
+
+@keyframes vocabdict-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.vocabdict-widget-content {
+    padding: 16px;
+}
+
+.vocabdict-widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.vocabdict-word {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.vocabdict-close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #8e8e93;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.vocabdict-close-btn:hover {
+    background: #f2f2f7;
+    color: #1d1d1f;
+}
+
+.vocabdict-pronunciations {
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.vocabdict-pronunciation {
+    font-size: 13px;
+    color: #8e8e93;
+    font-style: italic;
+}
+
+.vocabdict-definitions {
+    margin-bottom: 16px;
+}
+
+.vocabdict-definition {
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vocabdict-definition:last-child {
+    margin-bottom: 0;
+}
+
+.vocabdict-pos {
+    font-size: 12px;
+    font-weight: 600;
+    color: #007aff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vocabdict-meaning {
+    color: #1d1d1f;
+    line-height: 1.5;
+}
+
+.vocabdict-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.vocabdict-add-btn,
+.vocabdict-more-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.vocabdict-add-btn {
+    background: #007aff;
+    color: white;
+}
+
+.vocabdict-add-btn:hover {
+    background: #0056cc;
+}
+
+.vocabdict-add-btn:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.vocabdict-more-btn {
+    background: #f2f2f7;
+    color: #1d1d1f;
+}
+
+.vocabdict-more-btn:hover {
+    background: #e8e8ed;
+}
+
+.vocabdict-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    color: #8e8e93;
+}
+
+.vocabdict-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f2f2f7;
+    border-top: 2px solid #007aff;
+    border-radius: 50%;
+    animation: vocabdict-spin 1s linear infinite;
+}
+
+@keyframes vocabdict-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.vocabdict-error {
+    padding: 20px;
+    text-align: center;
+    color: #ff3b30;
+    font-size: 13px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .vocabdict-floating-widget {
+        background: #2c2c2e;
+        border-color: #38383a;
+        color: #ffffff;
+    }
+    
+    .vocabdict-word {
+        color: #ffffff;
+    }
+    
+    .vocabdict-close-btn {
+        color: #8e8e93;
+    }
+    
+    .vocabdict-close-btn:hover {
+        background: #48484a;
+        color: #ffffff;
+    }
+    
+    .vocabdict-meaning {
+        color: #ffffff;
+    }
+    
+    .vocabdict-more-btn {
+        background: #48484a;
+        color: #ffffff;
+    }
+    
+    .vocabdict-more-btn:hover {
+        background: #5a5a5c;
+    }
+    
+    .vocabdict-spinner {
+        border-color: #48484a;
+        border-top-color: #007aff;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .vocabdict-floating-widget {
+        max-width: 280px;
+        min-width: 240px;
+    }
+    
+    .vocabdict-widget-content {
+        padding: 12px;
+    }
+    
+    .vocabdict-word {
+        font-size: 16px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .vocabdict-floating-widget {
+        border-width: 2px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .vocabdict-add-btn {
+        border: 2px solid #007aff;
+    }
+    
+    .vocabdict-more-btn {
+        border: 2px solid #8e8e93;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .vocabdict-floating-widget {
+        animation: none;
+    }
+    
+    .vocabdict-spinner {
+        animation: none;
+        border-top-color: #007aff;
+    }
+    
+    .vocabdict-add-btn,
+    .vocabdict-more-btn,
+    .vocabdict-close-btn {
+        transition: none;
+    }
+}

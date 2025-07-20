@@ -15,12 +15,20 @@
     },
 
     "background": {
-        "scripts": [ "background.js" ],
+        "scripts": [
+            "constants.js",
+            "models.js",
+            "database.js",
+            "dictionary.js",
+            "handlers.js",
+            "init.js"
+        ],
         "persistent": false
     },
 
     "content_scripts": [{
         "js": [ "content.js" ],
+        "css": [ "content.css" ],
         "matches": [ "<all_urls>" ],
         "run_at": "document_idle"
     }],
