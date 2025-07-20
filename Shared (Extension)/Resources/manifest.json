@@ -15,7 +15,7 @@
     },
 
     "background": {
-        "scripts": [ "background.js" ],
+        "scripts": [ "dictionary.js", "background.js" ],
         "persistent": false
     },
 

@@ -1,128 +1,35 @@
 // VocabDict Background Script - All-in-one bundle for Safari compatibility
+// Note: TOY_DICTIONARY is loaded from dictionary.js which is loaded before this script
 
-// Toy Dictionary - 20 Common English Words for VocabDict
-const TOY_DICTIONARY = {
-  "hello": {
-    pronunciations: [
-      { type: "US", phonetic: "/həˈloʊ/" },
-      { type: "UK", phonetic: "/həˈləʊ/" }
-    ],
-    definitions: [
-      {
-        partOfSpeech: "noun",
-        meaning: "A greeting or expression of goodwill",
-        examples: ["She gave him a warm hello."]
-      },
-      {
-        partOfSpeech: "verb", 
-        meaning: "To greet with 'hello'",
-        examples: ["I helloed him from across the street."]
-      }
-    ],
-    synonyms: ["hi", "greetings", "salutations"],
-    antonyms: ["goodbye", "farewell"],
-    examples: [
-      "Hello! How are you today?",
-      "She said hello to everyone in the room."
-    ]
-  },
-  "world": {
-    pronunciations: [
-      { type: "US", phonetic: "/wɜːrld/" },
-      { type: "UK", phonetic: "/wɜːld/" }
-    ],
-    definitions: [
-      {
-        partOfSpeech: "noun",
-        meaning: "The earth and all the people and things on it",
-        examples: ["The world is a beautiful place."]
-      },
-      {
-        partOfSpeech: "noun",
-        meaning: "A particular area of activity or experience",
-        examples: ["The world of technology is constantly changing."]
-      }
-    ],
-    synonyms: ["earth", "globe", "planet"],
-    antonyms: [],
-    examples: [
-      "Welcome to the world!",
-      "The world is your oyster."
-    ]
-  },
-  "good": {
-    pronunciations: [
-      { type: "US", phonetic: "/ɡʊd/" },
-      { type: "UK", phonetic: "/ɡʊd/" }
-    ],
-    definitions: [
-      {
-        partOfSpeech: "adjective",
-        meaning: "Of high quality; satisfactory",
-        examples: ["This is a good book."]
-      },
-      {
-        partOfSpeech: "noun",
-        meaning: "Something that is beneficial or advantageous",
-        examples: ["Exercise is good for your health."]
-      }
-    ],
-    synonyms: ["excellent", "fine", "great"],
-    antonyms: ["bad", "poor", "terrible"],
-    examples: [
-      "Have a good day!",
-      "That's a good idea."
-    ]
-  },
-  "time": {
-    pronunciations: [
-      { type: "US", phonetic: "/taɪm/" },
-      { type: "UK", phonetic: "/taɪm/" }
-    ],
-    definitions: [
-      {
-        partOfSpeech: "noun",
-        meaning: "The indefinite continued progress of existence",
-        examples: ["Time flies when you're having fun."]
-      },
-      {
-        partOfSpeech: "verb",
-        meaning: "To plan or schedule",
-        examples: ["I need to time this correctly."]
-      }
-    ],
-    synonyms: ["duration", "period", "moment"],
-    antonyms: [],
-    examples: [
-      "What time is it?",
-      "Time is money."
-    ]
-  },
-  "work": {
-    pronunciations: [
-      { type: "US", phonetic: "/wɜːrk/" },
-      { type: "UK", phonetic: "/wɜːk/" }
-    ],
-    definitions: [
-      {
-        partOfSpeech: "noun",
-        meaning: "Activity involving mental or physical effort",
-        examples: ["I have a lot of work to do."]
-      },
-      {
-        partOfSpeech: "verb",
-        meaning: "To engage in physical or mental activity",
-        examples: ["I work from home."]
-      }
-    ],
-    synonyms: ["job", "labor", "employment"],
-    antonyms: ["rest", "leisure", "play"],
-    examples: [
-      "All work and no play makes Jack a dull boy.",
-      "Work hard, play hard."
-    ]
-  }
+// Constants
+const CONSTANTS = {
+    // Timing
+    DEBOUNCE_DELAY: 300,
+    FEEDBACK_DURATION: 2000,
+    CACHE_EXPIRY_HOURS: 24,
+    
+    // Limits
+    MIN_WORD_LENGTH: 2,
+    MAX_WORD_LENGTH: 50,
+    DEFAULT_REVIEW_SESSION_SIZE: 20,
+    DEFAULT_REMINDER_TIME: '20:00',
+    
+    // Storage
+    DB_NAME: 'vocabdict_db',
+    DB_VERSION: 1
 };
+
+// Error handling wrapper for message handlers
+function createHandler(handler) {
+    return async (payload, sender) => {
+        try {
+            return await handler(payload, sender);
+        } catch (error) {
+            console.error(`Handler error in ${handler.name}:`, error);
+            throw error;
+        }
+    };
+}
 
 // Message Types
 const MessageTypes = {
@@ -301,11 +208,11 @@ class LearningStats {
     }
 }
 
-// Database configuration constants
+// Database configuration constants (using values from CONSTANTS)
 const DB_CONFIG = {
-    NAME: 'vocabdict_db',
-    VERSION: 1,
-    CACHE_EXPIRY_HOURS: 24
+    NAME: CONSTANTS.DB_NAME,
+    VERSION: CONSTANTS.DB_VERSION,
+    CACHE_EXPIRY_HOURS: CONSTANTS.CACHE_EXPIRY_HOURS
 };
 
 // Database wrapper
@@ -800,33 +707,33 @@ async function doInitialize() {
 // Register all message handlers
 function registerMessageHandlers() {
     // Dictionary operations
-    messageHandlers.set(MessageTypes.LOOKUP_WORD, handleLookupWord);
+    messageHandlers.set(MessageTypes.LOOKUP_WORD, createHandler(handleLookupWord));
     
     // Vocabulary word operations
-    messageHandlers.set(MessageTypes.ADD_WORD, handleAddWord);
-    messageHandlers.set(MessageTypes.GET_WORD, handleGetWord);
-    messageHandlers.set(MessageTypes.GET_ALL_WORDS, handleGetAllWords);
-    messageHandlers.set(MessageTypes.UPDATE_WORD, handleUpdateWord);
-    messageHandlers.set(MessageTypes.DELETE_WORD, handleDeleteWord);
-    messageHandlers.set(MessageTypes.GET_WORDS_DUE_FOR_REVIEW, handleGetWordsDueForReview);
+    messageHandlers.set(MessageTypes.ADD_WORD, createHandler(handleAddWord));
+    messageHandlers.set(MessageTypes.GET_WORD, createHandler(handleGetWord));
+    messageHandlers.set(MessageTypes.GET_ALL_WORDS, createHandler(handleGetAllWords));
+    messageHandlers.set(MessageTypes.UPDATE_WORD, createHandler(handleUpdateWord));
+    messageHandlers.set(MessageTypes.DELETE_WORD, createHandler(handleDeleteWord));
+    messageHandlers.set(MessageTypes.GET_WORDS_DUE_FOR_REVIEW, createHandler(handleGetWordsDueForReview));
     
     // Vocabulary list operations
-    messageHandlers.set(MessageTypes.ADD_LIST, handleAddList);
-    messageHandlers.set(MessageTypes.GET_LIST, handleGetList);
-    messageHandlers.set(MessageTypes.GET_ALL_LISTS, handleGetAllLists);
-    messageHandlers.set(MessageTypes.UPDATE_LIST, handleUpdateList);
-    messageHandlers.set(MessageTypes.DELETE_LIST, handleDeleteList);
-    messageHandlers.set(MessageTypes.GET_DEFAULT_LIST, handleGetDefaultList);
-    messageHandlers.set(MessageTypes.ADD_WORD_TO_LIST, handleAddWordToList);
-    messageHandlers.set(MessageTypes.REMOVE_WORD_FROM_LIST, handleRemoveWordFromList);
+    messageHandlers.set(MessageTypes.ADD_LIST, createHandler(handleAddList));
+    messageHandlers.set(MessageTypes.GET_LIST, createHandler(handleGetList));
+    messageHandlers.set(MessageTypes.GET_ALL_LISTS, createHandler(handleGetAllLists));
+    messageHandlers.set(MessageTypes.UPDATE_LIST, createHandler(handleUpdateList));
+    messageHandlers.set(MessageTypes.DELETE_LIST, createHandler(handleDeleteList));
+    messageHandlers.set(MessageTypes.GET_DEFAULT_LIST, createHandler(handleGetDefaultList));
+    messageHandlers.set(MessageTypes.ADD_WORD_TO_LIST, createHandler(handleAddWordToList));
+    messageHandlers.set(MessageTypes.REMOVE_WORD_FROM_LIST, createHandler(handleRemoveWordFromList));
     
     // Settings operations
-    messageHandlers.set(MessageTypes.GET_SETTINGS, handleGetSettings);
-    messageHandlers.set(MessageTypes.UPDATE_SETTINGS, handleUpdateSettings);
+    messageHandlers.set(MessageTypes.GET_SETTINGS, createHandler(handleGetSettings));
+    messageHandlers.set(MessageTypes.UPDATE_SETTINGS, createHandler(handleUpdateSettings));
     
     // Stats operations
-    messageHandlers.set(MessageTypes.GET_STATS, handleGetStats);
-    messageHandlers.set(MessageTypes.UPDATE_STATS, handleUpdateStats);
+    messageHandlers.set(MessageTypes.GET_STATS, createHandler(handleGetStats));
+    messageHandlers.set(MessageTypes.UPDATE_STATS, createHandler(handleUpdateStats));
 }
 
 // Add a simple test handler
@@ -914,6 +821,12 @@ async function handleMessage(request, sender) {
 }
 
 // Dictionary handlers
+/**
+ * Looks up a word in the dictionary
+ * @param {Object} payload - The request payload
+ * @param {string} payload.word - The word to look up
+ * @returns {Promise<Object>} Dictionary entry or null if not found
+ */
 async function handleLookupWord({ word }) {
     const normalizedWord = word.toLowerCase().trim();
     
@@ -1073,7 +986,6 @@ async function handleUpdateSettings({ settings }) {
     // Convert plain object to UserSettings instance
     const userSettings = settings instanceof UserSettings ? settings : new UserSettings(settings);
     
-    console.log('Updating settings:', userSettings);
     return await db.updateSettings(userSettings);
 }
 
