@@ -16,12 +16,20 @@
 ### Adding New JavaScript Files to the Extension
 **Important**: When adding new JavaScript files to the Safari extension, you must:
 
-1. **Add files to Xcode project**:
-   - Right-click on "Shared (Extension)/Resources" in Xcode
-   - Select "Add Files to vocabDict..."
-   - Select your new .js files
-   - Make sure "Copy items if needed" is unchecked (files should already be in the correct location)
-   - Ensure the target "vocabDict Extension" is checked
+1. **Update project.pbxproj membershipExceptions**:
+   - Open `vocabDict.xcodeproj/project.pbxproj` in a text editor
+   - Find both sections:
+     - `Exceptions for "Shared (Extension)" folder in "vocabDict Extension (iOS)" target`
+     - `Exceptions for "Shared (Extension)" folder in "vocabDict Extension (macOS)" target`
+   - Add your new files to both `membershipExceptions` lists in alphabetical order:
+   ```
+   membershipExceptions = (
+       Resources/_locales,
+       Resources/constants.js,    // Add new files here
+       Resources/content.css,
+       ...
+   );
+   ```
 
 2. **Update manifest.json**:
    - Add the new files to the `background.scripts` array in the correct order
