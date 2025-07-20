@@ -191,7 +191,6 @@ class VocabularyWord {
         this.lastReviewed = data.lastReviewed ? new Date(data.lastReviewed) : null;
         this.nextReview = data.nextReview ? new Date(data.nextReview) : null;
         this.reviewHistory = data.reviewHistory || [];
-        this.listIds = data.listIds || [];
     }
 
     generateId() {
@@ -212,8 +211,7 @@ class VocabularyWord {
             difficulty: this.difficulty,
             lastReviewed: this.lastReviewed ? this.lastReviewed.toISOString() : null,
             nextReview: this.nextReview ? this.nextReview.toISOString() : null,
-            reviewHistory: this.reviewHistory,
-            listIds: this.listIds
+            reviewHistory: this.reviewHistory
         };
     }
 }
@@ -536,15 +534,7 @@ class VocabDictDatabase {
     }
 
     async deleteList(id) {
-        // Remove list ID from all words
-        const allWords = await this.getAllWords();
-        for (const word of allWords) {
-            if (word.listIds.includes(id)) {
-                word.listIds = word.listIds.filter(listId => listId !== id);
-                await this.updateWord(word);
-            }
-        }
-        
+        // Simply delete the list - no need to update words since they don't store listIds anymore
         await this.delete('vocabulary_lists', id);
     }
 
@@ -993,22 +983,48 @@ async function handleGetDefaultList() {
     return await db.getDefaultList();
 }
 
-async function handleAddWordToList({ wordId, listId }) {
-    const word = await db.getWord(wordId);
-    if (word && !word.listIds.includes(listId)) {
-        word.listIds.push(listId);
-        await db.updateWord(word);
+async function handleAddWordToList({ wordId, listId, wordData }) {
+    let word;
+    let targetListId = listId;
+    
+    // If wordData provided, add word to database first
+    if (wordData) {
+        word = await db.addWord(wordData);
+        wordId = word.id;
+    } else if (wordId) {
+        word = await db.getWord(wordId);
+    } else {
+        throw new Error('Either wordId or wordData must be provided');
     }
+    
+    // If no listId provided, use default list
+    if (!targetListId) {
+        const defaultList = await db.getDefaultList();
+        if (defaultList) {
+            targetListId = defaultList.id;
+        } else {
+            throw new Error('No default list found');
+        }
+    }
+    
+    // Add word to list if not already present (only check list.wordIds now)
+    const list = await db.getList(targetListId);
+    
+    if (list && !list.wordIds.includes(word.id)) {
+        list.wordIds.push(word.id);
+        await db.updateList(list);
+    }
+    
     return word;
 }
 
 async function handleRemoveWordFromList({ wordId, listId }) {
-    const word = await db.getWord(wordId);
-    if (word) {
-        word.listIds = word.listIds.filter(id => id !== listId);
-        await db.updateWord(word);
+    const list = await db.getList(listId);
+    if (list) {
+        list.wordIds = list.wordIds.filter(id => id !== wordId);
+        await db.updateList(list);
     }
-    return word;
+    return list;
 }
 
 // Settings handlers

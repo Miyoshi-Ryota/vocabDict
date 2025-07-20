@@ -209,7 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add event listener for add button
         const addBtn = dictionaryContent.querySelector('.add-word-btn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => addWordToList(definition));
+            console.log('DEBUG: Add button found, attaching event listener');
+            addBtn.addEventListener('click', () => {
+                console.log('DEBUG: Add button clicked!');
+                console.log('DEBUG: Definition data:', definition);
+                addWordToList(definition);
+            });
+        } else {
+            console.log('DEBUG: Add button NOT found');
         }
         
         // Add click listeners for synonym/antonym tags
@@ -241,41 +248,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function addWordToList(definition) {
+        console.log('DEBUG: addWordToList function called');
+        console.log('DEBUG: Definition parameter:', definition);
+        
         try {
             const addBtn = dictionaryContent.querySelector('.add-word-btn');
             if (addBtn) {
+                console.log('DEBUG: Button found, setting to Adding...');
                 addBtn.disabled = true;
                 addBtn.textContent = 'Adding...';
+            } else {
+                console.log('DEBUG: Button NOT found in addWordToList');
             }
             
-            const response = await browser.runtime.sendMessage({
-                type: 'add_word',
+            const messagePayload = {
+                type: 'add_word_to_list',
                 payload: {
                     wordData: {
                         word: definition.word,
                         definitions: definition.definitions
                     }
                 }
-            });
+            };
+            
+            console.log('DEBUG: Sending message:', messagePayload);
+            const response = await browser.runtime.sendMessage(messagePayload);
+            console.log('DEBUG: Response received:', response);
             
             if (response.status === 'success') {
+                console.log('DEBUG: Success response received');
                 if (addBtn) {
                     addBtn.textContent = '✓ Added';
                     addBtn.style.background = '#34C759';
                     addBtn.style.color = 'white';
+                    console.log('DEBUG: Button updated to success state');
                     
                     setTimeout(() => {
                         addBtn.textContent = '+ Add to List';
                         addBtn.style.background = '';
                         addBtn.style.color = '';
                         addBtn.disabled = false;
+                        console.log('DEBUG: Button reset to normal state');
                     }, 2000);
                 }
             } else {
+                console.log('DEBUG: Error response:', response);
                 throw new Error(response.error || 'Failed to add word');
             }
         } catch (error) {
-            console.error('Error adding word:', error);
+            console.error('DEBUG: Exception caught:', error);
             const addBtn = dictionaryContent.querySelector('.add-word-btn');
             if (addBtn) {
                 addBtn.textContent = 'Error';

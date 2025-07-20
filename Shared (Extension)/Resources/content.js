@@ -356,13 +356,14 @@
                 openFullDefinition(definition);
             });
         }
+        
     }
     
     // Add word to vocabulary list
     async function addToVocabularyList(definition) {
         try {
             const response = await browser.runtime.sendMessage({
-                type: 'add_word',
+                type: 'add_word_to_list',
                 payload: {
                     wordData: {
                         word: definition.word,
@@ -383,6 +384,10 @@
     
     // Show success message when word added
     function showAddSuccessMessage() {
+        if (!floatingWidget) {
+            return;
+        }
+        
         const addBtn = floatingWidget.querySelector('.vocabdict-add-btn');
         if (addBtn) {
             const originalText = addBtn.textContent;
@@ -391,7 +396,7 @@
             addBtn.style.background = '#34C759';
             
             setTimeout(() => {
-                if (addBtn) {
+                if (addBtn && floatingWidget) {
                     addBtn.textContent = originalText;
                     addBtn.disabled = false;
                     addBtn.style.background = '';
