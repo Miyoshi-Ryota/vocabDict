@@ -569,7 +569,28 @@ class VocabDictDatabase {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(['user_settings'], 'readwrite');
             const store = transaction.objectStore('user_settings');
-            const request = store.put(settings.toJSON(), 'settings');
+            
+            // Ensure we have a proper settings object with toJSON method
+            let settingsData;
+            if (settings && typeof settings.toJSON === 'function') {
+                settingsData = settings.toJSON();
+            } else if (settings instanceof UserSettings) {
+                // Fallback: manually create the data object
+                settingsData = {
+                    theme: settings.theme,
+                    autoAddToList: settings.autoAddToList,
+                    defaultListId: settings.defaultListId,
+                    dailyReviewReminder: settings.dailyReviewReminder,
+                    reminderTime: settings.reminderTime,
+                    reviewSessionSize: settings.reviewSessionSize,
+                    keyboardShortcuts: settings.keyboardShortcuts
+                };
+            } else {
+                // If it's a plain object, use it directly
+                settingsData = settings;
+            }
+            
+            const request = store.put(settingsData, 'settings');
 
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(new Error('Failed to update settings'));
@@ -1043,8 +1064,16 @@ async function handleUpdateSettings({ settings }) {
         console.warn('Database not ready, settings update ignored');
         return;
     }
+    
+    // Ensure we have valid settings data
+    if (!settings) {
+        throw new Error('Settings data is required');
+    }
+    
     // Convert plain object to UserSettings instance
-    const userSettings = new UserSettings(settings);
+    const userSettings = settings instanceof UserSettings ? settings : new UserSettings(settings);
+    
+    console.log('Updating settings:', userSettings);
     return await db.updateSettings(userSettings);
 }
 

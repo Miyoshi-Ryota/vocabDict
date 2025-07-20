@@ -376,4 +376,137 @@ document.addEventListener('DOMContentLoaded', () => {
             loadSettings();
         }
     }
+    
+    // Vocabulary Lists functionality
+    let currentLists = [];
+    let currentWords = [];
+    
+    async function loadVocabularyLists() {
+        try {
+            // Get all lists
+            const listsResponse = await browser.runtime.sendMessage({
+                type: 'get_all_lists',
+                payload: {}
+            });
+            
+            if (listsResponse.status === 'success') {
+                currentLists = listsResponse.data;
+                
+                // Get all words
+                const wordsResponse = await browser.runtime.sendMessage({
+                    type: 'get_all_words',
+                    payload: {}
+                });
+                
+                if (wordsResponse.status === 'success') {
+                    currentWords = wordsResponse.data;
+                    renderVocabularyLists();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load vocabulary lists:', error);
+        }
+    }
+    
+    function renderVocabularyLists() {
+        const listsContainer = document.getElementById('lists');
+        
+        if (currentLists.length === 0) {
+            // Show empty state
+            listsContainer.innerHTML = `
+                <div class="placeholder">
+                    <div class="placeholder-icon">📝</div>
+                    <p>Your vocabulary lists will appear here.</p>
+                    <p>Add words from dictionary searches to build your lists.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Build lists HTML
+        let html = '<div class="lists-container">';
+        
+        currentLists.forEach(list => {
+            // Count words in this list
+            const wordsInList = currentWords.filter(word => 
+                list.wordIds.includes(word.id)
+            );
+            
+            html += `
+                <div class="list-card" data-list-id="${list.id}">
+                    <div class="list-header">
+                        <h3 class="list-name">${escapeHtml(list.name)}</h3>
+                        <span class="word-count">${wordsInList.length} words</span>
+                    </div>
+                    ${list.description ? `<p class="list-description">${escapeHtml(list.description)}</p>` : ''}
+                    <div class="list-words">
+                        ${wordsInList.length > 0 ? renderWordsList(wordsInList, list.id) : '<p class="empty-list">No words yet</p>'}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        listsContainer.innerHTML = html;
+        
+        // Add event listeners for word removal
+        listsContainer.querySelectorAll('.remove-word-btn').forEach(btn => {
+            btn.addEventListener('click', handleRemoveWord);
+        });
+    }
+    
+    function renderWordsList(words, listId) {
+        let html = '<div class="words-list">';
+        
+        words.forEach(word => {
+            const primaryDef = word.definitions[0];
+            html += `
+                <div class="word-item" data-word-id="${word.id}">
+                    <div class="word-info">
+                        <span class="word-text">${escapeHtml(word.word)}</span>
+                        <span class="word-definition">${escapeHtml(primaryDef.meaning)}</span>
+                    </div>
+                    <button class="remove-word-btn" data-word-id="${word.id}" data-list-id="${listId}" title="Remove from list">×</button>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        return html;
+    }
+    
+    async function handleRemoveWord(e) {
+        const wordId = e.target.dataset.wordId;
+        const listId = e.target.dataset.listId;
+        
+        try {
+            const response = await browser.runtime.sendMessage({
+                type: 'remove_word_from_list',
+                payload: { wordId, listId }
+            });
+            
+            if (response.status === 'success') {
+                // Reload lists to update UI
+                await loadVocabularyLists();
+                
+                // Show success feedback
+                const wordItem = e.target.closest('.word-item');
+                wordItem.style.opacity = '0';
+                setTimeout(() => {
+                    wordItem.remove();
+                }, 300);
+            }
+        } catch (error) {
+            console.error('Failed to remove word:', error);
+        }
+    }
+    
+    // Load lists when lists tab is clicked
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            if (tab.dataset.tab === 'lists') {
+                loadVocabularyLists();
+            }
+        });
+    });
 });
