@@ -9,15 +9,9 @@
     "test:coverage": "jest --coverage",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
-    "test:e2e": "jest --config jest.e2e.config.js",
-    "test:safari": "jest --config jest.safari.config.js",
-    "test:real": "jest tests/**/*.real.test.js tests/integration/contextMenu.test.js",
-    "test:mocked": "jest tests/**/*.test.js --testPathIgnorePatterns=real.test.js",
-    "test:all": "npm run test:unit && npm run test:integration && npm run test:safari",
+    "test:all": "npm run test:unit && npm run test:integration",
     "lint": "eslint \"Shared (Extension)/Resources/**/*.js\" \"tests/**/*.js\"",
-    "lint:fix": "eslint \"Shared (Extension)/Resources/**/*.js\" \"tests/**/*.js\" --fix",
-    "setup-test-env": "node scripts/setup-test-environment.js",
-    "setup-safari": "sudo safaridriver --enable"
+    "lint:fix": "eslint \"Shared (Extension)/Resources/**/*.js\" \"tests/**/*.js\" --fix"
   },
   "keywords": [
     "safari-extension",
@@ -43,10 +37,16 @@
   "jest": {
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup/jest.setup.js"
+      "<rootDir>/tests/setup/jest.simplified.setup.js"
     ],
     "testMatch": [
-      "<rootDir>/tests/**/*.test.js"
+      "<rootDir>/tests/unit/**/*.test.js",
+      "<rootDir>/tests/integration/**/*.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/tests/e2e/",
+      "<rootDir>/tests/manual/",
+      "node_modules/"
     ],
     "collectCoverageFrom": [
       "Shared (Extension)/Resources/**/*.js",

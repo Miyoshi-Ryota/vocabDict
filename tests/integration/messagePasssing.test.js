@@ -1,670 +1,661 @@
 /**
- * Integration tests for VocabDict message passing system
- * Tests communication between different extension components
+ * Integration tests for VocabDict message passing system - Real Implementation
+ * Tests actual message flow using real init.js and handlers
  */
 
-const { 
-  MockVocabDictDatabase, 
-  MockToyDictionary, 
-  createMockHandlers,
-  MockConstants,
-  MockMessageTypes,
-  MockMessageStatus
-} = require('../mocks/extensionMocks');
+// Setup fake IndexedDB for testing
+require('fake-indexeddb/auto');
 
-const { MESSAGE_TYPES, TestHelpers } = require('../fixtures/testData');
+const FDBFactory = require('fake-indexeddb/lib/FDBFactory');
+const fs = require('fs');
+const path = require('path');
 
-describe('Message Passing Integration', () => {
+// Import real implementations
+const constantsPath = path.join(__dirname, '../../Shared (Extension)/Resources/constants.js');
+const constantsCode = fs.readFileSync(constantsPath, 'utf8');
+eval(constantsCode);
+
+const modelsPath = path.join(__dirname, '../../Shared (Extension)/Resources/models.js');
+const modelsCode = fs.readFileSync(modelsPath, 'utf8');
+eval(modelsCode);
+
+const databasePath = path.join(__dirname, '../../Shared (Extension)/Resources/database.js');
+const databaseCode = fs.readFileSync(databasePath, 'utf8');
+eval(databaseCode);
+
+const dictionaryPath = path.join(__dirname, '../../Shared (Extension)/Resources/dictionary.js');
+const dictionaryCode = fs.readFileSync(dictionaryPath, 'utf8');
+eval(dictionaryCode);
+
+const handlersPath = path.join(__dirname, '../../Shared (Extension)/Resources/handlers.js');
+const handlersCode = fs.readFileSync(handlersPath, 'utf8');
+eval(handlersCode);
+
+// Load init.js but extract just the message handling parts we need
+const initPath = path.join(__dirname, '../../Shared (Extension)/Resources/init.js');
+const initCode = fs.readFileSync(initPath, 'utf8');
+
+// Mock browser APIs needed for init.js
+global.browser = {
+  runtime: {
+    onMessage: {
+      addListener: jest.fn()
+    }
+  },
+  contextMenus: {
+    create: jest.fn(),
+    onClicked: {
+      addListener: jest.fn()
+    }
+  },
+  commands: {
+    onCommand: {
+      addListener: jest.fn()
+    }
+  }
+};
+
+// Extract the message handling function from init.js
+const messageHandlerMatch = initCode.match(/browser\.runtime\.onMessage\.addListener\(([^}]+}\s*}\s*);?\);/s);
+if (messageHandlerMatch) {
+  const messageHandlerCode = messageHandlerMatch[1];
+  global.extensionMessageHandler = eval(`(${messageHandlerCode})`);
+}
+
+describe('Message Passing Integration - Real Implementation', () => {
   let db;
-  let handlers;
   let messageHandlers;
 
   beforeEach(async () => {
-    db = new MockVocabDictDatabase();
-    await db.initialize();
-    handlers = createMockHandlers(db, MockToyDictionary);
+    // Reset IndexedDB
+    global.indexedDB = new FDBFactory();
     
-    // Mock message handler map similar to init.js
+    // Initialize real database
+    db = new VocabDictDatabase();
+    await db.initialize();
+    
+    // Set up message handlers map like in real init.js
     messageHandlers = new Map();
     
-    // Register all handlers
-    messageHandlers.set(MockMessageTypes.LOOKUP_WORD, handlers.handleLookupWord);
-    messageHandlers.set(MockMessageTypes.ADD_WORD, handlers.handleAddWord);
-    messageHandlers.set(MockMessageTypes.GET_WORD, handlers.handleGetWord);
-    messageHandlers.set(MockMessageTypes.GET_ALL_WORDS, handlers.handleGetAllWords);
-    messageHandlers.set(MockMessageTypes.UPDATE_WORD, handlers.handleUpdateWord);
-    messageHandlers.set(MockMessageTypes.DELETE_WORD, handlers.handleDeleteWord);
-    messageHandlers.set(MockMessageTypes.GET_WORDS_DUE_FOR_REVIEW, handlers.handleGetWordsDueForReview);
-    messageHandlers.set(MockMessageTypes.ADD_LIST, handlers.handleAddList);
-    messageHandlers.set(MockMessageTypes.GET_LIST, handlers.handleGetList);
-    messageHandlers.set(MockMessageTypes.GET_ALL_LISTS, handlers.handleGetAllLists);
-    messageHandlers.set(MockMessageTypes.UPDATE_LIST, handlers.handleUpdateList);
-    messageHandlers.set(MockMessageTypes.DELETE_LIST, handlers.handleDeleteList);
-    messageHandlers.set(MockMessageTypes.GET_DEFAULT_LIST, handlers.handleGetDefaultList);
-    messageHandlers.set(MockMessageTypes.ADD_WORD_TO_LIST, handlers.handleAddWordToList);
-    messageHandlers.set(MockMessageTypes.REMOVE_WORD_FROM_LIST, handlers.handleRemoveWordFromList);
-    messageHandlers.set(MockMessageTypes.GET_SETTINGS, handlers.handleGetSettings);
-    messageHandlers.set(MockMessageTypes.UPDATE_SETTINGS, handlers.handleUpdateSettings);
-    messageHandlers.set(MockMessageTypes.GET_STATS, handlers.handleGetStats);
-    messageHandlers.set(MockMessageTypes.UPDATE_STATS, handlers.handleUpdateStats);
-    messageHandlers.set(MockMessageTypes.UPDATE_REVIEW_STATS, handlers.handleUpdateReviewStats);
+    // Register all handlers using real message types
+    messageHandlers.set(MessageTypes.LOOKUP_WORD, handleLookupWord);
+    messageHandlers.set(MessageTypes.ADD_WORD, handleAddWord);
+    messageHandlers.set(MessageTypes.GET_WORD, handleGetWord);
+    messageHandlers.set(MessageTypes.GET_ALL_WORDS, handleGetAllWords);
+    messageHandlers.set(MessageTypes.UPDATE_WORD, handleUpdateWord);
+    messageHandlers.set(MessageTypes.DELETE_WORD, handleDeleteWord);
+    messageHandlers.set(MessageTypes.GET_WORDS_DUE_FOR_REVIEW, handleGetWordsDueForReview);
+    messageHandlers.set(MessageTypes.ADD_LIST, handleAddList);
+    messageHandlers.set(MessageTypes.GET_LIST, handleGetList);
+    messageHandlers.set(MessageTypes.GET_ALL_LISTS, handleGetAllLists);
+    messageHandlers.set(MessageTypes.UPDATE_LIST, handleUpdateList);
+    messageHandlers.set(MessageTypes.DELETE_LIST, handleDeleteList);
+    messageHandlers.set(MessageTypes.GET_DEFAULT_LIST, handleGetDefaultList);
+    messageHandlers.set(MessageTypes.ADD_WORD_TO_LIST, handleAddWordToList);
+    messageHandlers.set(MessageTypes.REMOVE_WORD_FROM_LIST, handleRemoveWordFromList);
+    messageHandlers.set(MessageTypes.GET_SETTINGS, handleGetSettings);
+    messageHandlers.set(MessageTypes.UPDATE_SETTINGS, handleUpdateSettings);
+    messageHandlers.set(MessageTypes.GET_STATS, handleGetStats);
+    messageHandlers.set(MessageTypes.UPDATE_STATS, handleUpdateStats);
+    messageHandlers.set(MessageTypes.UPDATE_REVIEW_STATS, handleUpdateReviewStats);
+
+    // Make messageHandlers available globally like in init.js
+    global.messageHandlers = messageHandlers;
   });
 
-  afterEach(() => {
-    if (db) {
-      db.reset();
+  afterEach(async () => {
+    if (db && db.db) {
+      db.db.close();
     }
+    // Clean up IndexedDB
+    global.indexedDB = new FDBFactory();
     jest.clearAllMocks();
   });
 
-  // Mock message handling system
-  const handleMessage = async (request) => {
-    const handler = messageHandlers.get(request.type);
+  // Simulate browser.runtime.sendMessage
+  async function simulateMessage(message) {
+    const handler = messageHandlers.get(message.type);
     if (!handler) {
-      throw new Error(`Unknown message type: ${request.type}`);
+      throw new Error(`No handler registered for message type: ${message.type}`);
     }
-
+    
     try {
-      const result = await handler(request.payload);
-      return {
-        status: MockMessageStatus.SUCCESS,
-        data: result
-      };
+      const result = await handler(message.payload || {});
+      return { status: 'success', data: result };
     } catch (error) {
-      return {
-        status: MockMessageStatus.ERROR,
-        error: error.message
-      };
+      return { status: 'error', error: error.message };
     }
-  };
+  }
 
   describe('Dictionary Operations Message Flow', () => {
-    test('should handle lookup_word message successfully', async () => {
-      const request = {
-        type: MockMessageTypes.LOOKUP_WORD,
+    test('should handle complete word lookup flow', async () => {
+      const message = {
+        type: MessageTypes.LOOKUP_WORD,
         payload: { word: 'hello' }
       };
 
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.SUCCESS);
+      const response = await simulateMessage(message);
+      
+      expect(response.status).toBe('success');
       expect(response.data).toBeDefined();
       expect(response.data.word).toBe('hello');
       expect(response.data.definitions).toBeDefined();
       expect(Array.isArray(response.data.definitions)).toBe(true);
     });
 
-    test('should handle unknown word lookup gracefully', async () => {
-      const request = {
-        type: MockMessageTypes.LOOKUP_WORD,
-        payload: { word: 'unknownword' }
+    test('should handle word lookup error', async () => {
+      const message = {
+        type: MessageTypes.LOOKUP_WORD,
+        payload: { word: '' } // Invalid word
       };
 
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.SUCCESS);
-      expect(response.data).toBeNull();
+      const response = await simulateMessage(message);
+      
+      expect(response.status).toBe('error');
+      expect(response.error).toContain('word is required');
     });
 
-    test('should handle missing word parameter', async () => {
-      const request = {
-        type: MockMessageTypes.LOOKUP_WORD,
-        payload: {}
+    test('should handle unknown word gracefully', async () => {
+      const message = {
+        type: MessageTypes.LOOKUP_WORD,
+        payload: { word: 'unknownword12345' }
       };
 
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.ERROR);
-      expect(response.error).toBeDefined();
+      const response = await simulateMessage(message);
+      
+      expect(response.status).toBe('success');
+      expect(response.data).toBeNull();
     });
   });
 
   describe('Word Management Message Flow', () => {
-    test('should handle complete word lifecycle', async () => {
+    test('should complete full word lifecycle', async () => {
+      // 1. Add a word
+      const addResponse = await simulateMessage({
+        type: MessageTypes.ADD_WORD,
+        payload: {
+          wordData: {
+            word: 'lifecycle',
+            definitions: [{
+              partOfSpeech: 'noun',
+              meaning: 'The series of changes in the life of an organism',
+              examples: ['The butterfly lifecycle is complex.']
+            }]
+          }
+        }
+      });
+
+      expect(addResponse.status).toBe('success');
+      const addedWord = addResponse.data;
+      expect(addedWord.id).toBeDefined();
+      expect(addedWord.word).toBe('lifecycle');
+
+      // 2. Get the word
+      const getResponse = await simulateMessage({
+        type: MessageTypes.GET_WORD,
+        payload: { wordId: addedWord.id }
+      });
+
+      expect(getResponse.status).toBe('success');
+      expect(getResponse.data.id).toBe(addedWord.id);
+
+      // 3. Update the word
+      const updatedWord = { ...getResponse.data };
+      updatedWord.difficulty = 'hard';
+      updatedWord.lookupCount = 5;
+
+      const updateResponse = await simulateMessage({
+        type: MessageTypes.UPDATE_WORD,
+        payload: { wordData: updatedWord }
+      });
+
+      expect(updateResponse.status).toBe('success');
+      expect(updateResponse.data.difficulty).toBe('hard');
+      expect(updateResponse.data.lookupCount).toBe(5);
+
+      // 4. Verify all words includes our word
+      const getAllResponse = await simulateMessage({
+        type: MessageTypes.GET_ALL_WORDS,
+        payload: {}
+      });
+
+      expect(getAllResponse.status).toBe('success');
+      expect(getAllResponse.data.some(w => w.id === addedWord.id)).toBe(true);
+
+      // 5. Delete the word
+      const deleteResponse = await simulateMessage({
+        type: MessageTypes.DELETE_WORD,
+        payload: { wordId: addedWord.id }
+      });
+
+      expect(deleteResponse.status).toBe('success');
+
+      // 6. Verify word is deleted
+      const getDeletedResponse = await simulateMessage({
+        type: MessageTypes.GET_WORD,
+        payload: { wordId: addedWord.id }
+      });
+
+      expect(getDeletedResponse.status).toBe('success');
+      expect(getDeletedResponse.data).toBeNull();
+    });
+
+    test('should handle duplicate word addition correctly', async () => {
       const wordData = {
-        word: 'lifecycle',
+        word: 'duplicate',
         definitions: [{
           partOfSpeech: 'noun',
-          meaning: 'The series of changes in the life of an organism',
-          examples: ['The lifecycle of a butterfly includes metamorphosis.']
+          meaning: 'Something that is identical to another',
+          examples: []
         }]
       };
 
-      // 1. Add word
-      const addRequest = {
-        type: MockMessageTypes.ADD_WORD,
-        payload: { word: wordData }
-      };
-      const addResponse = await handleMessage(addRequest);
-
-      expect(addResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(addResponse.data.word).toBe('lifecycle');
-      const wordId = addResponse.data.id;
-
-      // 2. Get word
-      const getRequest = {
-        type: MockMessageTypes.GET_WORD,
-        payload: { wordId }
-      };
-      const getResponse = await handleMessage(getRequest);
-
-      expect(getResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getResponse.data.id).toBe(wordId);
-      expect(getResponse.data.word).toBe('lifecycle');
-
-      // 3. Update word
-      const updateRequest = {
-        type: MockMessageTypes.UPDATE_WORD,
-        payload: { 
-          word: { 
-            ...addResponse.data,
-            difficulty: 3 
-          }
-        }
-      };
-      const updateResponse = await handleMessage(updateRequest);
-
-      expect(updateResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(updateResponse.data.difficulty).toBe(3);
-
-      // 4. Get all words
-      const getAllRequest = {
-        type: MockMessageTypes.GET_ALL_WORDS,
-        payload: {}
-      };
-      const getAllResponse = await handleMessage(getAllRequest);
-
-      expect(getAllResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getAllResponse.data).toHaveLength(1);
-      expect(getAllResponse.data[0].id).toBe(wordId);
-
-      // 5. Delete word
-      const deleteRequest = {
-        type: MockMessageTypes.DELETE_WORD,
-        payload: { wordId }
-      };
-      const deleteResponse = await handleMessage(deleteRequest);
-
-      expect(deleteResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(deleteResponse.data).toBe(true);
-
-      // 6. Verify deletion
-      const verifyRequest = {
-        type: MockMessageTypes.GET_WORD,
-        payload: { wordId }
-      };
-      const verifyResponse = await handleMessage(verifyRequest);
-
-      expect(verifyResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(verifyResponse.data).toBeNull();
-    });
-
-    test('should handle words due for review', async () => {
-      const pastDate = new Date(Date.now() - 3600000); // 1 hour ago
-      const futureDate = new Date(Date.now() + 86400000); // 1 day ahead
-      
-      // Add words with different review dates
-      await handleMessage({
-        type: MockMessageTypes.ADD_WORD,
-        payload: { 
-          word: { 
-            word: 'due', 
-            nextReview: pastDate 
-          }
-        }
+      // Add word first time
+      const first = await simulateMessage({
+        type: MessageTypes.ADD_WORD,
+        payload: { wordData }
       });
 
-      await handleMessage({
-        type: MockMessageTypes.ADD_WORD,
-        payload: { 
-          word: { 
-            word: 'notdue', 
-            nextReview: futureDate 
-          }
-        }
+      expect(first.status).toBe('success');
+      expect(first.data.lookupCount).toBe(1);
+
+      // Add same word again
+      const second = await simulateMessage({
+        type: MessageTypes.ADD_WORD,
+        payload: { wordData }
       });
 
-      const request = {
-        type: MockMessageTypes.GET_WORDS_DUE_FOR_REVIEW,
-        payload: {}
-      };
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.SUCCESS);
-      expect(response.data).toHaveLength(1);
-      expect(response.data[0].word).toBe('due');
+      expect(second.status).toBe('success');
+      expect(second.data.id).toBe(first.data.id); // Same ID
+      expect(second.data.lookupCount).toBe(2); // Incremented
     });
   });
 
   describe('List Management Message Flow', () => {
-    test('should handle complete list lifecycle', async () => {
+    test('should complete full list and word-to-list workflow', async () => {
       // 1. Get default list
-      const getDefaultRequest = {
-        type: MockMessageTypes.GET_DEFAULT_LIST,
+      const defaultListResponse = await simulateMessage({
+        type: MessageTypes.GET_DEFAULT_LIST,
         payload: {}
-      };
-      const getDefaultResponse = await handleMessage(getDefaultRequest);
+      });
 
-      expect(getDefaultResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getDefaultResponse.data.isDefault).toBe(true);
-      expect(getDefaultResponse.data.name).toBe('My Vocabulary');
+      expect(defaultListResponse.status).toBe('success');
+      const defaultList = defaultListResponse.data;
+      expect(defaultList.name).toBe('My Vocabulary');
+      expect(defaultList.isDefault).toBe(true);
 
-      // 2. Add custom list
-      const addListRequest = {
-        type: MockMessageTypes.ADD_LIST,
-        payload: { 
-          list: { 
-            name: 'Custom Test List',
-            wordIds: []
+      // 2. Add a new list
+      const addListResponse = await simulateMessage({
+        type: MessageTypes.ADD_LIST,
+        payload: {
+          listData: {
+            name: 'Technical Terms',
+            description: 'Computer science vocabulary'
           }
         }
-      };
-      const addListResponse = await handleMessage(addListRequest);
+      });
 
-      expect(addListResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(addListResponse.data.name).toBe('Custom Test List');
-      const listId = addListResponse.data.id;
+      expect(addListResponse.status).toBe('success');
+      const newList = addListResponse.data;
+      expect(newList.name).toBe('Technical Terms');
+      expect(newList.isDefault).toBe(false);
 
-      // 3. Get all lists
-      const getAllListsRequest = {
-        type: MockMessageTypes.GET_ALL_LISTS,
-        payload: {}
-      };
-      const getAllListsResponse = await handleMessage(getAllListsRequest);
-
-      expect(getAllListsResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getAllListsResponse.data).toHaveLength(2); // Default + custom
-
-      // 4. Update list
-      const updateListRequest = {
-        type: MockMessageTypes.UPDATE_LIST,
-        payload: { 
-          list: { 
-            ...addListResponse.data,
-            name: 'Updated Test List'
+      // 3. Add a word
+      const addWordResponse = await simulateMessage({
+        type: MessageTypes.ADD_WORD,
+        payload: {
+          wordData: {
+            word: 'algorithm',
+            definitions: [{
+              partOfSpeech: 'noun',
+              meaning: 'A process or set of rules for calculations',
+              examples: ['The sorting algorithm is efficient.']
+            }]
           }
         }
-      };
-      const updateListResponse = await handleMessage(updateListRequest);
+      });
 
-      expect(updateListResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(updateListResponse.data.name).toBe('Updated Test List');
+      expect(addWordResponse.status).toBe('success');
+      const word = addWordResponse.data;
 
-      // 5. Delete list
-      const deleteListRequest = {
-        type: MockMessageTypes.DELETE_LIST,
-        payload: { listId }
-      };
-      const deleteListResponse = await handleMessage(deleteListRequest);
+      // 4. Add word to the new list
+      const addToListResponse = await simulateMessage({
+        type: MessageTypes.ADD_WORD_TO_LIST,
+        payload: {
+          wordData: { word: word.word },
+          listId: newList.id
+        }
+      });
 
-      expect(deleteListResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(deleteListResponse.data).toBe(true);
+      expect(addToListResponse.status).toBe('success');
+
+      // 5. Verify word is in the list
+      const getListResponse = await simulateMessage({
+        type: MessageTypes.GET_LIST,
+        payload: { listId: newList.id }
+      });
+
+      expect(getListResponse.status).toBe('success');
+      expect(getListResponse.data.wordIds).toContain(word.id);
+
+      // 6. Get all lists and verify both exist
+      const getAllListsResponse = await simulateMessage({
+        type: MessageTypes.GET_ALL_LISTS,
+        payload: {}
+      });
+
+      expect(getAllListsResponse.status).toBe('success');
+      const lists = getAllListsResponse.data;
+      expect(lists.length).toBeGreaterThanOrEqual(2);
+      expect(lists.some(l => l.id === defaultList.id)).toBe(true);
+      expect(lists.some(l => l.id === newList.id)).toBe(true);
+
+      // 7. Remove word from list
+      const removeFromListResponse = await simulateMessage({
+        type: MessageTypes.REMOVE_WORD_FROM_LIST,
+        payload: {
+          wordId: word.id,
+          listId: newList.id
+        }
+      });
+
+      expect(removeFromListResponse.status).toBe('success');
+
+      // 8. Verify word is removed from list
+      const verifyRemovalResponse = await simulateMessage({
+        type: MessageTypes.GET_LIST,
+        payload: { listId: newList.id }
+      });
+
+      expect(verifyRemovalResponse.status).toBe('success');
+      expect(verifyRemovalResponse.data.wordIds).not.toContain(word.id);
     });
 
-    test('should handle word-to-list operations', async () => {
-      // 1. Add a word
-      const addWordRequest = {
-        type: MockMessageTypes.ADD_WORD,
-        payload: { 
-          word: { 
-            word: 'testword',
-            definitions: [{ partOfSpeech: 'noun', meaning: 'test' }]
+    test('should handle adding word to default list when no listId specified', async () => {
+      // Add a word
+      const addWordResponse = await simulateMessage({
+        type: MessageTypes.ADD_WORD,
+        payload: {
+          wordData: {
+            word: 'defaulttest',
+            definitions: [{
+              partOfSpeech: 'noun',
+              meaning: 'A test for default behavior',
+              examples: []
+            }]
           }
         }
-      };
-      const addWordResponse = await handleMessage(addWordRequest);
-      const wordId = addWordResponse.data.id;
+      });
 
-      // 2. Add a list
-      const addListRequest = {
-        type: MockMessageTypes.ADD_LIST,
-        payload: { 
-          list: { name: 'Test List' }
+      const word = addWordResponse.data;
+
+      // Add to default list (no listId)
+      const addToDefaultResponse = await simulateMessage({
+        type: MessageTypes.ADD_WORD_TO_LIST,
+        payload: {
+          wordData: { word: word.word }
+          // No listId specified
         }
-      };
-      const addListResponse = await handleMessage(addListRequest);
-      const listId = addListResponse.data.id;
+      });
 
-      // 3. Add word to list
-      const addWordToListRequest = {
-        type: MockMessageTypes.ADD_WORD_TO_LIST,
-        payload: { wordId, listId }
-      };
-      const addWordToListResponse = await handleMessage(addWordToListRequest);
+      expect(addToDefaultResponse.status).toBe('success');
 
-      expect(addWordToListResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(addWordToListResponse.data.id).toBe(wordId);
-
-      // 4. Verify word is in list
-      const getListRequest = {
-        type: MockMessageTypes.GET_LIST,
-        payload: { listId }
-      };
-      const getListResponse = await handleMessage(getListRequest);
-
-      expect(getListResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getListResponse.data.wordIds).toContain(wordId);
-
-      // 5. Remove word from list
-      const removeWordRequest = {
-        type: MockMessageTypes.REMOVE_WORD_FROM_LIST,
-        payload: { wordId, listId }
-      };
-      const removeWordResponse = await handleMessage(removeWordRequest);
-
-      expect(removeWordResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(removeWordResponse.data.success).toBe(true);
-
-      // 6. Verify word is removed from list
-      const verifyListRequest = {
-        type: MockMessageTypes.GET_LIST,
-        payload: { listId }
-      };
-      const verifyListResponse = await handleMessage(verifyListRequest);
-
-      expect(verifyListResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(verifyListResponse.data.wordIds).not.toContain(wordId);
-    });
-
-    test('should add word to default list when no listId provided', async () => {
-      const wordData = {
-        word: 'defaulttest',
-        definitions: [{ partOfSpeech: 'noun', meaning: 'test for default list' }]
-      };
-
-      const request = {
-        type: MockMessageTypes.ADD_WORD_TO_LIST,
-        payload: { wordData }
-      };
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.SUCCESS);
-      expect(response.data.word).toBe('defaulttest');
-
-      // Verify word was added to default list
-      const getDefaultRequest = {
-        type: MockMessageTypes.GET_DEFAULT_LIST,
+      // Verify word is in default list
+      const defaultListResponse = await simulateMessage({
+        type: MessageTypes.GET_DEFAULT_LIST,
         payload: {}
-      };
-      const getDefaultResponse = await handleMessage(getDefaultRequest);
+      });
 
-      expect(getDefaultResponse.data.wordIds).toContain(response.data.id);
+      expect(defaultListResponse.status).toBe('success');
+      expect(defaultListResponse.data.wordIds).toContain(word.id);
     });
   });
 
   describe('Settings Management Message Flow', () => {
-    test('should handle settings operations', async () => {
-      // 1. Get default settings
-      const getRequest = {
-        type: MockMessageTypes.GET_SETTINGS,
+    test('should complete settings lifecycle', async () => {
+      // 1. Get current settings
+      const getResponse = await simulateMessage({
+        type: MessageTypes.GET_SETTINGS,
         payload: {}
-      };
-      const getResponse = await handleMessage(getRequest);
+      });
 
-      expect(getResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getResponse.data.theme).toBe('light');
-      expect(getResponse.data.autoAdd).toBe(true);
+      expect(getResponse.status).toBe('success');
+      const settings = getResponse.data;
+      expect(settings.theme).toBeDefined();
+      expect(settings.autoAddToList).toBeDefined();
 
       // 2. Update settings
-      const updateRequest = {
-        type: MockMessageTypes.UPDATE_SETTINGS,
-        payload: { 
-          settings: {
-            theme: 'dark',
-            autoAdd: false,
-            sessionSize: 10
-          }
-        }
-      };
-      const updateResponse = await handleMessage(updateRequest);
+      settings.theme = 'dark';
+      settings.autoAddToList = false;
 
-      expect(updateResponse.status).toBe(MockMessageStatus.SUCCESS);
+      const updateResponse = await simulateMessage({
+        type: MessageTypes.UPDATE_SETTINGS,
+        payload: { settings }
+      });
+
+      expect(updateResponse.status).toBe('success');
       expect(updateResponse.data.theme).toBe('dark');
-      expect(updateResponse.data.autoAdd).toBe(false);
-      expect(updateResponse.data.sessionSize).toBe(10);
+      expect(updateResponse.data.autoAddToList).toBe(false);
 
-      // 3. Verify settings persistence
-      const verifyRequest = {
-        type: MockMessageTypes.GET_SETTINGS,
+      // 3. Verify settings persisted
+      const verifyResponse = await simulateMessage({
+        type: MessageTypes.GET_SETTINGS,
         payload: {}
-      };
-      const verifyResponse = await handleMessage(verifyRequest);
+      });
 
-      expect(verifyResponse.status).toBe(MockMessageStatus.SUCCESS);
+      expect(verifyResponse.status).toBe('success');
       expect(verifyResponse.data.theme).toBe('dark');
-      expect(verifyResponse.data.autoAdd).toBe(false);
+      expect(verifyResponse.data.autoAddToList).toBe(false);
     });
   });
 
-  describe('Stats Management Message Flow', () => {
-    test('should handle stats operations', async () => {
-      // 1. Get default stats
-      const getRequest = {
-        type: MockMessageTypes.GET_STATS,
+  describe('Learning Stats Message Flow', () => {
+    test('should complete learning stats workflow', async () => {
+      // 1. Get initial stats
+      const initialStatsResponse = await simulateMessage({
+        type: MessageTypes.GET_STATS,
         payload: {}
-      };
-      const getResponse = await handleMessage(getRequest);
+      });
 
-      expect(getResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getResponse.data.totalWords).toBe(0);
-      expect(getResponse.data.wordsReviewed).toBe(0);
+      expect(initialStatsResponse.status).toBe('success');
+      const initialStats = initialStatsResponse.data;
+      expect(initialStats.totalReviews).toBe(0);
+      expect(initialStats.currentStreak).toBe(0);
 
-      // 2. Update stats
-      const updateRequest = {
-        type: MockMessageTypes.UPDATE_STATS,
-        payload: { 
-          stats: {
-            totalWords: 25,
-            wordsReviewed: 50,
-            correctAnswers: 40,
-            currentStreak: 5
-          }
-        }
-      };
-      const updateResponse = await handleMessage(updateRequest);
+      // 2. Update review stats with correct answer
+      const correctReviewResponse = await simulateMessage({
+        type: MessageTypes.UPDATE_REVIEW_STATS,
+        payload: { correct: true }
+      });
 
-      expect(updateResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(updateResponse.data.totalWords).toBe(25);
-      expect(updateResponse.data.wordsReviewed).toBe(50);
-      expect(updateResponse.data.currentStreak).toBe(5);
-    });
+      expect(correctReviewResponse.status).toBe('success');
 
-    test('should handle review stats updates', async () => {
-      // 1. Add a word
-      const addWordRequest = {
-        type: MockMessageTypes.ADD_WORD,
-        payload: { 
-          word: { 
-            word: 'review',
-            definitions: [{ partOfSpeech: 'verb', meaning: 'to examine' }]
-          }
-        }
-      };
-      const addWordResponse = await handleMessage(addWordRequest);
-      const wordId = addWordResponse.data.id;
+      // 3. Verify stats updated
+      let statsResponse = await simulateMessage({
+        type: MessageTypes.GET_STATS,
+        payload: {}
+      });
 
-      // 2. Review word correctly
-      const reviewRequest = {
-        type: MockMessageTypes.UPDATE_REVIEW_STATS,
-        payload: { wordId, correct: true }
-      };
-      const reviewResponse = await handleMessage(reviewRequest);
+      expect(statsResponse.status).toBe('success');
+      expect(statsResponse.data.totalReviews).toBe(1);
+      expect(statsResponse.data.currentStreak).toBe(1);
+      expect(statsResponse.data.longestStreak).toBe(1);
 
-      expect(reviewResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(reviewResponse.data.word.reviewCount).toBe(1);
-      expect(reviewResponse.data.word.correctCount).toBe(1);
-      expect(reviewResponse.data.stats.wordsReviewed).toBe(1);
-      expect(reviewResponse.data.stats.correctAnswers).toBe(1);
-      expect(reviewResponse.data.stats.currentStreak).toBe(1);
+      // 4. Update with incorrect answer
+      const incorrectReviewResponse = await simulateMessage({
+        type: MessageTypes.UPDATE_REVIEW_STATS,
+        payload: { correct: false }
+      });
+
+      expect(incorrectReviewResponse.status).toBe('success');
+
+      // 5. Verify streak reset but longest streak maintained
+      statsResponse = await simulateMessage({
+        type: MessageTypes.GET_STATS,
+        payload: {}
+      });
+
+      expect(statsResponse.status).toBe('success');
+      expect(statsResponse.data.totalReviews).toBe(2);
+      expect(statsResponse.data.currentStreak).toBe(0);
+      expect(statsResponse.data.longestStreak).toBe(1);
+
+      // 6. Manual stats update
+      const manualStats = statsResponse.data;
+      manualStats.totalWords = 50;
+      manualStats.wordsLearned = 25;
+
+      const manualUpdateResponse = await simulateMessage({
+        type: MessageTypes.UPDATE_STATS,
+        payload: { stats: manualStats }
+      });
+
+      expect(manualUpdateResponse.status).toBe('success');
+      expect(manualUpdateResponse.data.totalWords).toBe(50);
+      expect(manualUpdateResponse.data.wordsLearned).toBe(25);
     });
   });
 
-  describe('Error Handling in Message Flow', () => {
+  describe('Error Handling and Edge Cases', () => {
     test('should handle unknown message types', async () => {
-      const request = {
-        type: 'unknown_message_type',
+      const message = {
+        type: 'UNKNOWN_MESSAGE_TYPE',
         payload: {}
       };
 
-      await expect(handleMessage(request))
-        .rejects.toThrow('Unknown message type: unknown_message_type');
+      await expect(simulateMessage(message)).rejects.toThrow('No handler registered for message type: UNKNOWN_MESSAGE_TYPE');
     });
 
-    test('should handle handler errors gracefully', async () => {
-      const request = {
-        type: MockMessageTypes.UPDATE_WORD,
-        payload: { 
-          word: { 
-            id: 'nonexistent',
-            word: 'test'
-          }
-        }
-      };
-
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.ERROR);
-      expect(response.error).toBe('Word not found');
-    });
-
-    test('should handle malformed payloads', async () => {
-      const request = {
-        type: MockMessageTypes.ADD_WORD,
+    test('should handle malformed message payloads', async () => {
+      const response = await simulateMessage({
+        type: MessageTypes.ADD_WORD,
         payload: null
-      };
+      });
 
-      const response = await handleMessage(request);
-
-      expect(response.status).toBe(MockMessageStatus.ERROR);
+      expect(response.status).toBe('error');
       expect(response.error).toBeDefined();
     });
-  });
 
-  describe('Complex Workflow Integration', () => {
-    test('should handle dictionary lookup to vocabulary management workflow', async () => {
-      // 1. Look up a word in dictionary
-      const lookupRequest = {
-        type: MockMessageTypes.LOOKUP_WORD,
-        payload: { word: 'hello' }
-      };
-      const lookupResponse = await handleMessage(lookupRequest);
-
-      expect(lookupResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(lookupResponse.data.word).toBe('hello');
-
-      // 2. Add the word to vocabulary using dictionary data
-      const addWordRequest = {
-        type: MockMessageTypes.ADD_WORD_TO_LIST,
-        payload: { 
-          wordData: {
-            word: 'hello',
-            definitions: lookupResponse.data.definitions
-          }
-        }
-      };
-      const addWordResponse = await handleMessage(addWordRequest);
-
-      expect(addWordResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(addWordResponse.data.word).toBe('hello');
-      expect(addWordResponse.data.definitions).toEqual(lookupResponse.data.definitions);
-
-      // 3. Review the word
-      const reviewRequest = {
-        type: MockMessageTypes.UPDATE_REVIEW_STATS,
-        payload: { 
-          wordId: addWordResponse.data.id,
-          correct: true
-        }
-      };
-      const reviewResponse = await handleMessage(reviewRequest);
-
-      expect(reviewResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(reviewResponse.data.word.reviewCount).toBe(1);
-      expect(reviewResponse.data.stats.wordsReviewed).toBe(1);
-
-      // 4. Check if word becomes due for review later
-      const dueWordsRequest = {
-        type: MockMessageTypes.GET_WORDS_DUE_FOR_REVIEW,
-        payload: {}
-      };
-      const dueWordsResponse = await handleMessage(dueWordsRequest);
-
-      expect(dueWordsResponse.status).toBe(MockMessageStatus.SUCCESS);
-      // Word should not be due immediately after correct answer
-      expect(dueWordsResponse.data).toHaveLength(0);
-    });
-
-    test('should handle batch operations correctly', async () => {
-      const words = ['hello', 'world', 'test'];
-      const addedWords = [];
-
-      // Add multiple words
-      for (const word of words) {
-        const request = {
-          type: MockMessageTypes.ADD_WORD,
-          payload: { 
-            word: { 
-              word,
-              definitions: [{ partOfSpeech: 'noun', meaning: `Definition of ${word}` }]
+    test('should handle concurrent message processing', async () => {
+      const promises = [];
+      
+      // Send multiple messages concurrently
+      for (let i = 0; i < 5; i++) {
+        promises.push(simulateMessage({
+          type: MessageTypes.ADD_WORD,
+          payload: {
+            wordData: {
+              word: `concurrent${i}`,
+              definitions: [{
+                partOfSpeech: 'noun',
+                meaning: `Concurrent word ${i}`,
+                examples: []
+              }]
             }
           }
-        };
-        const response = await handleMessage(request);
-        expect(response.status).toBe(MockMessageStatus.SUCCESS);
-        addedWords.push(response.data);
+        }));
       }
 
-      // Verify all words are stored
-      const getAllRequest = {
-        type: MockMessageTypes.GET_ALL_WORDS,
-        payload: {}
-      };
-      const getAllResponse = await handleMessage(getAllRequest);
-
-      expect(getAllResponse.status).toBe(MockMessageStatus.SUCCESS);
-      expect(getAllResponse.data).toHaveLength(3);
+      const responses = await Promise.all(promises);
       
-      const retrievedWords = getAllResponse.data.map(w => w.word);
-      expect(retrievedWords).toEqual(expect.arrayContaining(['hello', 'world', 'test']));
-    });
-  });
+      // All should succeed
+      responses.forEach((response, index) => {
+        expect(response.status).toBe('success');
+        expect(response.data.word).toBe(`concurrent${index}`);
+      });
 
-  describe('Message Handler Registration', () => {
-    test('should have all required message types registered', () => {
-      const requiredTypes = [
-        MockMessageTypes.LOOKUP_WORD,
-        MockMessageTypes.ADD_WORD,
-        MockMessageTypes.GET_WORD,
-        MockMessageTypes.GET_ALL_WORDS,
-        MockMessageTypes.UPDATE_WORD,
-        MockMessageTypes.DELETE_WORD,
-        MockMessageTypes.GET_WORDS_DUE_FOR_REVIEW,
-        MockMessageTypes.ADD_LIST,
-        MockMessageTypes.GET_LIST,
-        MockMessageTypes.GET_ALL_LISTS,
-        MockMessageTypes.UPDATE_LIST,
-        MockMessageTypes.DELETE_LIST,
-        MockMessageTypes.GET_DEFAULT_LIST,
-        MockMessageTypes.ADD_WORD_TO_LIST,
-        MockMessageTypes.REMOVE_WORD_FROM_LIST,
-        MockMessageTypes.GET_SETTINGS,
-        MockMessageTypes.UPDATE_SETTINGS,
-        MockMessageTypes.GET_STATS,
-        MockMessageTypes.UPDATE_STATS,
-        MockMessageTypes.UPDATE_REVIEW_STATS
-      ];
+      // Verify all words were added
+      const getAllResponse = await simulateMessage({
+        type: MessageTypes.GET_ALL_WORDS,
+        payload: {}
+      });
 
-      for (const type of requiredTypes) {
-        expect(messageHandlers.has(type)).toBe(true);
-      }
-
-      expect(messageHandlers.size).toBe(requiredTypes.length);
+      expect(getAllResponse.status).toBe('success');
+      expect(getAllResponse.data.length).toBeGreaterThanOrEqual(5);
     });
 
-    test('should have all handlers be functions', () => {
-      for (const [type, handler] of messageHandlers) {
-        expect(typeof handler).toBe('function');
+    test('should maintain data consistency across complex workflows', async () => {
+      // Complex workflow: Add words, create lists, add words to lists, update stats
+      
+      // 1. Add multiple words
+      const words = [];
+      for (let i = 0; i < 3; i++) {
+        const response = await simulateMessage({
+          type: MessageTypes.ADD_WORD,
+          payload: {
+            wordData: {
+              word: `consistency${i}`,
+              definitions: [{
+                partOfSpeech: 'noun',
+                meaning: `Consistency test word ${i}`,
+                examples: []
+              }]
+            }
+          }
+        });
+        words.push(response.data);
       }
+
+      // 2. Create a list
+      const listResponse = await simulateMessage({
+        type: MessageTypes.ADD_LIST,
+        payload: {
+          listData: {
+            name: 'Consistency Test List',
+            description: 'Testing data consistency'
+          }
+        }
+      });
+      const list = listResponse.data;
+
+      // 3. Add all words to the list
+      for (const word of words) {
+        await simulateMessage({
+          type: MessageTypes.ADD_WORD_TO_LIST,
+          payload: {
+            wordData: { word: word.word },
+            listId: list.id
+          }
+        });
+      }
+
+      // 4. Verify list contains all words
+      const verifyListResponse = await simulateMessage({
+        type: MessageTypes.GET_LIST,
+        payload: { listId: list.id }
+      });
+
+      expect(verifyListResponse.status).toBe('success');
+      expect(verifyListResponse.data.wordIds).toHaveLength(3);
+      words.forEach(word => {
+        expect(verifyListResponse.data.wordIds).toContain(word.id);
+      });
+
+      // 5. Update stats multiple times
+      for (let i = 0; i < 3; i++) {
+        await simulateMessage({
+          type: MessageTypes.UPDATE_REVIEW_STATS,
+          payload: { correct: true }
+        });
+      }
+
+      // 6. Verify final state consistency
+      const finalStatsResponse = await simulateMessage({
+        type: MessageTypes.GET_STATS,
+        payload: {}
+      });
+
+      expect(finalStatsResponse.status).toBe('success');
+      expect(finalStatsResponse.data.totalReviews).toBe(3);
+      expect(finalStatsResponse.data.currentStreak).toBe(3);
+
+      const finalWordsResponse = await simulateMessage({
+        type: MessageTypes.GET_ALL_WORDS,
+        payload: {}
+      });
+
+      expect(finalWordsResponse.status).toBe('success');
+      expect(finalWordsResponse.data.length).toBeGreaterThanOrEqual(3);
     });
   });
 });
