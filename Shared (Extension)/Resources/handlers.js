@@ -262,10 +262,17 @@ async function handleUpdateReviewStats({ wordId, correct }) {
 }
 
 // Export handlers for use in init.js
-window.createHandlers = createHandlers;
+// Use globalThis for service worker compatibility
+if (typeof globalThis !== 'undefined') {
+    globalThis.createHandlers = createHandlers;
+    globalThis.handleContextMenuClick = handleContextMenuClick;
+} else if (typeof window !== 'undefined') {
+    window.createHandlers = createHandlers;
+    window.handleContextMenuClick = handleContextMenuClick;
+}
 
-// Context menu handler - make it globally available
-window.handleContextMenuClick = async function(info, tab) {
+// Context menu handler
+async function handleContextMenuClick(info, tab) {
     console.log('VocabDict: Context menu clicked:', info.menuItemId, info.selectionText);
     
     if (info.menuItemId === 'vocabdict-lookup' && info.selectionText) {
@@ -313,4 +320,4 @@ window.handleContextMenuClick = async function(info, tab) {
             }
         }
     }
-};
+}

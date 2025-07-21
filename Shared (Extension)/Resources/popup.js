@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             showDictionaryLoading();
             
             const response = await browser.runtime.sendMessage({
-                type: 'lookup_word',
+                type: MessageTypes.LOOKUP_WORD,
                 payload: { word: word }
             });
             
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             const messagePayload = {
-                type: 'add_word_to_list',
+                type: MessageTypes.ADD_WORD_TO_LIST,
                 payload: {
                     wordData: {
                         word: definition.word,
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadSettings() {
         try {
             const response = await browser.runtime.sendMessage({
-                type: 'get_settings',
+                type: MessageTypes.GET_SETTINGS,
                 payload: {}
             });
             
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentSettings[key] = value;
             
             await browser.runtime.sendMessage({
-                type: 'update_settings',
+                type: MessageTypes.UPDATE_SETTINGS,
                 payload: { settings: currentSettings }
             });
         } catch (error) {
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Get all lists
             const listsResponse = await browser.runtime.sendMessage({
-                type: 'get_all_lists',
+                type: MessageTypes.GET_ALL_LISTS,
                 payload: {}
             });
             
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Get all words
                 const wordsResponse = await browser.runtime.sendMessage({
-                    type: 'get_all_words',
+                    type: MessageTypes.GET_ALL_WORDS,
                     payload: {}
                 });
                 
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         try {
             const response = await browser.runtime.sendMessage({
-                type: 'remove_word_from_list',
+                type: MessageTypes.REMOVE_WORD_FROM_LIST,
                 payload: { wordId, listId }
             });
             

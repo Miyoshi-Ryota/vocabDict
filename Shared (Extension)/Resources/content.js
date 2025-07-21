@@ -130,7 +130,7 @@
                 sendResponse({ status: 'success' });
                 break;
                 
-            case 'selection_lookup':
+            case MessageTypes.SELECTION_LOOKUP:
                 // Triggered by keyboard shortcut or context menu
                 console.log('VocabDict: Selection lookup triggered', payload);
                 if (payload && payload.word) {
@@ -186,7 +186,7 @@
             
             // Send lookup request to background script
             const response = await browser.runtime.sendMessage({
-                type: 'lookup_word',
+                type: MessageTypes.LOOKUP_WORD,
                 payload: { word: word }
             });
             
@@ -380,7 +380,7 @@
     async function addToVocabularyList(definition) {
         try {
             const response = await browser.runtime.sendMessage({
-                type: 'add_word_to_list',
+                type: MessageTypes.ADD_WORD_TO_LIST,
                 payload: {
                     wordData: {
                         word: definition.word,
@@ -423,12 +423,26 @@
     }
     
     // Open full definition in popup
-    function openFullDefinition(definition) {
-        browser.runtime.sendMessage({
-            type: 'open_popup',
-            payload: { word: definition.word }
-        });
-        hideFloatingWidget();
+    async function openFullDefinition(definition) {
+        try {
+            await browser.runtime.sendMessage({
+                type: MessageTypes.OPEN_POPUP,
+                payload: { word: definition.word }
+            });
+            hideFloatingWidget();
+        } catch (error) {
+            console.error('VocabDict: Failed to open popup:', error);
+            // Fallback: try to store word for popup to pick up
+            try {
+                await browser.storage.local.set({
+                    pendingLookupWord: definition.word,
+                    pendingLookupTimestamp: Date.now()
+                });
+                hideFloatingWidget();
+            } catch (storageError) {
+                console.error('VocabDict: Failed to store word for popup:', storageError);
+            }
+        }
     }
     
     // Hide floating widget
