@@ -59,11 +59,23 @@
 
 ### Key Files to Know
 ```
-background.js - Core logic, database, message handling (1115 lines)
-popup.js     - Popup UI logic (378 lines)
-content.js   - Text selection and floating widget (448 lines)
-dictionary.js - Extended dictionary data (489 lines)
-manifest.json - Extension configuration
+Modular Background Scripts:
+├── constants.js  - Configuration and message types (71 lines)
+├── models.js     - Data model classes (170 lines)  
+├── database.js   - Database operations (344 lines)
+├── handlers.js   - Message handlers (279 lines)
+└── init.js       - Initialization and routing (247 lines)
+
+UI and Content:
+├── popup.js      - Popup UI logic (555 lines)
+├── content.js    - Text selection and floating widget (511 lines)
+├── dictionary.js - Extended dictionary data (489 lines)
+└── manifest.json - Extension configuration
+
+Testing Framework:
+├── tests/unit/models.real.test.js - Real implementation tests
+├── tests/helpers/browserMocks.js  - Minimal browser API mocks
+└── tests/integration/             - Integration test suite
 ```
 
 ## Project Structure Overview
@@ -85,26 +97,50 @@ User Interaction
 
 ### Key Components
 
-#### Background Script (background.js)
-- **Lines 1-125**: Toy dictionary data
-- **Lines 127-180**: Message type constants
-- **Lines 183-304**: Data model classes
-- **Lines 306-687**: Database wrapper class
-- **Lines 689-1106**: Message handlers and initialization
+#### Background Scripts (Modular Architecture)
+**constants.js (71 lines):**
+- MessageTypes enum with 22 message types
+- UI configuration constants  
+- Database schema constants
 
-#### Popup Script (popup.js)
-- **Lines 1-60**: Tab switching and theme management
-- **Lines 63-91**: Dictionary search functionality
-- **Lines 93-243**: Dictionary result display
-- **Lines 245-308**: Word addition to lists
-- **Lines 297-358**: Settings management
+**models.js (170 lines):**
+- VocabularyWord class with spaced repetition algorithm
+- VocabularyList class for word organization
+- UserSettings class for preferences
+- LearningStats class for progress tracking
 
-#### Content Script (content.js)
-- **Lines 1-117**: Text selection handling
-- **Lines 119-143**: Message handling from background
-- **Lines 164-243**: Floating widget creation
-- **Lines 361-406**: Word addition functionality
-- **Lines 423-452**: Widget lifecycle management
+**database.js (344 lines):**
+- VocabDictDatabase wrapper class
+- IndexedDB operations with error handling
+- CRUD operations for all data models
+
+**handlers.js (279 lines):**
+- 22 message handlers for all functionality
+- Input validation and error handling
+- Consistent response formatting
+
+**init.js (247 lines):**
+- Extension initialization sequence
+- Message routing setup
+- Context menu creation
+- Keyboard shortcut handlers
+
+#### Popup Script (popup.js - 555 lines)
+- **Tab Management**: 4-tab interface (Dictionary, Lists, Learning, Settings)
+- **Dictionary Search**: Real-time lookup with debounced input
+- **Dictionary Display**: Complete word information with pronunciations, definitions, examples
+- **Vocabulary Lists**: Full list management with word display and removal
+- **Word Management**: Add/remove words from lists with visual feedback
+- **Settings**: Theme switching and preference management
+- **Theme System**: Light/Dark/Auto modes with CSS custom properties
+
+#### Content Script (content.js - 511 lines)
+- **Text Selection**: Monitors user text selection with debouncing
+- **Floating Widget**: Smart-positioned lookup widget with definition display
+- **Context Menu Integration**: Handles context menu clicks and keyboard shortcuts
+- **Message Handling**: Processes SELECTION_LOOKUP and widget-related messages
+- **Event Management**: Proper event propagation and cleanup
+- **Cross-site Compatibility**: Works across different websites and layouts
 
 ## Development Patterns
 
@@ -114,13 +150,13 @@ User Interaction
 When adding a new feature that requires background script communication:
 
 ```javascript
-// Step 1: Add message type to background.js
+// Step 1: Add message type to constants.js
 const MessageTypes = {
     // ... existing types
     YOUR_NEW_ACTION: 'your_new_action'
 };
 
-// Step 2: Create handler in background.js
+// Step 2: Create handler in handlers.js
 async function handleYourNewAction({ param1, param2 }) {
     // Validate inputs
     if (!param1) {
@@ -134,7 +170,7 @@ async function handleYourNewAction({ param1, param2 }) {
     return result;
 }
 
-// Step 3: Register handler in background.js
+// Step 3: Register handler in init.js
 messageHandlers.set(MessageTypes.YOUR_NEW_ACTION, handleYourNewAction);
 
 // Step 4: Call from popup.js or content.js
@@ -651,6 +687,26 @@ tests/
     └── full-workflow.test.js
 ```
 
+### Current Testing Implementation
+
+The project now includes a comprehensive testing framework that addresses the issues discovered during development:
+
+#### Real Implementation Testing
+- **tests/unit/models.real.test.js**: Tests actual model classes and spaced repetition algorithm
+- **tests/helpers/browserMocks.js**: Minimal browser API mocks that only mock boundaries
+- **Integration tests**: Test actual message passing and context menu functionality
+
+#### Key Testing Principles Applied:
+1. **Mock Boundaries, Not Implementations**: Only mock browser APIs, test real business logic
+2. **Real Algorithm Testing**: Spaced repetition, date calculations, and data serialization all tested with real implementations
+3. **Context Menu Integration**: Tests that verify actual context menu functionality works end-to-end
+4. **Service Worker Compatibility**: Tests verify globalThis vs window compatibility
+
+#### Testing Lessons Learned:
+- **Excessive Mocking Danger**: Original tests used complete mock implementations (MockVocabularyWord, etc.) that passed even when features were broken
+- **False Positive Prevention**: New tests use real models with minimal browser mocking to ensure actual functionality works
+- **Integration Gaps**: Testing individual components wasn't enough - needed to test cross-component communication
+
 This comprehensive testing guide ensures the extension works reliably across all use cases and platforms.
 
 ### Adding New Features
@@ -764,11 +820,11 @@ This comprehensive testing guide ensures the extension works reliably across all
 
 ## FAQ
 
-**Q: Why is everything in one file?**
-A: Safari has limitations with ES6 modules in extensions. A build process could solve this.
+**Q: Why was the code split into multiple files?**
+A: The original monolithic approach was hard to maintain. We successfully split into 6 logical files while working within Safari's constraints.
 
 **Q: How do I add a new word to the dictionary?**
-A: Add to `TOY_DICTIONARY` in background.js or the extended dictionary in dictionary.js.
+A: Add to the extended dictionary in dictionary.js. The toy dictionary provides the structure.
 
 **Q: Why doesn't the extension work in Chrome?**
 A: It's built specifically for Safari. Chrome would need manifest v3 adaptations.
