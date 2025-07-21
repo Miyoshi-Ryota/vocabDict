@@ -1,532 +1,544 @@
 /**
- * Unit tests for VocabDict data models
- * Tests VocabularyWord, VocabularyList, UserSettings, and LearningStats classes
+ * Unit tests for VocabDict data models - Testing Real Implementations
  */
 
-const {
-  MockVocabularyWord,
-  MockVocabularyList,
-  MockUserSettings,
-  MockLearningStats,
-  MockConstants
-} = require('../mocks/extensionMocks');
+// Mock the browser global and constants before importing models
+global.CONSTANTS = {
+    DEFAULT_REMINDER_TIME: '09:00',
+    DEFAULT_REVIEW_SESSION_SIZE: 20
+};
 
-const { SAMPLE_VOCABULARY_WORDS, TestHelpers } = require('../fixtures/testData');
+// Import real models (Node.js style for testing)
+const fs = require('fs');
+const path = require('path');
 
-describe('VocabularyWord Model', () => {
-  let word;
+// Read and evaluate the models file
+const modelsPath = path.join(__dirname, '../../Shared (Extension)/Resources/models.js');
+const modelsCode = fs.readFileSync(modelsPath, 'utf8');
 
-  beforeEach(() => {
-    word = new MockVocabularyWord({
-      word: 'test',
-      definitions: [{
-        partOfSpeech: 'noun',
-        meaning: 'A test word',
-        examples: ['This is a test.']
-      }]
-    });
-  });
+// Create a function scope and evaluate the models code
+const createModels = new Function('CONSTANTS', modelsCode + `
+    return { VocabularyWord, VocabularyList, UserSettings, LearningStats };
+`);
 
-  describe('Constructor', () => {
-    test('should create word with default values', () => {
-      const newWord = new MockVocabularyWord();
-      
-      expect(newWord.id).toBeDefined();
-      expect(newWord.word).toBe('test');
-      expect(newWord.definitions).toEqual([]);
-      expect(newWord.difficulty).toBe(1);
-      expect(newWord.reviewCount).toBe(0);
-      expect(newWord.correctCount).toBe(0);
-      expect(newWord.lastReviewed).toBeNull();
-      expect(newWord.nextReview).toBeInstanceOf(Date);
-      expect(newWord.interval).toBe(1);
-      expect(newWord.easeFactor).toBe(MockConstants.DEFAULT_EASE_FACTOR);
-      expect(newWord.createdAt).toBeInstanceOf(Date);
-      expect(newWord.updatedAt).toBeInstanceOf(Date);
+const { VocabularyWord, VocabularyList, UserSettings, LearningStats } = createModels(global.CONSTANTS);
+
+describe('VocabularyWord Model - Real Implementation', () => {
+    let word;
+
+    beforeEach(() => {
+        word = new VocabularyWord({
+            word: 'test',
+            definitions: [{
+                partOfSpeech: 'noun',
+                meaning: 'A procedure for critical evaluation',
+                examples: ['The test was successful.']
+            }]
+        });
     });
 
-    test('should create word with provided values', () => {
-      const testData = {
-        id: 'custom_id',
-        word: 'custom',
-        definitions: [{ partOfSpeech: 'verb', meaning: 'to customize' }],
-        difficulty: 3,
-        reviewCount: 5,
-        correctCount: 3
-      };
+    describe('Constructor', () => {
+        test('should create word with provided values', () => {
+            expect(word.word).toBe('test');
+            expect(word.definitions).toHaveLength(1);
+            expect(word.definitions[0].partOfSpeech).toBe('noun');
+            expect(word.definitions[0].meaning).toBe('A procedure for critical evaluation');
+            expect(word.lookupCount).toBe(1);
+            expect(word.difficulty).toBe('medium');
+            expect(word.dateAdded).toBeInstanceOf(Date);
+            expect(word.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+        });
 
-      const newWord = new MockVocabularyWord(testData);
-      
-      expect(newWord.id).toBe('custom_id');
-      expect(newWord.word).toBe('custom');
-      expect(newWord.definitions).toEqual(testData.definitions);
-      expect(newWord.difficulty).toBe(3);
-      expect(newWord.reviewCount).toBe(5);
-      expect(newWord.correctCount).toBe(3);
-    });
-  });
+        test('should create word with default values', () => {
+            const emptyWord = new VocabularyWord();
+            
+            expect(emptyWord.word).toBe('');
+            expect(emptyWord.definitions).toEqual([]);
+            expect(emptyWord.lookupCount).toBe(1);
+            expect(emptyWord.difficulty).toBe('medium');
+            expect(emptyWord.lastReviewed).toBeNull();
+            expect(emptyWord.nextReview).toBeNull();
+            expect(emptyWord.reviewHistory).toEqual([]);
+        });
 
-  describe('ID Generation', () => {
-    test('should generate unique IDs', () => {
-      const id1 = word.generateId();
-      const id2 = word.generateId();
-      
-      expect(id1).toMatch(/^word_\d+_[a-z0-9]+$/);
-      expect(id2).toMatch(/^word_\d+_[a-z0-9]+$/);
-      expect(id1).not.toBe(id2);
-    });
-  });
-
-  describe('Review Calculation', () => {
-    test('should handle correct answer', () => {
-      const initialEaseFactor = word.easeFactor;
-      const initialInterval = word.interval;
-      
-      word.calculateNextReview(true);
-      
-      expect(word.reviewCount).toBe(1);
-      expect(word.correctCount).toBe(1);
-      expect(word.lastReviewed).toBeInstanceOf(Date);
-      expect(word.nextReview).toBeInstanceOf(Date);
-      expect(word.nextReview.getTime()).toBeGreaterThan(Date.now());
-      expect(word.easeFactor).toBeGreaterThan(initialEaseFactor);
-      
-      // First correct answer should set interval to 6
-      if (initialInterval === 1) {
-        expect(word.interval).toBe(6);
-      }
+        test('should handle date parsing for existing data', () => {
+            const dateAdded = new Date('2024-01-01');
+            const lastReviewed = new Date('2024-01-05');
+            const nextReview = new Date('2024-01-10');
+            
+            const existingWord = new VocabularyWord({
+                dateAdded: dateAdded.toISOString(),
+                lastReviewed: lastReviewed.toISOString(),
+                nextReview: nextReview.toISOString()
+            });
+            
+            expect(existingWord.dateAdded).toEqual(dateAdded);
+            expect(existingWord.lastReviewed).toEqual(lastReviewed);
+            expect(existingWord.nextReview).toEqual(nextReview);
+        });
     });
 
-    test('should handle incorrect answer', () => {
-      word.reviewCount = 3;
-      word.correctCount = 2;
-      word.interval = 10;
-      const initialEaseFactor = word.easeFactor;
-      
-      word.calculateNextReview(false);
-      
-      expect(word.reviewCount).toBe(4);
-      expect(word.correctCount).toBe(2); // Should not increase
-      expect(word.interval).toBe(1); // Should reset to 1
-      expect(word.easeFactor).toBeLessThan(initialEaseFactor);
-      expect(word.easeFactor).toBeGreaterThanOrEqual(MockConstants.MIN_EASE_FACTOR);
+    describe('ID Generation', () => {
+        test('should generate unique IDs', () => {
+            const word1 = new VocabularyWord();
+            const word2 = new VocabularyWord();
+            
+            expect(word1.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+            expect(word2.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+            expect(word1.id).not.toBe(word2.id);
+        });
+
+        test('should use provided ID if available', () => {
+            const customWord = new VocabularyWord({ id: 'custom_id_123' });
+            expect(customWord.id).toBe('custom_id_123');
+        });
     });
 
-    test('should respect ease factor bounds', () => {
-      // Test maximum bound
-      word.easeFactor = MockConstants.MAX_EASE_FACTOR - 0.05;
-      word.calculateNextReview(true);
-      expect(word.easeFactor).toBeLessThanOrEqual(MockConstants.MAX_EASE_FACTOR);
-      
-      // Test minimum bound
-      word.easeFactor = MockConstants.MIN_EASE_FACTOR + 0.1;
-      word.calculateNextReview(false);
-      expect(word.easeFactor).toBeGreaterThanOrEqual(MockConstants.MIN_EASE_FACTOR);
+    describe('Spaced Repetition Algorithm', () => {
+        test('should calculate next review for correct answer', () => {
+            const beforeReview = new Date();
+            const nextReviewDate = word.calculateNextReview(true);
+            
+            expect(word.lastReviewed).toBeInstanceOf(Date);
+            expect(word.lastReviewed.getTime()).toBeGreaterThanOrEqual(beforeReview.getTime());
+            expect(nextReviewDate).toBeInstanceOf(Date);
+            
+            // First review should be 1 day later
+            const daysDiff = Math.round((nextReviewDate - word.lastReviewed) / (1000 * 60 * 60 * 24));
+            expect(daysDiff).toBe(1);
+            
+            expect(word.reviewHistory).toHaveLength(1);
+            expect(word.reviewHistory[0].correct).toBe(true);
+            expect(word.reviewHistory[0].date).toEqual(word.lastReviewed);
+        });
+
+        test('should follow spaced repetition intervals', () => {
+            const intervals = [1, 3, 7, 14, 30, 90];
+            
+            // Test progression through intervals
+            for (let i = 0; i < intervals.length; i++) {
+                word.calculateNextReview(true);
+                const daysDiff = Math.round((word.nextReview - word.lastReviewed) / (1000 * 60 * 60 * 24));
+                expect(daysDiff).toBe(intervals[Math.min(i, intervals.length - 1)]);
+            }
+            
+            // Additional correct answers should stay at max interval
+            word.calculateNextReview(true);
+            const finalDaysDiff = Math.round((word.nextReview - word.lastReviewed) / (1000 * 60 * 60 * 24));
+            expect(finalDaysDiff).toBe(90);
+        });
+
+        test('should reset to first interval on incorrect answer', () => {
+            // Build up some progress
+            word.calculateNextReview(true); // 1 day
+            word.calculateNextReview(true); // 3 days
+            word.calculateNextReview(true); // 7 days
+            
+            expect(word.reviewHistory.filter(r => r.correct).length).toBe(3);
+            
+            // Incorrect answer should reset to 1 day
+            word.calculateNextReview(false);
+            const daysDiff = Math.round((word.nextReview - word.lastReviewed) / (1000 * 60 * 60 * 24));
+            expect(daysDiff).toBe(1);
+            
+            expect(word.reviewHistory).toHaveLength(4);
+            expect(word.reviewHistory[3].correct).toBe(false);
+        });
     });
 
-    test('should increase interval on subsequent correct answers', () => {
-      // First correct answer
-      word.calculateNextReview(true);
-      expect(word.interval).toBe(6);
-      
-      // Second correct answer
-      word.calculateNextReview(true);
-      expect(word.interval).toBeGreaterThan(6);
-      expect(word.interval).toBe(Math.round(6 * word.easeFactor));
-    });
-  });
+    describe('JSON Serialization', () => {
+        test('should serialize all properties correctly', () => {
+            word.lastReviewed = new Date('2024-01-05');
+            word.nextReview = new Date('2024-01-10');
+            word.reviewHistory = [
+                { date: new Date('2024-01-01'), correct: true },
+                { date: new Date('2024-01-02'), correct: false }
+            ];
+            
+            const json = word.toJSON();
+            
+            expect(json).toEqual({
+                id: word.id,
+                word: 'test',
+                definitions: word.definitions,
+                dateAdded: word.dateAdded.toISOString(),
+                lookupCount: 1,
+                difficulty: 'medium',
+                lastReviewed: '2024-01-05T00:00:00.000Z',
+                nextReview: '2024-01-10T00:00:00.000Z',
+                reviewHistory: word.reviewHistory
+            });
+        });
 
-  describe('Due Date Check', () => {
-    test('should identify due words', () => {
-      // Set next review to past date
-      word.nextReview = new Date(Date.now() - 1000);
-      expect(word.isDue()).toBe(true);
+        test('should handle null dates in JSON', () => {
+            const newWord = new VocabularyWord({ word: 'example' });
+            const json = newWord.toJSON();
+            
+            expect(json.lastReviewed).toBeNull();
+            expect(json.nextReview).toBeNull();
+        });
     });
-
-    test('should identify non-due words', () => {
-      // Set next review to future date
-      word.nextReview = new Date(Date.now() + 86400000); // +1 day
-      expect(word.isDue()).toBe(false);
-    });
-
-    test('should handle edge case of exactly due', () => {
-      word.nextReview = new Date();
-      expect(word.isDue()).toBe(true);
-    });
-  });
-
-  describe('JSON Serialization', () => {
-    test('should serialize to valid JSON', () => {
-      const json = word.toJSON();
-      
-      expect(json).toHaveProperty('id');
-      expect(json).toHaveProperty('word');
-      expect(json).toHaveProperty('definitions');
-      expect(json).toHaveProperty('difficulty');
-      expect(json).toHaveProperty('reviewCount');
-      expect(json).toHaveProperty('correctCount');
-      expect(json).toHaveProperty('lastReviewed');
-      expect(json).toHaveProperty('nextReview');
-      expect(json).toHaveProperty('interval');
-      expect(json).toHaveProperty('easeFactor');
-      expect(json).toHaveProperty('createdAt');
-      expect(json).toHaveProperty('updatedAt');
-    });
-
-    test('should maintain data integrity in JSON', () => {
-      const json = word.toJSON();
-      
-      expect(json.id).toBe(word.id);
-      expect(json.word).toBe(word.word);
-      expect(json.definitions).toEqual(word.definitions);
-      expect(json.easeFactor).toBe(word.easeFactor);
-    });
-  });
 });
 
-describe('VocabularyList Model', () => {
-  let list;
+describe('VocabularyList Model - Real Implementation', () => {
+    let list;
 
-  beforeEach(() => {
-    list = new MockVocabularyList({
-      name: 'Test List',
-      wordIds: ['word1', 'word2']
-    });
-  });
-
-  describe('Constructor', () => {
-    test('should create list with default values', () => {
-      const newList = new MockVocabularyList();
-      
-      expect(newList.id).toBeDefined();
-      expect(newList.name).toBe('Test List');
-      expect(newList.wordIds).toEqual([]);
-      expect(newList.isDefault).toBe(false);
-      expect(newList.createdAt).toBeInstanceOf(Date);
-      expect(newList.updatedAt).toBeInstanceOf(Date);
+    beforeEach(() => {
+        list = new VocabularyList({
+            name: 'Test List',
+            description: 'A list for testing'
+        });
     });
 
-    test('should create list with provided values', () => {
-      const testData = {
-        id: 'custom_list_id',
-        name: 'Custom List',
-        wordIds: ['word1', 'word2', 'word3'],
-        isDefault: true
-      };
+    describe('Constructor', () => {
+        test('should create list with provided values', () => {
+            expect(list.name).toBe('Test List');
+            expect(list.description).toBe('A list for testing');
+            expect(list.wordIds).toEqual([]);
+            expect(list.isDefault).toBe(false);
+            expect(list.sortOrder).toBe(0);
+            expect(list.createdDate).toBeInstanceOf(Date);
+            expect(list.modifiedDate).toBeInstanceOf(Date);
+            expect(list.id).toMatch(/^list_\d+_[a-z0-9]+$/);
+        });
 
-      const newList = new MockVocabularyList(testData);
-      
-      expect(newList.id).toBe('custom_list_id');
-      expect(newList.name).toBe('Custom List');
-      expect(newList.wordIds).toEqual(['word1', 'word2', 'word3']);
-      expect(newList.isDefault).toBe(true);
+        test('should create list with default values', () => {
+            const emptyList = new VocabularyList();
+            
+            expect(emptyList.name).toBe('Untitled List');
+            expect(emptyList.description).toBe('');
+            expect(emptyList.wordIds).toEqual([]);
+            expect(emptyList.isDefault).toBe(false);
+        });
+
+        test('should handle date parsing', () => {
+            const createdDate = new Date('2024-01-01');
+            const modifiedDate = new Date('2024-01-05');
+            
+            const existingList = new VocabularyList({
+                createdDate: createdDate.toISOString(),
+                modifiedDate: modifiedDate.toISOString()
+            });
+            
+            expect(existingList.createdDate).toEqual(createdDate);
+            expect(existingList.modifiedDate).toEqual(modifiedDate);
+        });
     });
-  });
 
-  describe('Word Management', () => {
-    test('should add word to list', () => {
-      const initialCount = list.wordIds.length;
-      const initialUpdatedAt = list.updatedAt;
-      
-      // Wait a moment to ensure updatedAt changes
-      setTimeout(() => {
-        list.addWord('word3');
+    describe('Word Management', () => {
+        test('should add word to list', () => {
+            const originalModified = list.modifiedDate;
+            
+            // Wait a bit to ensure date changes
+            setTimeout(() => {
+                list.addWord('word_123');
+                
+                expect(list.wordIds).toContain('word_123');
+                expect(list.wordIds).toHaveLength(1);
+                expect(list.modifiedDate.getTime()).toBeGreaterThan(originalModified.getTime());
+            }, 10);
+        });
+
+        test('should not add duplicate words', () => {
+            list.addWord('word_123');
+            const modifiedAfterFirst = list.modifiedDate;
+            
+            setTimeout(() => {
+                list.addWord('word_123'); // Try to add same word
+                
+                expect(list.wordIds).toHaveLength(1);
+                expect(list.wordIds.filter(id => id === 'word_123')).toHaveLength(1);
+                expect(list.modifiedDate).toEqual(modifiedAfterFirst); // Date shouldn't change
+            }, 10);
+        });
+
+        test('should remove word from list', () => {
+            list.wordIds = ['word_1', 'word_2', 'word_3'];
+            const originalModified = list.modifiedDate;
+            
+            setTimeout(() => {
+                list.removeWord('word_2');
+                
+                expect(list.wordIds).toEqual(['word_1', 'word_3']);
+                expect(list.wordIds).not.toContain('word_2');
+                expect(list.modifiedDate.getTime()).toBeGreaterThan(originalModified.getTime());
+            }, 10);
+        });
+
+        test('should handle removing non-existent word', () => {
+            list.wordIds = ['word_1'];
+            const originalModified = list.modifiedDate;
+            
+            setTimeout(() => {
+                list.removeWord('word_999');
+                
+                expect(list.wordIds).toEqual(['word_1']);
+                expect(list.modifiedDate).toEqual(originalModified); // Date shouldn't change
+            }, 10);
+        });
+    });
+
+    describe('JSON Serialization', () => {
+        test('should serialize all properties correctly', () => {
+            list.wordIds = ['word_1', 'word_2'];
+            list.isDefault = true;
+            list.sortOrder = 5;
+            
+            const json = list.toJSON();
+            
+            expect(json).toEqual({
+                id: list.id,
+                name: 'Test List',
+                description: 'A list for testing',
+                wordIds: ['word_1', 'word_2'],
+                createdDate: list.createdDate.toISOString(),
+                modifiedDate: list.modifiedDate.toISOString(),
+                isDefault: true,
+                sortOrder: 5
+            });
+        });
+    });
+});
+
+describe('UserSettings Model - Real Implementation', () => {
+    let settings;
+
+    beforeEach(() => {
+        settings = new UserSettings();
+    });
+
+    describe('Constructor', () => {
+        test('should create settings with default values', () => {
+            expect(settings.theme).toBe('auto');
+            expect(settings.autoAddToList).toBe(true);
+            expect(settings.defaultListId).toBeNull();
+            expect(settings.dailyReviewReminder).toBe(false);
+            expect(settings.reminderTime).toBe('09:00');
+            expect(settings.reviewSessionSize).toBe(20);
+            expect(settings.keyboardShortcuts).toEqual({
+                lookup: 'Cmd+Shift+L',
+                addToList: 'Cmd+Shift+A'
+            });
+        });
+
+        test('should create settings with provided values', () => {
+            const customSettings = new UserSettings({
+                theme: 'dark',
+                autoAddToList: false,
+                defaultListId: 'list_123',
+                dailyReviewReminder: true,
+                reminderTime: '18:00',
+                reviewSessionSize: 10
+            });
+            
+            expect(customSettings.theme).toBe('dark');
+            expect(customSettings.autoAddToList).toBe(false);
+            expect(customSettings.defaultListId).toBe('list_123');
+            expect(customSettings.dailyReviewReminder).toBe(true);
+            expect(customSettings.reminderTime).toBe('18:00');
+            expect(customSettings.reviewSessionSize).toBe(10);
+        });
+
+        test('should handle partial settings', () => {
+            const partialSettings = new UserSettings({
+                theme: 'light',
+                reviewSessionSize: 15
+            });
+            
+            expect(partialSettings.theme).toBe('light');
+            expect(partialSettings.autoAddToList).toBe(true); // Default
+            expect(partialSettings.reviewSessionSize).toBe(15);
+        });
+    });
+
+    describe('JSON Serialization', () => {
+        test('should serialize all properties correctly', () => {
+            settings.theme = 'dark';
+            settings.defaultListId = 'list_456';
+            settings.keyboardShortcuts.lookup = 'Ctrl+L';
+            
+            const json = settings.toJSON();
+            
+            expect(json).toEqual({
+                theme: 'dark',
+                autoAddToList: true,
+                defaultListId: 'list_456',
+                dailyReviewReminder: false,
+                reminderTime: '09:00',
+                reviewSessionSize: 20,
+                keyboardShortcuts: {
+                    lookup: 'Ctrl+L',
+                    addToList: 'Cmd+Shift+A'
+                }
+            });
+        });
+    });
+});
+
+describe('LearningStats Model - Real Implementation', () => {
+    let stats;
+
+    beforeEach(() => {
+        stats = new LearningStats();
+    });
+
+    describe('Constructor', () => {
+        test('should create stats with default values', () => {
+            expect(stats.totalWords).toBe(0);
+            expect(stats.wordsLearned).toBe(0);
+            expect(stats.currentStreak).toBe(0);
+            expect(stats.longestStreak).toBe(0);
+            expect(stats.lastReviewDate).toBeNull();
+            expect(stats.totalReviews).toBe(0);
+            expect(stats.accuracyRate).toBe(0);
+        });
+
+        test('should create stats with provided values', () => {
+            const lastReview = new Date('2024-01-05');
+            const customStats = new LearningStats({
+                totalWords: 50,
+                wordsLearned: 30,
+                currentStreak: 5,
+                longestStreak: 10,
+                lastReviewDate: lastReview.toISOString(),
+                totalReviews: 100,
+                accuracyRate: 85
+            });
+            
+            expect(customStats.totalWords).toBe(50);
+            expect(customStats.wordsLearned).toBe(30);
+            expect(customStats.currentStreak).toBe(5);
+            expect(customStats.longestStreak).toBe(10);
+            expect(customStats.lastReviewDate).toEqual(lastReview);
+            expect(customStats.totalReviews).toBe(100);
+            expect(customStats.accuracyRate).toBe(85);
+        });
+    });
+
+    describe('Review Statistics', () => {
+        test('should update stats for correct answer on first review', () => {
+            stats.updateReviewStats(true);
+            
+            expect(stats.totalReviews).toBe(1);
+            expect(stats.accuracyRate).toBe(100);
+            expect(stats.currentStreak).toBe(1);
+            expect(stats.longestStreak).toBe(1);
+            expect(stats.lastReviewDate).toBeInstanceOf(Date);
+        });
+
+        test('should calculate accuracy rate correctly', () => {
+            stats.updateReviewStats(true);  // 100%
+            stats.updateReviewStats(true);  // 100%
+            stats.updateReviewStats(false); // 66.67%
+            stats.updateReviewStats(true);  // 75%
+            
+            expect(stats.totalReviews).toBe(4);
+            expect(stats.accuracyRate).toBe(75);
+        });
+
+        test('should handle streak for consecutive days', () => {
+            // First review
+            stats.updateReviewStats(true);
+            expect(stats.currentStreak).toBe(1);
+            
+            // Same day review shouldn't increase streak
+            stats.updateReviewStats(true);
+            expect(stats.currentStreak).toBe(1);
+            
+            // Simulate next day review
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            stats.lastReviewDate = yesterday;
+            stats.currentStreak = 1;
+            
+            stats.updateReviewStats(true);
+            expect(stats.currentStreak).toBe(2);
+            expect(stats.longestStreak).toBe(2);
+        });
+
+        test('should break streak after missing days', () => {
+            // Set up a streak
+            stats.currentStreak = 5;
+            stats.longestStreak = 5;
+            stats.lastReviewDate = new Date('2024-01-01');
+            
+            // Review after missing days
+            stats.updateReviewStats(true);
+            
+            expect(stats.currentStreak).toBe(1); // Reset to 1
+            expect(stats.longestStreak).toBe(5); // Longest remains
+        });
+    });
+
+    describe('JSON Serialization', () => {
+        test('should serialize all properties correctly', () => {
+            const reviewDate = new Date('2024-01-10');
+            stats.totalWords = 25;
+            stats.wordsLearned = 15;
+            stats.currentStreak = 3;
+            stats.longestStreak = 7;
+            stats.lastReviewDate = reviewDate;
+            stats.totalReviews = 50;
+            stats.accuracyRate = 80;
+            
+            const json = stats.toJSON();
+            
+            expect(json).toEqual({
+                totalWords: 25,
+                wordsLearned: 15,
+                currentStreak: 3,
+                longestStreak: 7,
+                lastReviewDate: reviewDate.toISOString(),
+                totalReviews: 50,
+                accuracyRate: 80
+            });
+        });
+
+        test('should handle null lastReviewDate', () => {
+            const json = stats.toJSON();
+            expect(json.lastReviewDate).toBeNull();
+        });
+    });
+});
+
+describe('Model Interactions', () => {
+    test('VocabularyWord and VocabularyList should work together', () => {
+        const word1 = new VocabularyWord({ word: 'apple' });
+        const word2 = new VocabularyWord({ word: 'banana' });
+        const list = new VocabularyList({ name: 'Fruits' });
         
-        expect(list.wordIds).toContain('word3');
-        expect(list.wordIds.length).toBe(initialCount + 1);
-        expect(list.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime());
-      }, 1);
-    });
-
-    test('should not add duplicate words', () => {
-      const initialCount = list.wordIds.length;
-      
-      list.addWord('word1'); // Already exists
-      
-      expect(list.wordIds.length).toBe(initialCount);
-      expect(list.wordIds.filter(id => id === 'word1').length).toBe(1);
-    });
-
-    test('should remove word from list', () => {
-      const initialCount = list.wordIds.length;
-      const initialUpdatedAt = list.updatedAt;
-      
-      setTimeout(() => {
-        list.removeWord('word1');
+        list.addWord(word1.id);
+        list.addWord(word2.id);
         
-        expect(list.wordIds).not.toContain('word1');
-        expect(list.wordIds.length).toBe(initialCount - 1);
-        expect(list.updatedAt.getTime()).toBeGreaterThan(initialUpdatedAt.getTime());
-      }, 1);
+        expect(list.wordIds).toContain(word1.id);
+        expect(list.wordIds).toContain(word2.id);
+        expect(list.wordIds).toHaveLength(2);
     });
 
-    test('should handle removing non-existent word', () => {
-      const initialCount = list.wordIds.length;
-      
-      list.removeWord('nonexistent');
-      
-      expect(list.wordIds.length).toBe(initialCount);
+    test('UserSettings should reference VocabularyList', () => {
+        const list = new VocabularyList({ name: 'Default List', isDefault: true });
+        const settings = new UserSettings({ defaultListId: list.id });
+        
+        expect(settings.defaultListId).toBe(list.id);
     });
 
-    test('should check if word exists in list', () => {
-      expect(list.containsWord('word1')).toBe(true);
-      expect(list.containsWord('word2')).toBe(true);
-      expect(list.containsWord('nonexistent')).toBe(false);
+    test('LearningStats should track VocabularyWord progress', () => {
+        const words = [
+            new VocabularyWord({ word: 'test1' }),
+            new VocabularyWord({ word: 'test2' }),
+            new VocabularyWord({ word: 'test3' })
+        ];
+        
+        const stats = new LearningStats({ totalWords: words.length });
+        
+        // Simulate reviews
+        words.forEach(word => {
+            word.calculateNextReview(true);
+            stats.updateReviewStats(true);
+        });
+        
+        expect(stats.totalWords).toBe(3);
+        expect(stats.totalReviews).toBe(3);
+        expect(stats.accuracyRate).toBe(100);
     });
-
-    test('should return correct word count', () => {
-      expect(list.getWordCount()).toBe(2);
-      
-      list.addWord('word3');
-      expect(list.getWordCount()).toBe(3);
-      
-      list.removeWord('word1');
-      expect(list.getWordCount()).toBe(2);
-    });
-  });
-
-  describe('JSON Serialization', () => {
-    test('should serialize to valid JSON', () => {
-      const json = list.toJSON();
-      
-      expect(json).toHaveProperty('id');
-      expect(json).toHaveProperty('name');
-      expect(json).toHaveProperty('wordIds');
-      expect(json).toHaveProperty('isDefault');
-      expect(json).toHaveProperty('createdAt');
-      expect(json).toHaveProperty('updatedAt');
-    });
-
-    test('should maintain data integrity in JSON', () => {
-      const json = list.toJSON();
-      
-      expect(json.id).toBe(list.id);
-      expect(json.name).toBe(list.name);
-      expect(json.wordIds).toEqual(list.wordIds);
-      expect(json.isDefault).toBe(list.isDefault);
-    });
-  });
-});
-
-describe('UserSettings Model', () => {
-  let settings;
-
-  beforeEach(() => {
-    settings = new MockUserSettings();
-  });
-
-  describe('Constructor', () => {
-    test('should create settings with default values', () => {
-      expect(settings.theme).toBe('light');
-      expect(settings.autoAdd).toBe(true);
-      expect(settings.defaultListId).toBeNull();
-      expect(settings.reviewReminders).toBe(true);
-      expect(settings.sessionSize).toBe(20);
-    });
-
-    test('should create settings with provided values', () => {
-      const testData = {
-        theme: 'dark',
-        autoAdd: false,
-        defaultListId: 'list123',
-        reviewReminders: false,
-        sessionSize: 10
-      };
-
-      const newSettings = new MockUserSettings(testData);
-      
-      expect(newSettings.theme).toBe('dark');
-      expect(newSettings.autoAdd).toBe(false);
-      expect(newSettings.defaultListId).toBe('list123');
-      expect(newSettings.reviewReminders).toBe(false);
-      expect(newSettings.sessionSize).toBe(10);
-    });
-
-    test('should handle partial data', () => {
-      const partialData = {
-        theme: 'dark',
-        sessionSize: 15
-      };
-
-      const newSettings = new MockUserSettings(partialData);
-      
-      expect(newSettings.theme).toBe('dark');
-      expect(newSettings.autoAdd).toBe(true); // Default value
-      expect(newSettings.sessionSize).toBe(15);
-    });
-  });
-
-  describe('JSON Serialization', () => {
-    test('should serialize to valid JSON', () => {
-      const json = settings.toJSON();
-      
-      expect(json).toHaveProperty('theme');
-      expect(json).toHaveProperty('autoAdd');
-      expect(json).toHaveProperty('defaultListId');
-      expect(json).toHaveProperty('reviewReminders');
-      expect(json).toHaveProperty('sessionSize');
-    });
-
-    test('should maintain data integrity in JSON', () => {
-      settings.theme = 'dark';
-      settings.autoAdd = false;
-      settings.defaultListId = 'test_list';
-      
-      const json = settings.toJSON();
-      
-      expect(json.theme).toBe('dark');
-      expect(json.autoAdd).toBe(false);
-      expect(json.defaultListId).toBe('test_list');
-    });
-  });
-});
-
-describe('LearningStats Model', () => {
-  let stats;
-
-  beforeEach(() => {
-    stats = new MockLearningStats();
-  });
-
-  describe('Constructor', () => {
-    test('should create stats with default values', () => {
-      expect(stats.totalWords).toBe(0);
-      expect(stats.wordsReviewed).toBe(0);
-      expect(stats.correctAnswers).toBe(0);
-      expect(stats.currentStreak).toBe(0);
-      expect(stats.longestStreak).toBe(0);
-      expect(stats.averageEaseFactor).toBe(MockConstants.DEFAULT_EASE_FACTOR);
-      expect(stats.timeStudied).toBe(0);
-      expect(stats.lastStudyDate).toBeNull();
-    });
-
-    test('should create stats with provided values', () => {
-      const testData = {
-        totalWords: 50,
-        wordsReviewed: 100,
-        correctAnswers: 80,
-        currentStreak: 5,
-        longestStreak: 15,
-        timeStudied: 3600
-      };
-
-      const newStats = new MockLearningStats(testData);
-      
-      expect(newStats.totalWords).toBe(50);
-      expect(newStats.wordsReviewed).toBe(100);
-      expect(newStats.correctAnswers).toBe(80);
-      expect(newStats.currentStreak).toBe(5);
-      expect(newStats.longestStreak).toBe(15);
-      expect(newStats.timeStudied).toBe(3600);
-    });
-  });
-
-  describe('Review Statistics', () => {
-    test('should update stats on correct answer', () => {
-      stats.updateReviewStats(true);
-      
-      expect(stats.wordsReviewed).toBe(1);
-      expect(stats.correctAnswers).toBe(1);
-      expect(stats.currentStreak).toBe(1);
-      expect(stats.longestStreak).toBe(1);
-      expect(stats.lastStudyDate).toBeInstanceOf(Date);
-    });
-
-    test('should update stats on incorrect answer', () => {
-      stats.currentStreak = 5;
-      stats.longestStreak = 5;
-      
-      stats.updateReviewStats(false);
-      
-      expect(stats.wordsReviewed).toBe(1);
-      expect(stats.correctAnswers).toBe(0);
-      expect(stats.currentStreak).toBe(0);
-      expect(stats.longestStreak).toBe(5); // Should not change
-    });
-
-    test('should track longest streak correctly', () => {
-      // Build up a streak
-      stats.updateReviewStats(true); // streak: 1
-      stats.updateReviewStats(true); // streak: 2
-      stats.updateReviewStats(true); // streak: 3
-      expect(stats.longestStreak).toBe(3);
-      
-      // Break the streak
-      stats.updateReviewStats(false); // streak: 0
-      expect(stats.currentStreak).toBe(0);
-      expect(stats.longestStreak).toBe(3); // Should remain 3
-      
-      // Build a longer streak
-      stats.updateReviewStats(true); // streak: 1
-      stats.updateReviewStats(true); // streak: 2
-      stats.updateReviewStats(true); // streak: 3
-      stats.updateReviewStats(true); // streak: 4
-      expect(stats.longestStreak).toBe(4);
-    });
-
-    test('should calculate accuracy correctly', () => {
-      expect(stats.getAccuracy()).toBe(0); // No reviews yet
-      
-      stats.updateReviewStats(true);
-      stats.updateReviewStats(true);
-      stats.updateReviewStats(false);
-      
-      expect(stats.getAccuracy()).toBeCloseTo(2/3, 2);
-    });
-  });
-
-  describe('JSON Serialization', () => {
-    test('should serialize to valid JSON', () => {
-      const json = stats.toJSON();
-      
-      expect(json).toHaveProperty('totalWords');
-      expect(json).toHaveProperty('wordsReviewed');
-      expect(json).toHaveProperty('correctAnswers');
-      expect(json).toHaveProperty('currentStreak');
-      expect(json).toHaveProperty('longestStreak');
-      expect(json).toHaveProperty('averageEaseFactor');
-      expect(json).toHaveProperty('timeStudied');
-      expect(json).toHaveProperty('lastStudyDate');
-    });
-
-    test('should maintain data integrity in JSON', () => {
-      stats.totalWords = 25;
-      stats.currentStreak = 8;
-      stats.timeStudied = 7200;
-      
-      const json = stats.toJSON();
-      
-      expect(json.totalWords).toBe(25);
-      expect(json.currentStreak).toBe(8);
-      expect(json.timeStudied).toBe(7200);
-    });
-  });
-});
-
-describe('Model Integration', () => {
-  test('should work with custom matcher toBeValidVocabularyWord', () => {
-    const validWord = new MockVocabularyWord({
-      word: 'integration',
-      definitions: [{ partOfSpeech: 'noun', meaning: 'test definition' }]
-    });
-    
-    expect(validWord).toBeValidVocabularyWord();
-  });
-
-  test('should work with custom matcher toBeValidVocabularyList', () => {
-    const validList = new MockVocabularyList({
-      name: 'Integration Test List'
-    });
-    
-    expect(validList).toBeValidVocabularyList();
-  });
-
-  test('should work with custom matcher toBeValidUserSettings', () => {
-    const validSettings = new MockUserSettings({
-      theme: 'dark',
-      autoAdd: false
-    });
-    
-    expect(validSettings).toBeValidUserSettings();
-  });
 });

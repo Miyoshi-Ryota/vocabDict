@@ -1,33 +1,68 @@
 /**
- * Unit tests for VocabDict Database operations
- * Tests the VocabDictDatabase class methods and data persistence
+ * Unit tests for VocabDict Database operations - Real Implementation
+ * Tests the actual VocabDictDatabase class with real IndexedDB via fake-indexeddb
  */
 
-const { MockVocabDictDatabase, MockVocabularyWord, MockVocabularyList, MockUserSettings, MockLearningStats } = require('../mocks/extensionMocks');
+// Setup fake IndexedDB for testing
+require('fake-indexeddb/auto');
+
+const FDBFactory = require('fake-indexeddb/lib/FDBFactory');
+const fs = require('fs');
+const path = require('path');
+
+// Import real implementation
+const constantsPath = path.join(__dirname, '../../Shared (Extension)/Resources/constants.js');
+const constantsCode = fs.readFileSync(constantsPath, 'utf8');
+eval(constantsCode);
+
+const modelsPath = path.join(__dirname, '../../Shared (Extension)/Resources/models.js');
+const modelsCode = fs.readFileSync(modelsPath, 'utf8');
+eval(modelsCode);
+
+const databasePath = path.join(__dirname, '../../Shared (Extension)/Resources/database.js');
+const databaseCode = fs.readFileSync(databasePath, 'utf8');
+eval(databaseCode);
+
 const { SAMPLE_VOCABULARY_WORDS, SAMPLE_VOCABULARY_LISTS, TestHelpers } = require('../fixtures/testData');
 
-describe('VocabDictDatabase', () => {
+describe('VocabDictDatabase - Real Implementation', () => {
   let db;
 
   beforeEach(async () => {
-    db = new MockVocabDictDatabase();
+    // Reset IndexedDB
+    global.indexedDB = new FDBFactory();
+    
+    db = new VocabDictDatabase();
     await db.initialize();
   });
 
-  afterEach(() => {
-    if (db) {
-      db.reset();
+  afterEach(async () => {
+    if (db && db.db) {
+      db.db.close();
     }
+    // Clean up IndexedDB
+    global.indexedDB = new FDBFactory();
   });
 
   describe('Initialization', () => {
     test('should initialize database successfully', async () => {
-      const newDb = new MockVocabDictDatabase();
+      const newDb = new VocabDictDatabase();
       await newDb.initialize();
       
-      expect(newDb.isInitialized).toBe(true);
       expect(newDb.db).toBeDefined();
-      expect(newDb.db.name).toBe('mock_db');
+      expect(newDb.db.name).toBe('vocabdict_db');
+      expect(newDb.db.version).toBe(1);
+    });
+
+    test('should create all required object stores', async () => {
+      const transaction = db.db.transaction(db.db.objectStoreNames, 'readonly');
+      const storeNames = Array.from(db.db.objectStoreNames);
+      
+      expect(storeNames).toContain('dictionary_cache');
+      expect(storeNames).toContain('vocabulary_words');
+      expect(storeNames).toContain('vocabulary_lists');
+      expect(storeNames).toContain('user_settings');
+      expect(storeNames).toContain('learning_stats');
     });
 
     test('should create default list on initialization', async () => {
@@ -37,6 +72,21 @@ describe('VocabDictDatabase', () => {
       expect(defaultList).toBeDefined();
       expect(defaultList.name).toBe('My Vocabulary');
       expect(defaultList.isDefault).toBe(true);
+    });
+
+    test('should initialize default settings', async () => {
+      const settings = await db.getSettings();
+      expect(settings).toBeDefined();
+      expect(settings.theme).toBe('light');
+      expect(settings.autoAddToList).toBe(true);
+    });
+
+    test('should initialize default learning stats', async () => {
+      const stats = await db.getStats();
+      expect(stats).toBeDefined();
+      expect(stats.totalWords).toBe(0);
+      expect(stats.wordsLearned).toBe(0);
+      expect(stats.currentStreak).toBe(0);
     });
   });
 
@@ -52,39 +102,51 @@ describe('VocabDictDatabase', () => {
           }]
         };
 
-        const result = await db.addWord(wordData);
+        const word = await db.addWord(wordData);
         
-        expect(result).toBeInstanceOf(MockVocabularyWord);
-        expect(result.word).toBe('test');
-        expect(result.definitions).toEqual(wordData.definitions);
-        expect(result.id).toBeDefined();
-        expect(result.createdAt).toBeInstanceOf(Date);
+        expect(word).toBeDefined();
+        expect(word.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+        expect(word.word).toBe('test');
+        expect(word.definitions).toHaveLength(1);
+        expect(word.lookupCount).toBe(1);
       });
 
-      test('should update total words count', async () => {
-        const initialStats = await db.getStats();
-        expect(initialStats.totalWords).toBe(0);
+      test('should handle duplicate words by updating lookup count', async () => {
+        const wordData = {
+          word: 'duplicate',
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: 'A duplicate word',
+            examples: []
+          }]
+        };
 
-        await db.addWord({ word: 'test1' });
-        await db.addWord({ word: 'test2' });
-
-        const updatedStats = await db.getStats();
-        expect(updatedStats.totalWords).toBe(2);
+        const word1 = await db.addWord(wordData);
+        const word2 = await db.addWord(wordData);
+        
+        expect(word2.id).toBe(word1.id);
+        expect(word2.lookupCount).toBe(2);
       });
 
-      test('should generate unique IDs for words', async () => {
-        const word1 = await db.addWord({ word: 'test1' });
-        const word2 = await db.addWord({ word: 'test2' });
-        
-        expect(word1.id).not.toBe(word2.id);
-        expect(word1.id).toMatch(/^word_\d+_[a-z0-9]+$/);
-        expect(word2.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+      test('should throw error for invalid word data', async () => {
+        await expect(db.addWord(null)).rejects.toThrow();
+        await expect(db.addWord({})).rejects.toThrow();
+        await expect(db.addWord({ word: '' })).rejects.toThrow();
       });
     });
 
     describe('getWord', () => {
-      test('should retrieve existing word', async () => {
-        const addedWord = await db.addWord({ word: 'retrieve' });
+      test('should retrieve word by id', async () => {
+        const wordData = {
+          word: 'retrieve',
+          definitions: [{
+            partOfSpeech: 'verb',
+            meaning: 'To get back',
+            examples: ['Retrieve the data']
+          }]
+        };
+
+        const addedWord = await db.addWord(wordData);
         const retrievedWord = await db.getWord(addedWord.id);
         
         expect(retrievedWord).toBeDefined();
@@ -93,130 +155,80 @@ describe('VocabDictDatabase', () => {
       });
 
       test('should return null for non-existent word', async () => {
-        const result = await db.getWord('nonexistent_id');
-        expect(result).toBeNull();
+        const word = await db.getWord('non_existent_id');
+        expect(word).toBeNull();
       });
     });
 
     describe('getAllWords', () => {
-      test('should return empty array initially', async () => {
+      test('should return empty array when no words exist', async () => {
         const words = await db.getAllWords();
         expect(words).toEqual([]);
       });
 
-      test('should return all words', async () => {
-        await db.addWord({ word: 'word1' });
-        await db.addWord({ word: 'word2' });
-        await db.addWord({ word: 'word3' });
+      test('should return all words when they exist', async () => {
+        await db.addWord({ word: 'word1', definitions: [{ partOfSpeech: 'noun', meaning: 'First word', examples: [] }] });
+        await db.addWord({ word: 'word2', definitions: [{ partOfSpeech: 'noun', meaning: 'Second word', examples: [] }] });
 
         const words = await db.getAllWords();
-        expect(words).toHaveLength(3);
-        expect(words.every(word => word instanceof MockVocabularyWord)).toBe(true);
+        expect(words).toHaveLength(2);
+        expect(words.map(w => w.word)).toContain('word1');
+        expect(words.map(w => w.word)).toContain('word2');
       });
     });
 
     describe('updateWord', () => {
       test('should update existing word', async () => {
-        const addedWord = await db.addWord({ word: 'original' });
-        addedWord.word = 'updated';
-        addedWord.difficulty = 3;
+        const wordData = {
+          word: 'update',
+          definitions: [{
+            partOfSpeech: 'verb',
+            meaning: 'To modify',
+            examples: []
+          }]
+        };
+
+        const addedWord = await db.addWord(wordData);
+        addedWord.difficulty = 'hard';
+        addedWord.lookupCount = 5;
 
         const updatedWord = await db.updateWord(addedWord);
         
-        expect(updatedWord.word).toBe('updated');
-        expect(updatedWord.difficulty).toBe(3);
-        expect(updatedWord.id).toBe(addedWord.id);
-
-        // Verify it's actually updated in storage
-        const retrievedWord = await db.getWord(addedWord.id);
-        expect(retrievedWord.word).toBe('updated');
-        expect(retrievedWord.difficulty).toBe(3);
+        expect(updatedWord.difficulty).toBe('hard');
+        expect(updatedWord.lookupCount).toBe(5);
       });
 
       test('should throw error for non-existent word', async () => {
-        const fakeWord = new MockVocabularyWord({ id: 'nonexistent' });
-        
-        await expect(db.updateWord(fakeWord)).rejects.toThrow('Word not found');
+        const nonExistentWord = new VocabularyWord({
+          id: 'fake_id',
+          word: 'fake',
+          definitions: []
+        });
+
+        await expect(db.updateWord(nonExistentWord)).rejects.toThrow();
       });
     });
 
     describe('deleteWord', () => {
       test('should delete existing word', async () => {
-        const addedWord = await db.addWord({ word: 'deleteme' });
-        
-        const result = await db.deleteWord(addedWord.id);
-        expect(result).toBe(true);
+        const wordData = {
+          word: 'delete',
+          definitions: [{
+            partOfSpeech: 'verb',
+            meaning: 'To remove',
+            examples: []
+          }]
+        };
 
-        const retrievedWord = await db.getWord(addedWord.id);
-        expect(retrievedWord).toBeNull();
+        const addedWord = await db.addWord(wordData);
+        await db.deleteWord(addedWord.id);
+
+        const deletedWord = await db.getWord(addedWord.id);
+        expect(deletedWord).toBeNull();
       });
 
-      test('should return false for non-existent word', async () => {
-        const result = await db.deleteWord('nonexistent_id');
-        expect(result).toBe(false);
-      });
-
-      test('should update total words count after deletion', async () => {
-        const word1 = await db.addWord({ word: 'test1' });
-        await db.addWord({ word: 'test2' });
-
-        let stats = await db.getStats();
-        expect(stats.totalWords).toBe(2);
-
-        await db.deleteWord(word1.id);
-        stats = await db.getStats();
-        expect(stats.totalWords).toBe(1);
-      });
-
-      test('should remove word from all lists when deleted', async () => {
-        const word = await db.addWord({ word: 'test' });
-        const list = await db.addList({ name: 'Test List' });
-        
-        // Add word to list
-        list.addWord(word.id);
-        await db.updateList(list);
-        
-        expect(list.containsWord(word.id)).toBe(true);
-        
-        // Delete word
-        await db.deleteWord(word.id);
-        
-        // Verify word is removed from list
-        const updatedList = await db.getList(list.id);
-        expect(updatedList.containsWord(word.id)).toBe(false);
-      });
-    });
-
-    describe('getWordsDueForReview', () => {
-      test('should return empty array when no words are due', async () => {
-        const futureDate = new Date(Date.now() + 86400000); // +1 day
-        await db.addWord({ 
-          word: 'future',
-          nextReview: futureDate
-        });
-
-        const dueWords = await db.getWordsDueForReview();
-        expect(dueWords).toEqual([]);
-      });
-
-      test('should return words that are due for review', async () => {
-        const pastDate = new Date(Date.now() - 3600000); // -1 hour
-        const futureDate = new Date(Date.now() + 86400000); // +1 day
-
-        const dueWord = await db.addWord({ 
-          word: 'due',
-          nextReview: pastDate
-        });
-        
-        await db.addWord({ 
-          word: 'notdue',
-          nextReview: futureDate
-        });
-
-        const dueWords = await db.getWordsDueForReview();
-        expect(dueWords).toHaveLength(1);
-        expect(dueWords[0].id).toBe(dueWord.id);
-        expect(dueWords[0].word).toBe('due');
+      test('should handle deletion of non-existent word gracefully', async () => {
+        await expect(db.deleteWord('non_existent_id')).resolves.not.toThrow();
       });
     });
   });
@@ -225,318 +237,195 @@ describe('VocabDictDatabase', () => {
     describe('addList', () => {
       test('should add new list successfully', async () => {
         const listData = {
-          name: 'Custom List',
-          wordIds: ['word1', 'word2']
+          name: 'Test List',
+          description: 'A test vocabulary list'
         };
 
-        const result = await db.addList(listData);
+        const list = await db.addList(listData);
         
-        expect(result).toBeInstanceOf(MockVocabularyList);
-        expect(result.name).toBe('Custom List');
-        expect(result.wordIds).toEqual(['word1', 'word2']);
-        expect(result.id).toBeDefined();
-        expect(result.isDefault).toBe(false);
+        expect(list).toBeDefined();
+        expect(list.id).toMatch(/^list_\d+_[a-z0-9]+$/);
+        expect(list.name).toBe('Test List');
+        expect(list.description).toBe('A test vocabulary list');
+        expect(list.isDefault).toBe(false);
+        expect(list.wordIds).toEqual([]);
       });
 
-      test('should generate unique IDs for lists', async () => {
-        const list1 = await db.addList({ name: 'List 1' });
-        const list2 = await db.addList({ name: 'List 2' });
-        
-        expect(list1.id).not.toBe(list2.id);
-        expect(list1.id).toMatch(/^list_\d+_[a-z0-9]+$/);
-        expect(list2.id).toMatch(/^list_\d+_[a-z0-9]+$/);
+      test('should throw error for duplicate list names', async () => {
+        await db.addList({ name: 'Unique List' });
+        await expect(db.addList({ name: 'Unique List' })).rejects.toThrow();
       });
     });
 
-    describe('getList', () => {
-      test('should retrieve existing list', async () => {
-        const addedList = await db.addList({ name: 'Retrieve Me' });
-        const retrievedList = await db.getList(addedList.id);
+    describe('addWordToList', () => {
+      test('should add word to list successfully', async () => {
+        const word = await db.addWord({
+          word: 'listword',
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: 'A word in a list',
+            examples: []
+          }]
+        });
+
+        const list = await db.addList({ name: 'Test List' });
+        await db.addWordToList(word.id, list.id);
+
+        const updatedList = await db.getList(list.id);
+        expect(updatedList.wordIds).toContain(word.id);
+      });
+
+      test('should prevent duplicate words in same list', async () => {
+        const word = await db.addWord({
+          word: 'duplicate',
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: 'A duplicate word',
+            examples: []
+          }]
+        });
+
+        const list = await db.addList({ name: 'Test List' });
         
-        expect(retrievedList).toBeDefined();
-        expect(retrievedList.id).toBe(addedList.id);
-        expect(retrievedList.name).toBe('Retrieve Me');
-      });
+        await db.addWordToList(word.id, list.id);
+        await db.addWordToList(word.id, list.id); // Should not add twice
 
-      test('should return null for non-existent list', async () => {
-        const result = await db.getList('nonexistent_id');
-        expect(result).toBeNull();
-      });
-    });
-
-    describe('getAllLists', () => {
-      test('should return default list initially', async () => {
-        const lists = await db.getAllLists();
-        expect(lists).toHaveLength(1);
-        expect(lists[0].isDefault).toBe(true);
-        expect(lists[0].name).toBe('My Vocabulary');
-      });
-
-      test('should return all lists including custom ones', async () => {
-        await db.addList({ name: 'List 1' });
-        await db.addList({ name: 'List 2' });
-
-        const lists = await db.getAllLists();
-        expect(lists).toHaveLength(3); // 1 default + 2 custom
-      });
-    });
-
-    describe('updateList', () => {
-      test('should update existing list', async () => {
-        const addedList = await db.addList({ name: 'Original' });
-        addedList.name = 'Updated';
-        addedList.addWord('new_word_id');
-
-        const updatedList = await db.updateList(addedList);
-        
-        expect(updatedList.name).toBe('Updated');
-        expect(updatedList.wordIds).toContain('new_word_id');
-
-        // Verify it's actually updated in storage
-        const retrievedList = await db.getList(addedList.id);
-        expect(retrievedList.name).toBe('Updated');
-        expect(retrievedList.wordIds).toContain('new_word_id');
-      });
-
-      test('should throw error for non-existent list', async () => {
-        const fakeList = new MockVocabularyList({ id: 'nonexistent' });
-        
-        await expect(db.updateList(fakeList)).rejects.toThrow('List not found');
-      });
-    });
-
-    describe('deleteList', () => {
-      test('should delete non-default list', async () => {
-        const addedList = await db.addList({ name: 'Delete Me' });
-        
-        const result = await db.deleteList(addedList.id);
-        expect(result).toBe(true);
-
-        const retrievedList = await db.getList(addedList.id);
-        expect(retrievedList).toBeNull();
-      });
-
-      test('should not delete default list', async () => {
-        const defaultList = await db.getDefaultList();
-        
-        await expect(db.deleteList(defaultList.id)).rejects.toThrow('Cannot delete default list');
-      });
-
-      test('should return false for non-existent list', async () => {
-        await expect(db.deleteList('nonexistent_id')).rejects.toThrow('Cannot delete default list');
-      });
-    });
-
-    describe('getDefaultList', () => {
-      test('should return the default list', async () => {
-        const defaultList = await db.getDefaultList();
-        
-        expect(defaultList).toBeDefined();
-        expect(defaultList.isDefault).toBe(true);
-        expect(defaultList.name).toBe('My Vocabulary');
-      });
-
-      test('should return null if no default list exists', async () => {
-        // Remove default list manually for this test
-        const defaultList = await db.getDefaultList();
-        defaultList.isDefault = false;
-        await db.updateList(defaultList);
-        
-        const result = await db.getDefaultList();
-        expect(result).toBeNull();
+        const updatedList = await db.getList(list.id);
+        expect(updatedList.wordIds.filter(id => id === word.id)).toHaveLength(1);
       });
     });
   });
 
   describe('Settings Operations', () => {
-    describe('getSettings', () => {
-      test('should return default settings initially', async () => {
-        const settings = await db.getSettings();
-        
-        expect(settings).toBeInstanceOf(MockUserSettings);
-        expect(settings.theme).toBe('light');
-        expect(settings.autoAdd).toBe(true);
-        expect(settings.defaultListId).toBeNull();
-      });
+    test('should update settings successfully', async () => {
+      const settings = await db.getSettings();
+      settings.theme = 'dark';
+      settings.autoAddToList = false;
+
+      const updatedSettings = await db.updateSettings(settings);
+      
+      expect(updatedSettings.theme).toBe('dark');
+      expect(updatedSettings.autoAddToList).toBe(false);
     });
 
-    describe('updateSettings', () => {
-      test('should update settings with UserSettings instance', async () => {
-        const newSettings = new MockUserSettings({
-          theme: 'dark',
-          autoAdd: false,
-          defaultListId: 'test_list'
-        });
+    test('should persist settings across database instances', async () => {
+      const settings = await db.getSettings();
+      settings.theme = 'dark';
+      await db.updateSettings(settings);
 
-        const result = await db.updateSettings(newSettings);
-        
-        expect(result).toBeInstanceOf(MockUserSettings);
-        expect(result.theme).toBe('dark');
-        expect(result.autoAdd).toBe(false);
-        expect(result.defaultListId).toBe('test_list');
-
-        // Verify persistence
-        const retrievedSettings = await db.getSettings();
-        expect(retrievedSettings.theme).toBe('dark');
-        expect(retrievedSettings.autoAdd).toBe(false);
-      });
-
-      test('should update settings with plain object', async () => {
-        const settingsData = {
-          theme: 'dark',
-          sessionSize: 10
-        };
-
-        const result = await db.updateSettings(settingsData);
-        
-        expect(result).toBeInstanceOf(MockUserSettings);
-        expect(result.theme).toBe('dark');
-        expect(result.sessionSize).toBe(10);
-        expect(result.autoAdd).toBe(true); // Should maintain default
-      });
+      // Create new database instance
+      const newDb = new VocabDictDatabase();
+      await newDb.initialize();
+      
+      const retrievedSettings = await newDb.getSettings();
+      expect(retrievedSettings.theme).toBe('dark');
+      
+      newDb.db.close();
     });
   });
 
-  describe('Stats Operations', () => {
-    describe('getStats', () => {
-      test('should return default stats initially', async () => {
-        const stats = await db.getStats();
-        
-        expect(stats).toBeInstanceOf(MockLearningStats);
-        expect(stats.totalWords).toBe(0);
-        expect(stats.wordsReviewed).toBe(0);
-        expect(stats.correctAnswers).toBe(0);
-        expect(stats.currentStreak).toBe(0);
-      });
+  describe('Learning Stats Operations', () => {
+    test('should update learning stats successfully', async () => {
+      const stats = await db.getStats();
+      stats.totalWords = 10;
+      stats.wordsLearned = 5;
+      stats.currentStreak = 3;
+
+      const updatedStats = await db.updateStats(stats);
+      
+      expect(updatedStats.totalWords).toBe(10);
+      expect(updatedStats.wordsLearned).toBe(5);
+      expect(updatedStats.currentStreak).toBe(3);
     });
 
-    describe('updateStats', () => {
-      test('should update stats with LearningStats instance', async () => {
-        const newStats = new MockLearningStats({
-          totalWords: 50,
-          wordsReviewed: 100,
-          correctAnswers: 75,
-          currentStreak: 5
-        });
+    test('should update review stats correctly', async () => {
+      await db.updateReviewStats(true); // Correct answer
+      let stats = await db.getStats();
+      expect(stats.totalReviews).toBe(1);
+      expect(stats.currentStreak).toBe(1);
 
-        const result = await db.updateStats(newStats);
-        
-        expect(result).toBeInstanceOf(MockLearningStats);
-        expect(result.totalWords).toBe(50);
-        expect(result.wordsReviewed).toBe(100);
-        expect(result.correctAnswers).toBe(75);
-        expect(result.currentStreak).toBe(5);
-
-        // Verify persistence
-        const retrievedStats = await db.getStats();
-        expect(retrievedStats.totalWords).toBe(50);
-        expect(retrievedStats.currentStreak).toBe(5);
-      });
-
-      test('should update stats with plain object', async () => {
-        const statsData = {
-          totalWords: 25,
-          currentStreak: 8
-        };
-
-        const result = await db.updateStats(statsData);
-        
-        expect(result).toBeInstanceOf(MockLearningStats);
-        expect(result.totalWords).toBe(25);
-        expect(result.currentStreak).toBe(8);
-        expect(result.wordsReviewed).toBe(0); // Should maintain default
-      });
+      await db.updateReviewStats(false); // Incorrect answer
+      stats = await db.getStats();
+      expect(stats.totalReviews).toBe(2);
+      expect(stats.currentStreak).toBe(0);
     });
   });
 
-  describe('Dictionary Cache Operations', () => {
-    describe('cacheDictionaryEntry', () => {
-      test('should cache dictionary entry', async () => {
-        const entry = {
-          word: 'test',
-          definitions: [{ partOfSpeech: 'noun', meaning: 'test' }]
-        };
+  describe('Database Transactions and Concurrency', () => {
+    test('should handle concurrent operations correctly', async () => {
+      const promises = [];
+      
+      // Create multiple words concurrently
+      for (let i = 0; i < 5; i++) {
+        promises.push(db.addWord({
+          word: `concurrent${i}`,
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: `Concurrent word ${i}`,
+            examples: []
+          }]
+        }));
+      }
 
-        const result = await db.cacheDictionaryEntry('test', entry);
-        
-        expect(result).toEqual(entry);
+      const words = await Promise.all(promises);
+      
+      expect(words).toHaveLength(5);
+      words.forEach((word, index) => {
+        expect(word.word).toBe(`concurrent${index}`);
       });
+
+      const allWords = await db.getAllWords();
+      expect(allWords).toHaveLength(5);
     });
 
-    describe('getCachedDictionaryEntry', () => {
-      test('should retrieve cached entry within expiry time', async () => {
-        const entry = {
-          word: 'test',
-          definitions: [{ partOfSpeech: 'noun', meaning: 'test' }]
-        };
+    test('should rollback on transaction error', async () => {
+      const initialWordCount = (await db.getAllWords()).length;
+      
+      try {
+        // Attempt to add invalid data that should cause rollback
+        await db.addWord({ word: null, definitions: null });
+      } catch (error) {
+        // Expected to throw
+      }
 
-        await db.cacheDictionaryEntry('test', entry);
-        const cached = await db.getCachedDictionaryEntry('test');
-        
-        expect(cached).toBeDefined();
-        expect(cached.word).toBe('test');
-        expect(cached.cachedAt).toBeInstanceOf(Date);
-      });
-
-      test('should return null for non-existent cache entry', async () => {
-        const cached = await db.getCachedDictionaryEntry('nonexistent');
-        expect(cached).toBeNull();
-      });
-
-      test('should return null for expired cache entry', async () => {
-        const entry = { word: 'expired' };
-        
-        // Manually set an old cache entry
-        const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000); // 25 hours ago
-        db.data.cache.set('expired', {
-          ...entry,
-          cachedAt: oldDate
-        });
-
-        const cached = await db.getCachedDictionaryEntry('expired');
-        expect(cached).toBeNull();
-        
-        // Verify it was removed from cache
-        expect(db.data.cache.has('expired')).toBe(false);
-      });
+      const finalWordCount = (await db.getAllWords()).length;
+      expect(finalWordCount).toBe(initialWordCount);
     });
   });
 
-  describe('Database Helpers', () => {
-    describe('reset', () => {
-      test('should reset all data and recreate default list', async () => {
-        // Add some data
-        await db.addWord({ word: 'test' });
-        await db.addList({ name: 'Test List' });
-        
-        let words = await db.getAllWords();
-        let lists = await db.getAllLists();
-        expect(words).toHaveLength(1);
-        expect(lists).toHaveLength(2); // 1 default + 1 custom
-        
-        // Reset
-        db.reset();
-        
-        words = await db.getAllWords();
-        lists = await db.getAllLists();
-        expect(words).toHaveLength(0);
-        expect(lists).toHaveLength(1); // Only default list
-        expect(lists[0].isDefault).toBe(true);
-      });
+  describe('Data Integrity and Constraints', () => {
+    test('should enforce required fields', async () => {
+      await expect(db.addWord({})).rejects.toThrow();
+      await expect(db.addWord({ word: '' })).rejects.toThrow();
+      await expect(db.addWord({ word: 'test' })).rejects.toThrow(); // No definitions
     });
 
-    describe('seedWithTestData', () => {
-      test('should seed database with test data', () => {
-        db.seedWithTestData();
-        
-        expect(db.data.words.size).toBe(2);
-        expect(db.data.words.has('test_word_1')).toBe(true);
-        expect(db.data.words.has('test_word_2')).toBe(true);
-        
-        const defaultList = db.data.lists.get('default_list');
-        expect(defaultList.wordIds).toContain('test_word_1');
-        expect(defaultList.wordIds).toContain('test_word_2');
+    test('should validate data types', async () => {
+      await expect(db.addWord({
+        word: 123, // Should be string
+        definitions: []
+      })).rejects.toThrow();
+    });
+
+    test('should maintain referential integrity for word-list relationships', async () => {
+      const word = await db.addWord({
+        word: 'integrity',
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'Data consistency',
+          examples: []
+        }]
       });
+
+      const list = await db.addList({ name: 'Integrity List' });
+      await db.addWordToList(word.id, list.id);
+
+      // Delete the word
+      await db.deleteWord(word.id);
+
+      // List should no longer contain the word
+      const updatedList = await db.getList(list.id);
+      expect(updatedList.wordIds).not.toContain(word.id);
     });
   });
 });

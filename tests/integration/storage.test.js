@@ -1,35 +1,61 @@
 /**
- * Integration tests for VocabDict storage system
- * Tests data persistence, IndexedDB operations, and data integrity
+ * Integration tests for VocabDict storage system - Real Implementation
+ * Tests data persistence with real IndexedDB, data integrity, and complex operations
  */
 
-const { MockVocabDictDatabase, MockVocabularyWord, MockVocabularyList } = require('../mocks/extensionMocks');
+// Setup fake IndexedDB for testing
+require('fake-indexeddb/auto');
+
+const FDBFactory = require('fake-indexeddb/lib/FDBFactory');
+const fs = require('fs');
+const path = require('path');
+
+// Import real implementations
+const constantsPath = path.join(__dirname, '../../Shared (Extension)/Resources/constants.js');
+const constantsCode = fs.readFileSync(constantsPath, 'utf8');
+eval(constantsCode);
+
+const modelsPath = path.join(__dirname, '../../Shared (Extension)/Resources/models.js');
+const modelsCode = fs.readFileSync(modelsPath, 'utf8');
+eval(modelsCode);
+
+const databasePath = path.join(__dirname, '../../Shared (Extension)/Resources/database.js');
+const databaseCode = fs.readFileSync(databasePath, 'utf8');
+eval(databaseCode);
+
 const { SAMPLE_VOCABULARY_WORDS, SAMPLE_VOCABULARY_LISTS, TestHelpers } = require('../fixtures/testData');
 
-describe('Storage Integration', () => {
+describe('Storage Integration - Real Implementation', () => {
   let db;
 
   beforeEach(async () => {
-    db = new MockVocabDictDatabase();
+    // Reset IndexedDB
+    global.indexedDB = new FDBFactory();
+    
+    db = new VocabDictDatabase();
     await db.initialize();
   });
 
-  afterEach(() => {
-    if (db) {
-      db.reset();
+  afterEach(async () => {
+    if (db && db.db) {
+      db.db.close();
     }
+    // Clean up IndexedDB
+    global.indexedDB = new FDBFactory();
   });
 
   describe('Database Initialization and Schema', () => {
     test('should initialize database with correct structure', async () => {
-      expect(db.isInitialized).toBe(true);
       expect(db.db).toBeDefined();
-      expect(db.data).toBeDefined();
-      expect(db.data.words).toBeInstanceOf(Map);
-      expect(db.data.lists).toBeInstanceOf(Map);
-      expect(db.data.settings).toBeDefined();
-      expect(db.data.stats).toBeDefined();
-      expect(db.data.cache).toBeInstanceOf(Map);
+      expect(db.db.name).toBe('vocabdict_db');
+      expect(db.db.version).toBe(1);
+      
+      const objectStoreNames = Array.from(db.db.objectStoreNames);
+      expect(objectStoreNames).toContain('dictionary_cache');
+      expect(objectStoreNames).toContain('vocabulary_words');
+      expect(objectStoreNames).toContain('vocabulary_lists');
+      expect(objectStoreNames).toContain('user_settings');
+      expect(objectStoreNames).toContain('learning_stats');
     });
 
     test('should create default list on initialization', async () => {
@@ -43,435 +69,606 @@ describe('Storage Integration', () => {
     });
 
     test('should handle multiple initialization calls', async () => {
-      const secondDb = new MockVocabDictDatabase();
+      const secondDb = new VocabDictDatabase();
       await secondDb.initialize();
       await secondDb.initialize(); // Second call should not fail
       
-      expect(secondDb.isInitialized).toBe(true);
+      expect(secondDb.db).toBeDefined();
+      
+      secondDb.db.close();
+    });
+
+    test('should initialize default settings and stats', async () => {
+      const settings = await db.getSettings();
+      expect(settings).toBeDefined();
+      expect(settings.theme).toBe('light');
+      expect(settings.autoAddToList).toBe(true);
+
+      const stats = await db.getStats();
+      expect(stats).toBeDefined();
+      expect(stats.totalWords).toBe(0);
+      expect(stats.wordsLearned).toBe(0);
+      expect(stats.currentStreak).toBe(0);
     });
   });
 
-  describe('Data Persistence and Integrity', () => {
-    test('should maintain data integrity across operations', async () => {
-      // Add words
-      const word1 = await db.addWord({ 
-        word: 'integrity',
-        definitions: [{ partOfSpeech: 'noun', meaning: 'quality of being honest' }]
-      });
-      
-      const word2 = await db.addWord({ 
+  describe('Data Persistence Across Sessions', () => {
+    test('should persist word data across database instances', async () => {
+      const wordData = {
         word: 'persistence',
-        definitions: [{ partOfSpeech: 'noun', meaning: 'continuing firmly' }]
-      });
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'The continuation of an effect after its cause is removed',
+          examples: ['Data persistence is crucial.']
+        }]
+      };
 
-      // Add list
-      const list = await db.addList({ name: 'Test Persistence' });
+      // Add word to first instance
+      const addedWord = await db.addWord(wordData);
+      const wordId = addedWord.id;
+
+      // Close first instance
+      db.db.close();
+
+      // Create new instance
+      const newDb = new VocabDictDatabase();
+      await newDb.initialize();
+
+      // Retrieve word from new instance
+      const retrievedWord = await newDb.getWord(wordId);
       
-      // Add words to list
-      list.addWord(word1.id);
-      list.addWord(word2.id);
-      await db.updateList(list);
+      expect(retrievedWord).toBeDefined();
+      expect(retrievedWord.word).toBe('persistence');
+      expect(retrievedWord.id).toBe(wordId);
 
-      // Verify data integrity
-      const retrievedList = await db.getList(list.id);
-      expect(retrievedList.wordIds).toContain(word1.id);
-      expect(retrievedList.wordIds).toContain(word2.id);
-      expect(retrievedList.getWordCount()).toBe(2);
-
-      const allWords = await db.getAllWords();
-      expect(allWords).toHaveLength(2);
-      expect(allWords.map(w => w.word)).toEqual(expect.arrayContaining(['integrity', 'persistence']));
+      newDb.db.close();
     });
 
-    test('should handle concurrent operations correctly', async () => {
-      const operations = [];
-      
-      // Create multiple concurrent operations
-      for (let i = 0; i < 10; i++) {
-        operations.push(
-          db.addWord({ 
-            word: `concurrent${i}`,
-            definitions: [{ partOfSpeech: 'noun', meaning: `test word ${i}` }]
-          })
-        );
-      }
+    test('should persist list data across database instances', async () => {
+      const listData = {
+        name: 'Persistent List',
+        description: 'A list that persists across sessions'
+      };
 
-      const results = await Promise.all(operations);
+      // Add list to first instance
+      const addedList = await db.addList(listData);
+      const listId = addedList.id;
+
+      // Close first instance
+      db.db.close();
+
+      // Create new instance
+      const newDb = new VocabDictDatabase();
+      await newDb.initialize();
+
+      // Retrieve list from new instance
+      const retrievedList = await newDb.getList(listId);
       
-      expect(results).toHaveLength(10);
-      expect(new Set(results.map(r => r.id)).size).toBe(10); // All unique IDs
-      
-      const allWords = await db.getAllWords();
-      expect(allWords).toHaveLength(10);
+      expect(retrievedList).toBeDefined();
+      expect(retrievedList.name).toBe('Persistent List');
+      expect(retrievedList.id).toBe(listId);
+
+      newDb.db.close();
     });
 
-    test('should maintain referential integrity', async () => {
-      const word = await db.addWord({ word: 'reference' });
-      const list1 = await db.addList({ name: 'List 1' });
-      const list2 = await db.addList({ name: 'List 2' });
+    test('should persist settings across database instances', async () => {
+      // Update settings in first instance
+      const settings = await db.getSettings();
+      settings.theme = 'dark';
+      settings.autoAddToList = false;
+      await db.updateSettings(settings);
+
+      // Close first instance
+      db.db.close();
+
+      // Create new instance
+      const newDb = new VocabDictDatabase();
+      await newDb.initialize();
+
+      // Retrieve settings from new instance
+      const retrievedSettings = await newDb.getSettings();
       
-      // Add word to both lists
-      list1.addWord(word.id);
-      list2.addWord(word.id);
-      await db.updateList(list1);
-      await db.updateList(list2);
-      
-      // Verify word is in both lists
-      const retrievedList1 = await db.getList(list1.id);
-      const retrievedList2 = await db.getList(list2.id);
-      expect(retrievedList1.containsWord(word.id)).toBe(true);
-      expect(retrievedList2.containsWord(word.id)).toBe(true);
-      
-      // Delete word - should be removed from all lists
-      await db.deleteWord(word.id);
-      
-      const updatedList1 = await db.getList(list1.id);
-      const updatedList2 = await db.getList(list2.id);
-      expect(updatedList1.containsWord(word.id)).toBe(false);
-      expect(updatedList2.containsWord(word.id)).toBe(false);
+      expect(retrievedSettings.theme).toBe('dark');
+      expect(retrievedSettings.autoAddToList).toBe(false);
+
+      newDb.db.close();
     });
 
-    test('should handle large datasets efficiently', async () => {
+    test('should persist learning stats across database instances', async () => {
+      // Update stats in first instance
+      await db.updateReviewStats(true);
+      await db.updateReviewStats(true);
+      await db.updateReviewStats(false);
+
+      let stats = await db.getStats();
+      expect(stats.totalReviews).toBe(3);
+      expect(stats.currentStreak).toBe(0);
+      expect(stats.longestStreak).toBe(2);
+
+      // Close first instance
+      db.db.close();
+
+      // Create new instance
+      const newDb = new VocabDictDatabase();
+      await newDb.initialize();
+
+      // Retrieve stats from new instance
+      const retrievedStats = await newDb.getStats();
+      
+      expect(retrievedStats.totalReviews).toBe(3);
+      expect(retrievedStats.currentStreak).toBe(0);
+      expect(retrievedStats.longestStreak).toBe(2);
+
+      newDb.db.close();
+    });
+  });
+
+  describe('Complex Data Operations', () => {
+    test('should handle bulk word operations efficiently', async () => {
       const startTime = Date.now();
-      const wordCount = 100;
-      
-      // Add many words
       const words = [];
-      for (let i = 0; i < wordCount; i++) {
-        const word = await db.addWord({ 
-          word: `word${i}`,
-          definitions: [{ partOfSpeech: 'noun', meaning: `definition ${i}` }]
+
+      // Add 50 words
+      for (let i = 0; i < 50; i++) {
+        const word = await db.addWord({
+          word: `bulkword${i}`,
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: `Bulk word number ${i}`,
+            examples: [`This is bulk word ${i}.`]
+          }]
         });
         words.push(word);
       }
-      
-      const addTime = Date.now() - startTime;
-      expect(addTime).toBeLessThan(5000); // Should complete within 5 seconds
-      
-      // Retrieve all words
-      const retrievalStartTime = Date.now();
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      expect(words).toHaveLength(50);
+      expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
+
+      // Verify all words exist
       const allWords = await db.getAllWords();
-      const retrievalTime = Date.now() - retrievalStartTime;
-      
-      expect(allWords).toHaveLength(wordCount);
-      expect(retrievalTime).toBeLessThan(1000); // Should retrieve within 1 second
+      expect(allWords.length).toBeGreaterThanOrEqual(50);
+
+      words.forEach(word => {
+        expect(allWords.some(w => w.id === word.id)).toBe(true);
+      });
+    });
+
+    test('should handle complex list-word relationships', async () => {
+      // Create multiple lists
+      const lists = [];
+      for (let i = 0; i < 3; i++) {
+        const list = await db.addList({
+          name: `Complex List ${i}`,
+          description: `List for complex operations ${i}`
+        });
+        lists.push(list);
+      }
+
+      // Create multiple words
+      const words = [];
+      for (let i = 0; i < 5; i++) {
+        const word = await db.addWord({
+          word: `complexword${i}`,
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: `Complex word number ${i}`,
+            examples: []
+          }]
+        });
+        words.push(word);
+      }
+
+      // Add words to multiple lists in various combinations
+      await db.addWordToList(words[0].id, lists[0].id); // Word 0 -> List 0
+      await db.addWordToList(words[0].id, lists[1].id); // Word 0 -> List 1
+      await db.addWordToList(words[1].id, lists[0].id); // Word 1 -> List 0
+      await db.addWordToList(words[2].id, lists[2].id); // Word 2 -> List 2
+      await db.addWordToList(words[3].id, lists[0].id); // Word 3 -> List 0
+      await db.addWordToList(words[3].id, lists[1].id); // Word 3 -> List 1
+      await db.addWordToList(words[3].id, lists[2].id); // Word 3 -> List 2
+
+      // Verify relationships
+      const updatedList0 = await db.getList(lists[0].id);
+      const updatedList1 = await db.getList(lists[1].id);
+      const updatedList2 = await db.getList(lists[2].id);
+
+      expect(updatedList0.wordIds).toContain(words[0].id);
+      expect(updatedList0.wordIds).toContain(words[1].id);
+      expect(updatedList0.wordIds).toContain(words[3].id);
+      expect(updatedList0.wordIds).toHaveLength(3);
+
+      expect(updatedList1.wordIds).toContain(words[0].id);
+      expect(updatedList1.wordIds).toContain(words[3].id);
+      expect(updatedList1.wordIds).toHaveLength(2);
+
+      expect(updatedList2.wordIds).toContain(words[2].id);
+      expect(updatedList2.wordIds).toContain(words[3].id);
+      expect(updatedList2.wordIds).toHaveLength(2);
+
+      // Test word removal from specific lists
+      await db.removeWordFromList(words[3].id, lists[1].id);
+      const updatedList1AfterRemoval = await db.getList(lists[1].id);
+      expect(updatedList1AfterRemoval.wordIds).not.toContain(words[3].id);
+      expect(updatedList1AfterRemoval.wordIds).toContain(words[0].id);
+      expect(updatedList1AfterRemoval.wordIds).toHaveLength(1);
+
+      // Verify other lists still contain the word
+      const list0AfterRemoval = await db.getList(lists[0].id);
+      const list2AfterRemoval = await db.getList(lists[2].id);
+      expect(list0AfterRemoval.wordIds).toContain(words[3].id);
+      expect(list2AfterRemoval.wordIds).toContain(words[3].id);
+    });
+
+    test('should maintain referential integrity on word deletion', async () => {
+      // Create a word and add it to multiple lists
+      const word = await db.addWord({
+        word: 'integrity',
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'The quality of being honest and having strong moral principles',
+          examples: []
+        }]
+      });
+
+      const list1 = await db.addList({ name: 'Integrity List 1' });
+      const list2 = await db.addList({ name: 'Integrity List 2' });
+
+      await db.addWordToList(word.id, list1.id);
+      await db.addWordToList(word.id, list2.id);
+
+      // Verify word is in both lists
+      let updatedList1 = await db.getList(list1.id);
+      let updatedList2 = await db.getList(list2.id);
+      expect(updatedList1.wordIds).toContain(word.id);
+      expect(updatedList2.wordIds).toContain(word.id);
+
+      // Delete the word
+      await db.deleteWord(word.id);
+
+      // Verify word is removed from all lists
+      updatedList1 = await db.getList(list1.id);
+      updatedList2 = await db.getList(list2.id);
+      expect(updatedList1.wordIds).not.toContain(word.id);
+      expect(updatedList2.wordIds).not.toContain(word.id);
+
+      // Verify word no longer exists
+      const deletedWord = await db.getWord(word.id);
+      expect(deletedWord).toBeNull();
     });
   });
 
-  describe('Error Handling and Recovery', () => {
-    test('should handle invalid data gracefully', async () => {
-      // Test with null data
-      await expect(db.addWord(null)).rejects.toThrow();
-      
-      // Test with invalid word data
-      await expect(db.updateWord(null)).rejects.toThrow();
-      
-      // Test with non-existent IDs
-      await expect(db.updateWord(new MockVocabularyWord({ id: 'nonexistent' })))
-        .rejects.toThrow('Word not found');
-      
-      await expect(db.updateList(new MockVocabularyList({ id: 'nonexistent' })))
-        .rejects.toThrow('List not found');
+  describe('Concurrent Operations and Race Conditions', () => {
+    test('should handle concurrent word additions correctly', async () => {
+      const promises = [];
+      const numWords = 10;
+
+      // Create multiple concurrent word additions
+      for (let i = 0; i < numWords; i++) {
+        promises.push(db.addWord({
+          word: `concurrent${i}`,
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: `Concurrent word ${i}`,
+            examples: []
+          }]
+        }));
+      }
+
+      const results = await Promise.all(promises);
+
+      // All operations should succeed
+      expect(results).toHaveLength(numWords);
+      results.forEach((word, index) => {
+        expect(word).toBeDefined();
+        expect(word.word).toBe(`concurrent${index}`);
+        expect(word.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+      });
+
+      // Verify all words are in the database
+      const allWords = await db.getAllWords();
+      results.forEach(word => {
+        expect(allWords.some(w => w.id === word.id)).toBe(true);
+      });
     });
 
-    test('should maintain consistency during failed operations', async () => {
-      const word = await db.addWord({ word: 'consistency' });
+    test('should handle concurrent list operations correctly', async () => {
+      const promises = [];
+      const numLists = 5;
+
+      // Create multiple concurrent list additions
+      for (let i = 0; i < numLists; i++) {
+        promises.push(db.addList({
+          name: `Concurrent List ${i}`,
+          description: `Concurrent list ${i}`
+        }));
+      }
+
+      const results = await Promise.all(promises);
+
+      // All operations should succeed
+      expect(results).toHaveLength(numLists);
+      results.forEach((list, index) => {
+        expect(list).toBeDefined();
+        expect(list.name).toBe(`Concurrent List ${index}`);
+        expect(list.id).toMatch(/^list_\d+_[a-z0-9]+$/);
+      });
+
+      // Verify all lists are in the database
+      const allLists = await db.getAllLists();
+      results.forEach(list => {
+        expect(allLists.some(l => l.id === list.id)).toBe(true);
+      });
+    });
+
+    test('should handle concurrent word-to-list additions correctly', async () => {
+      // Create a word and a list first
+      const word = await db.addWord({
+        word: 'concurrenttest',
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'A test for concurrency',
+          examples: []
+        }]
+      });
+
+      const lists = [];
+      for (let i = 0; i < 5; i++) {
+        const list = await db.addList({
+          name: `Concurrent Target List ${i}`,
+          description: `Target list ${i}`
+        });
+        lists.push(list);
+      }
+
+      // Concurrently add the word to all lists
+      const promises = lists.map(list => 
+        db.addWordToList(word.id, list.id)
+      );
+
+      await Promise.all(promises);
+
+      // Verify word is in all lists
+      for (const list of lists) {
+        const updatedList = await db.getList(list.id);
+        expect(updatedList.wordIds).toContain(word.id);
+      }
+    });
+
+    test('should handle concurrent settings updates correctly', async () => {
+      const promises = [];
+      const themes = ['light', 'dark', 'auto'];
+      
+      // Concurrently update settings with different themes
+      for (const theme of themes) {
+        promises.push((async () => {
+          const settings = await db.getSettings();
+          settings.theme = theme;
+          await db.updateSettings(settings);
+          return theme;
+        })());
+      }
+
+      const results = await Promise.all(promises);
+      expect(results).toEqual(themes);
+
+      // Final settings should have one of the themes
+      const finalSettings = await db.getSettings();
+      expect(themes).toContain(finalSettings.theme);
+    });
+  });
+
+  describe('Performance and Stress Testing', () => {
+    test('should handle large dataset operations efficiently', async () => {
+      const startTime = Date.now();
+
+      // Add 100 words
+      const words = [];
+      for (let i = 0; i < 100; i++) {
+        const word = await db.addWord({
+          word: `performance${i}`,
+          definitions: [{
+            partOfSpeech: 'noun',
+            meaning: `Performance test word ${i}`,
+            examples: [`Performance example ${i}.`]
+          }]
+        });
+        words.push(word);
+      }
+
+      // Create 10 lists
+      const lists = [];
+      for (let i = 0; i < 10; i++) {
+        const list = await db.addList({
+          name: `Performance List ${i}`,
+          description: `Performance test list ${i}`
+        });
+        lists.push(list);
+      }
+
+      // Add each word to 2-3 random lists
+      for (const word of words) {
+        const numLists = 2 + Math.floor(Math.random() * 2); // 2 or 3 lists
+        const selectedLists = lists
+          .sort(() => 0.5 - Math.random())
+          .slice(0, numLists);
+        
+        for (const list of selectedLists) {
+          await db.addWordToList(word.id, list.id);
+        }
+      }
+
+      const endTime = Date.now();
+      const totalDuration = endTime - startTime;
+
+      // Should complete within reasonable time (adjust based on performance requirements)
+      expect(totalDuration).toBeLessThan(30000); // 30 seconds max
+
+      // Verify data integrity
+      const allWords = await db.getAllWords();
+      const allLists = await db.getAllLists();
+
+      expect(allWords.length).toBeGreaterThanOrEqual(100);
+      expect(allLists.length).toBeGreaterThanOrEqual(10); // Plus default list
+
+      // Verify some random word-list relationships
+      const randomWord = words[Math.floor(Math.random() * words.length)];
+      const listsContainingWord = allLists.filter(list => 
+        list.wordIds.includes(randomWord.id)
+      );
+      expect(listsContainingWord.length).toBeGreaterThan(0);
+      expect(listsContainingWord.length).toBeLessThanOrEqual(3);
+    });
+
+    test('should handle rapid sequential operations without corruption', async () => {
+      const operations = [];
+      let wordCounter = 0;
+      let listCounter = 0;
+
+      // Mix of different operations
+      for (let i = 0; i < 50; i++) {
+        const operation = Math.floor(Math.random() * 4);
+        
+        switch (operation) {
+          case 0: // Add word
+            operations.push(async () => {
+              const word = await db.addWord({
+                word: `rapid${wordCounter++}`,
+                definitions: [{
+                  partOfSpeech: 'noun',
+                  meaning: `Rapid operation word`,
+                  examples: []
+                }]
+              });
+              return { type: 'word', data: word };
+            });
+            break;
+            
+          case 1: // Add list
+            operations.push(async () => {
+              const list = await db.addList({
+                name: `Rapid List ${listCounter++}`,
+                description: 'Rapid operation list'
+              });
+              return { type: 'list', data: list };
+            });
+            break;
+            
+          case 2: // Update stats
+            operations.push(async () => {
+              await db.updateReviewStats(Math.random() > 0.5);
+              return { type: 'stats', data: 'updated' };
+            });
+            break;
+            
+          case 3: // Get all words
+            operations.push(async () => {
+              const words = await db.getAllWords();
+              return { type: 'query', data: words.length };
+            });
+            break;
+        }
+      }
+
+      // Execute all operations sequentially (not concurrently to test rapid sequential access)
+      const results = [];
+      for (const operation of operations) {
+        const result = await operation();
+        results.push(result);
+      }
+
+      expect(results).toHaveLength(50);
+
+      // Verify final state is consistent
+      const finalWords = await db.getAllWords();
+      const finalLists = await db.getAllLists();
+      const finalStats = await db.getStats();
+
+      expect(finalWords.length).toBeGreaterThan(0);
+      expect(finalLists.length).toBeGreaterThan(0);
+      expect(finalStats.totalReviews).toBeGreaterThan(0);
+
+      // No data should be corrupted
+      finalWords.forEach(word => {
+        expect(word.id).toMatch(/^word_\d+_[a-z0-9]+$/);
+        expect(word.word).toBeDefined();
+        expect(word.definitions).toBeInstanceOf(Array);
+      });
+
+      finalLists.forEach(list => {
+        expect(list.id).toMatch(/^list_\d+_[a-z0-9]+$/);
+        expect(list.name).toBeDefined();
+        expect(list.wordIds).toBeInstanceOf(Array);
+      });
+    });
+  });
+
+  describe('Error Recovery and Data Integrity', () => {
+    test('should handle database corruption gracefully', async () => {
+      // Add some data first
+      const word = await db.addWord({
+        word: 'corruption',
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'The process by which something is damaged or altered from its original course',
+          examples: []
+        }]
+      });
+
+      // Force close the database to simulate corruption
+      db.db.close();
+
+      // Create new instance and verify it can initialize
+      const newDb = new VocabDictDatabase();
+      await newDb.initialize();
+
+      // Should be able to operate normally
+      const newWord = await newDb.addWord({
+        word: 'recovery',
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'A return to a normal state of health, mind, or strength',
+          examples: []
+        }]
+      });
+
+      expect(newWord).toBeDefined();
+      expect(newWord.word).toBe('recovery');
+
+      newDb.db.close();
+    });
+
+    test('should maintain data consistency after failed operations', async () => {
       const initialWordCount = (await db.getAllWords()).length;
       
-      // Try to update with invalid data
       try {
-        await db.updateWord(new MockVocabularyWord({ id: 'nonexistent' }));
+        // Attempt invalid operation
+        await db.addWord({
+          word: null, // Invalid
+          definitions: null
+        });
       } catch (error) {
         // Expected to fail
       }
-      
-      // Verify original data is intact
-      const retrievedWord = await db.getWord(word.id);
-      expect(retrievedWord).toBeDefined();
-      expect(retrievedWord.word).toBe('consistency');
-      
+
+      // Verify no partial data was added
       const finalWordCount = (await db.getAllWords()).length;
       expect(finalWordCount).toBe(initialWordCount);
-    });
 
-    test('should handle database reset correctly', async () => {
-      // Add some data
-      await db.addWord({ word: 'beforereset' });
-      await db.addList({ name: 'Before Reset List' });
-      
-      let words = await db.getAllWords();
-      let lists = await db.getAllLists();
-      expect(words).toHaveLength(1);
-      expect(lists).toHaveLength(2); // 1 default + 1 custom
-      
-      // Reset database
-      db.reset();
-      
-      // Verify data is cleared but structure is maintained
-      words = await db.getAllWords();
-      lists = await db.getAllLists();
-      expect(words).toHaveLength(0);
-      expect(lists).toHaveLength(1); // Only default list remains
-      expect(lists[0].isDefault).toBe(true);
-    });
-  });
-
-  describe('Cache Management', () => {
-    test('should cache and retrieve dictionary entries', async () => {
-      const entry = {
-        word: 'cache',
-        definitions: [{ partOfSpeech: 'noun', meaning: 'temporary storage' }],
-        pronunciations: [{ type: 'US', phonetic: '/kæʃ/' }]
-      };
-      
-      // Cache entry
-      await db.cacheDictionaryEntry('cache', entry);
-      
-      // Retrieve cached entry
-      const cached = await db.getCachedDictionaryEntry('cache');
-      expect(cached).toBeDefined();
-      expect(cached.word).toBe('cache');
-      expect(cached.definitions).toEqual(entry.definitions);
-      expect(cached.cachedAt).toBeInstanceOf(Date);
-    });
-
-    test('should handle cache expiry correctly', async () => {
-      const entry = { word: 'expired' };
-      
-      // Manually add expired entry
-      db.data.cache.set('expired', {
-        ...entry,
-        cachedAt: new Date(Date.now() - 25 * 60 * 60 * 1000) // 25 hours ago
+      // Verify database is still functional
+      const validWord = await db.addWord({
+        word: 'recovery',
+        definitions: [{
+          partOfSpeech: 'noun',
+          meaning: 'Successful recovery after error',
+          examples: []
+        }]
       });
-      
-      // Should return null for expired entry
-      const cached = await db.getCachedDictionaryEntry('expired');
-      expect(cached).toBeNull();
-      
-      // Should remove expired entry from cache
-      expect(db.data.cache.has('expired')).toBe(false);
-    });
 
-    test('should handle cache miss correctly', async () => {
-      const cached = await db.getCachedDictionaryEntry('nonexistent');
-      expect(cached).toBeNull();
-    });
-
-    test('should manage cache size', async () => {
-      // Add many cache entries
-      for (let i = 0; i < 100; i++) {
-        await db.cacheDictionaryEntry(`word${i}`, { word: `word${i}` });
-      }
-      
-      expect(db.data.cache.size).toBe(100);
-      
-      // All entries should be retrievable
-      for (let i = 0; i < 100; i++) {
-        const cached = await db.getCachedDictionaryEntry(`word${i}`);
-        expect(cached).toBeDefined();
-        expect(cached.word).toBe(`word${i}`);
-      }
-    });
-  });
-
-  describe('Settings Persistence', () => {
-    test('should persist settings across operations', async () => {
-      const newSettings = {
-        theme: 'dark',
-        autoAdd: false,
-        defaultListId: 'custom_list',
-        reviewReminders: false,
-        sessionSize: 15
-      };
-      
-      await db.updateSettings(newSettings);
-      
-      const retrievedSettings = await db.getSettings();
-      expect(retrievedSettings.theme).toBe('dark');
-      expect(retrievedSettings.autoAdd).toBe(false);
-      expect(retrievedSettings.defaultListId).toBe('custom_list');
-      expect(retrievedSettings.reviewReminders).toBe(false);
-      expect(retrievedSettings.sessionSize).toBe(15);
-    });
-
-    test('should handle partial settings updates', async () => {
-      // Get initial settings
-      const initialSettings = await db.getSettings();
-      
-      // Update only some settings
-      const partialUpdate = {
-        theme: 'dark',
-        sessionSize: 25
-      };
-      
-      await db.updateSettings(partialUpdate);
-      const updatedSettings = await db.getSettings();
-      
-      // Updated fields should change
-      expect(updatedSettings.theme).toBe('dark');
-      expect(updatedSettings.sessionSize).toBe(25);
-      
-      // Other fields should maintain defaults
-      expect(updatedSettings.autoAdd).toBe(initialSettings.autoAdd);
-      expect(updatedSettings.reviewReminders).toBe(initialSettings.reviewReminders);
-    });
-  });
-
-  describe('Statistics Tracking', () => {
-    test('should track learning statistics accurately', async () => {
-      const word1 = await db.addWord({ word: 'stat1' });
-      const word2 = await db.addWord({ word: 'stat2' });
-      
-      let stats = await db.getStats();
-      expect(stats.totalWords).toBe(2);
-      
-      // Simulate reviews
-      stats.updateReviewStats(true);  // Correct
-      stats.updateReviewStats(true);  // Correct
-      stats.updateReviewStats(false); // Incorrect
-      stats.updateReviewStats(true);  // Correct
-      
-      await db.updateStats(stats);
-      
-      const updatedStats = await db.getStats();
-      expect(updatedStats.wordsReviewed).toBe(4);
-      expect(updatedStats.correctAnswers).toBe(3);
-      expect(updatedStats.currentStreak).toBe(1); // Reset after incorrect, then 1 correct
-      expect(updatedStats.longestStreak).toBe(2); // First two correct answers
-    });
-
-    test('should maintain statistics consistency', async () => {
-      // Add words and track stats
-      for (let i = 0; i < 5; i++) {
-        await db.addWord({ word: `consistency${i}` });
-      }
-      
-      let stats = await db.getStats();
-      expect(stats.totalWords).toBe(5);
-      
-      // Delete some words
-      const allWords = await db.getAllWords();
-      await db.deleteWord(allWords[0].id);
-      await db.deleteWord(allWords[1].id);
-      
-      stats = await db.getStats();
-      expect(stats.totalWords).toBe(3);
-    });
-  });
-
-  describe('Data Migration and Compatibility', () => {
-    test('should handle data format evolution', async () => {
-      // Simulate old data format
-      const oldWordData = {
-        id: 'old_word_1',
-        word: 'legacy',
-        meaning: 'old format definition' // Old format
-      };
-      
-      // Should be able to create new format from old data
-      const newWord = new MockVocabularyWord({
-        ...oldWordData,
-        definitions: oldWordData.meaning ? 
-          [{ partOfSpeech: 'unknown', meaning: oldWordData.meaning }] : 
-          []
-      });
-      
-      expect(newWord.word).toBe('legacy');
-      expect(newWord.definitions).toHaveLength(1);
-      expect(newWord.definitions[0].meaning).toBe('old format definition');
-    });
-
-    test('should handle missing fields gracefully', async () => {
-      const incompleteData = {
-        word: 'incomplete'
-        // Missing definitions, difficulty, etc.
-      };
-      
-      const word = new MockVocabularyWord(incompleteData);
-      
-      expect(word.word).toBe('incomplete');
-      expect(word.definitions).toEqual([]);
-      expect(word.difficulty).toBe(1); // Default value
-      expect(word.reviewCount).toBe(0); // Default value
-    });
-  });
-
-  describe('Backup and Restore Simulation', () => {
-    test('should export all data correctly', async () => {
-      // Add test data
-      const word1 = await db.addWord({ word: 'export1' });
-      const word2 = await db.addWord({ word: 'export2' });
-      const list = await db.addList({ name: 'Export List' });
-      
-      list.addWord(word1.id);
-      await db.updateList(list);
-      
-      await db.updateSettings({ theme: 'dark', autoAdd: false });
-      
-      // Export all data
-      const exportData = {
-        words: (await db.getAllWords()).map(w => w.toJSON()),
-        lists: (await db.getAllLists()).map(l => l.toJSON()),
-        settings: (await db.getSettings()).toJSON(),
-        stats: (await db.getStats()).toJSON()
-      };
-      
-      expect(exportData.words).toHaveLength(2);
-      expect(exportData.lists).toHaveLength(2); // 1 default + 1 custom
-      expect(exportData.settings.theme).toBe('dark');
-      expect(exportData.stats).toBeDefined();
-    });
-
-    test('should import data correctly', async () => {
-      const importData = {
-        words: [
-          {
-            id: 'import_word_1',
-            word: 'import1',
-            definitions: [{ partOfSpeech: 'noun', meaning: 'imported word' }],
-            difficulty: 2,
-            reviewCount: 3
-          }
-        ],
-        lists: [
-          {
-            id: 'import_list_1',
-            name: 'Imported List',
-            wordIds: ['import_word_1'],
-            isDefault: false
-          }
-        ],
-        settings: {
-          theme: 'dark',
-          autoAdd: false
-        }
-      };
-      
-      // Clear existing data
-      db.reset();
-      
-      // Import words
-      for (const wordData of importData.words) {
-        await db.addWord(wordData);
-      }
-      
-      // Import lists
-      for (const listData of importData.lists) {
-        await db.addList(listData);
-      }
-      
-      // Import settings
-      await db.updateSettings(importData.settings);
-      
-      // Verify imported data
-      const words = await db.getAllWords();
-      const lists = await db.getAllLists();
-      const settings = await db.getSettings();
-      
-      expect(words).toHaveLength(1);
-      expect(words[0].word).toBe('import1');
-      expect(lists).toHaveLength(2); // 1 default + 1 imported
-      expect(settings.theme).toBe('dark');
+      expect(validWord).toBeDefined();
+      expect(validWord.word).toBe('recovery');
     });
   });
 });
