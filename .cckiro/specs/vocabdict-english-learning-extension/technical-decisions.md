@@ -155,7 +155,29 @@ class VocabularyWord {
 - Message passing for all data operations
 - No direct IndexedDB access from content script
 
-### 3. Floating Widget Event Handling
+### 3. Context Menu Handler Scope Issues ✅ FIXED (2025-07-21)
+**Problem**: Context menu handler function was defined but not globally accessible in service worker
+
+**Error Seen**: Context menu clicks not triggering any action, no handler found
+
+**Root Cause**: 
+```javascript
+// Function was defined but not attached to global scope
+function handleContextMenuClick(info, tab) { ... }
+// Service worker couldn't access it when context menu clicked
+```
+
+**Solution Applied**:
+```javascript
+// Attach to both globalThis and window for compatibility
+if (typeof globalThis !== 'undefined') {
+    globalThis.handleContextMenuClick = handleContextMenuClick;
+} else if (typeof window !== 'undefined') {
+    window.handleContextMenuClick = handleContextMenuClick;
+}
+```
+
+### 4. Floating Widget Event Handling
 **Problem**: Click events on floating widget buttons were closing the widget
 
 **Workaround**:
@@ -167,7 +189,7 @@ addBtn.addEventListener('click', async (e) => {
 });
 ```
 
-### 4. Async Message Response
+### 5. Async Message Response
 **Problem**: Safari requires synchronous return for async message handlers
 
 **Workaround**:
@@ -181,7 +203,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 ```
 
-### 5. Theme Persistence
+### 6. Theme Persistence
 **Problem**: CSS variables don't persist across popup closes
 
 **Workaround**:
@@ -208,9 +230,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 ### Important Issues
 
-1. **Keyboard Shortcuts Not Implemented**
-   - **TODO**: Add Command+Shift+L for lookup
-   - **TODO**: Configure in manifest.json
+1. **Keyboard Shortcuts Implementation** ✅ FIXED (2025-07-21)
+   - **Issue**: Keyboard shortcuts were defined in manifest but no handler existed
+   - **Fix Applied**: Added browser.commands.onCommand listener in init.js with proper message handling
 
 2. **Duplicate Context Menu Items**
    - **Issue**: Sometimes shows multiple "Look up" items
@@ -421,4 +443,33 @@ function renderNewComponent(data) {
 }
 ```
 
-This implementation has been a learning experience in working within Safari's constraints while maintaining code quality and functionality.
+## Update (2025-07-21) - Context Menu and Testing Fixes
+
+### Context Menu Functionality Fixed:
+**Issue**: Right-click context menu "Look up in VocabDict" was not working despite tests passing
+**Root Cause**: Multiple related issues:
+1. handleContextMenuClick function not globally accessible in service worker
+2. Message type inconsistency (string literals vs constants in content script)
+3. Missing keyboard shortcut command handler
+
+**Fixes Applied**:
+1. **Handler Scope**: Added proper global scope attachment for context menu handler
+2. **Message Types**: Replaced all string literals with MessageTypes constants in content.js
+3. **Keyboard Handler**: Added browser.commands.onCommand listener in init.js
+4. **Content Script**: Fixed SELECTION_LOOKUP message handling for context menu integration
+
+### Testing Framework Improvements:
+**Issue**: Tests were passing despite broken functionality due to excessive mocking
+**Root Cause**: Complete mock implementations instead of testing real code
+
+**Solution Applied**:
+1. **Real Implementation Tests**: Created tests/unit/models.real.test.js using actual model classes
+2. **Minimal Browser Mocks**: Only mock browser APIs, not business logic (tests/helpers/browserMocks.js)
+3. **Integration Tests**: Test actual message passing and context menu flows
+4. **Mock Boundaries**: Mock external dependencies (browser APIs) but test real implementations
+
+### Service Worker Compatibility:
+**Issue**: Some code used window-specific APIs in service worker context
+**Solution**: Added globalThis compatibility checks throughout codebase
+
+This implementation has been a learning experience in working within Safari's constraints while maintaining code quality and functionality, with particular focus on proper testing practices and cross-context compatibility.

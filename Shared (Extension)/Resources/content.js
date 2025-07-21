@@ -113,6 +113,8 @@
     
     // Handle messages from background script
     function handleMessage(request, sender, sendResponse) {
+        console.log('VocabDict Content: Received message:', request);
+        
         const { type, payload } = request;
         
         switch (type) {
@@ -120,21 +122,36 @@
                 if (payload.word) {
                     showFloatingWidgetForWord(payload.word, payload.position);
                 }
+                sendResponse({ status: 'success' });
                 break;
                 
             case 'hide_floating_widget':
                 hideFloatingWidget();
+                sendResponse({ status: 'success' });
                 break;
                 
-            case 'selection_lookup':
-                // Triggered by keyboard shortcut
-                if (selectedText) {
+            case MessageTypes.SELECTION_LOOKUP:
+                // Triggered by keyboard shortcut or context menu
+                console.log('VocabDict: Selection lookup triggered', payload);
+                if (payload && payload.word) {
+                    // Word provided directly (from context menu)
+                    // Get current mouse position or use default
+                    const position = selectionPosition || { x: 100, y: 100 };
+                    showFloatingWidgetForWord(payload.word, position);
+                    sendResponse({ status: 'success', message: 'Widget shown for: ' + payload.word });
+                } else if (selectedText) {
+                    // Use current selection (from keyboard shortcut)
                     lookupSelectedText();
+                    sendResponse({ status: 'success', message: 'Looking up selected text' });
+                } else {
+                    console.log('VocabDict: No word to lookup');
+                    sendResponse({ status: 'error', message: 'No word to lookup' });
                 }
                 break;
                 
             default:
                 console.log('VocabDict: Unknown message type:', type);
+                sendResponse({ status: 'error', message: 'Unknown message type' });
         }
         
         return true; // Indicate async response
@@ -169,7 +186,7 @@
             
             // Send lookup request to background script
             const response = await browser.runtime.sendMessage({
-                type: 'lookup_word',
+                type: MessageTypes.LOOKUP_WORD,
                 payload: { word: word }
             });
             
@@ -363,7 +380,7 @@
     async function addToVocabularyList(definition) {
         try {
             const response = await browser.runtime.sendMessage({
-                type: 'add_word_to_list',
+                type: MessageTypes.ADD_WORD_TO_LIST,
                 payload: {
                     wordData: {
                         word: definition.word,
@@ -406,12 +423,26 @@
     }
     
     // Open full definition in popup
-    function openFullDefinition(definition) {
-        browser.runtime.sendMessage({
-            type: 'open_popup',
-            payload: { word: definition.word }
-        });
-        hideFloatingWidget();
+    async function openFullDefinition(definition) {
+        try {
+            await browser.runtime.sendMessage({
+                type: MessageTypes.OPEN_POPUP,
+                payload: { word: definition.word }
+            });
+            hideFloatingWidget();
+        } catch (error) {
+            console.error('VocabDict: Failed to open popup:', error);
+            // Fallback: try to store word for popup to pick up
+            try {
+                await browser.storage.local.set({
+                    pendingLookupWord: definition.word,
+                    pendingLookupTimestamp: Date.now()
+                });
+                hideFloatingWidget();
+            } catch (storageError) {
+                console.error('VocabDict: Failed to store word for popup:', storageError);
+            }
+        }
     }
     
     // Hide floating widget

@@ -1,8 +1,8 @@
 # VocabDict English Learning Extension - Design Document
 
-## Last Updated: 2025-07-20
+## Last Updated: 2025-07-21
 
-## Architecture Overview (Actual Implementation)
+## Architecture Overview (Current Implementation - Phase 2+)
 
 ### Extension Components
 ```
@@ -10,25 +10,31 @@
 │                    Safari Extension                           │
 ├─────────────────┬───────────────────┬───────────────────────┤
 │  Content Script │  Background Script │    Extension Popup    │
-│   content.js    │   background.js    │    popup.js/html      │
-│                 │  (Service Worker)   │                       │
-│  - Text selection│  - Message routing │  - Search interface  │
-│  - Context menu │  - Data management │  - Dictionary view   │
-│  - Floating     │  - Storage API     │  - Lists (pending)   │
-│    widget       │  - All core logic  │  - Settings          │
+│   content.js    │  (Modular Files)   │    popup.js/html      │
+│   (511 lines)   │                    │    (555 lines)       │
+│                 │  - constants.js    │                       │
+│  - Text selection│  - models.js      │  - Search interface  │
+│  - Context menu │  - database.js    │  - Dictionary view   │
+│  - Floating     │  - handlers.js    │  - Lists management  │
+│    widget       │  - init.js        │  - Settings & themes │
+│  - Keyboard     │  - dictionary.js  │  - Context menu      │
+│    shortcuts    │                    │    fallback          │
 └─────────────────┴───────────────────┴───────────────────────┘
                               │
                     ┌─────────┴─────────┐
                     │    IndexedDB      │
                     │  vocabdict_db v1  │
+                    │  + Comprehensive  │
+                    │    Test Suite     │
                     └───────────────────┘
 ```
 
 ### Key Architecture Changes from Original Design:
-1. **Monolithic Files**: Instead of modular architecture, using single large files
-2. **Service Worker**: Background script runs as service worker, not persistent page  
-3. **Direct IndexedDB**: Using IndexedDB directly instead of browser.storage wrapper
-4. **Simplified Data Flow**: Removed bidirectional relationships
+1. **Modular Architecture**: Successfully split into 6 specialized files with clear separation of concerns
+2. **Service Worker**: Background script runs as service worker with proper message handling
+3. **Direct IndexedDB**: Using IndexedDB directly with comprehensive error handling
+4. **Full Feature Set**: Context menu, keyboard shortcuts, floating widgets all implemented
+5. **Testing Framework**: Comprehensive test suite with real implementations replacing excessive mocks
 
 ## Data Models (As Implemented)
 
@@ -131,25 +137,42 @@ class LearningStats {
 - hideFloatingWidget()
 ```
 
-### 2. Background Script (background.js)
+### 2. Background Script (Modular Architecture)
 **Actual Implementation:**
-- Monolithic file containing all core logic
-- Service worker lifecycle management
-- 21 message handlers registered
-- Database wrapper class
-- Model definitions
-- Dictionary data (5 words)
+- Split into 5 specialized files with clear separation of concerns
+- Service worker lifecycle management  
+- 22 message handlers registered
+- Comprehensive error handling and validation
+- Full context menu and keyboard shortcut support
 
-**Major Classes/Objects:**
+**File Structure:**
 ```javascript
-- TOY_DICTIONARY          // 5-word dictionary
-- MessageTypes           // Message type constants
-- VocabularyWord        // Word model
-- VocabularyList        // List model
-- UserSettings          // Settings model
-- LearningStats         // Stats model
-- VocabDictDatabase     // Database wrapper
-- messageHandlers Map   // Handler registration
+constants.js (71 lines):
+- MessageTypes constants
+- UI configuration constants
+- Database schema constants
+
+models.js (170 lines):
+- VocabularyWord class
+- VocabularyList class
+- UserSettings class
+- LearningStats class
+
+database.js (344 lines):
+- VocabDictDatabase wrapper class
+- IndexedDB operations
+- Error handling and validation
+
+handlers.js (279 lines):
+- All 22 message handlers
+- Input validation
+- Consistent error handling
+
+init.js (247 lines):
+- Extension initialization
+- Message routing setup
+- Context menu creation
+- Keyboard shortcut handlers
 ```
 
 ### 3. Popup Interface (popup.js/html)
@@ -448,9 +471,9 @@ function updateView(data) {
 ## Future Considerations
 
 ### Technical Debt to Address
-1. Split monolithic files
-2. Add build process
-3. Implement tests
+1. ✅ Split monolithic files (COMPLETED - background.js modularized)
+2. Add build process 
+3. ✅ Implement tests (COMPLETED - comprehensive test suite added)
 4. Add TypeScript/JSDoc
 
 ### Feature Roadmap

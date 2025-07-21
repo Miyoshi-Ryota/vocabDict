@@ -230,6 +230,31 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Context menu click handler
 browser.contextMenus.onClicked.addListener(handleContextMenuClick);
 
+// Command (keyboard shortcut) handler
+browser.commands.onCommand.addListener(async (command) => {
+    console.log('VocabDict: Command triggered:', command);
+    
+    if (command === 'lookup-selection') {
+        try {
+            // Get the active tab
+            const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length > 0) {
+                const activeTab = tabs[0];
+                
+                // Send message to content script to lookup current selection
+                await browser.tabs.sendMessage(activeTab.id, {
+                    type: MessageTypes.SELECTION_LOOKUP,
+                    payload: {} // No word provided, content script should use current selection
+                });
+                
+                console.log('VocabDict: Sent keyboard shortcut lookup to content script');
+            }
+        } catch (error) {
+            console.error('VocabDict: Failed to handle keyboard shortcut:', error);
+        }
+    }
+});
+
 // Initialize on install/update
 browser.runtime.onInstalled.addListener(async (details) => {
     console.log('VocabDict: Extension installed/updated:', details.reason);
