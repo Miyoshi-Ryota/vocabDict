@@ -261,19 +261,56 @@ async function handleUpdateReviewStats({ wordId, correct }) {
     };
 }
 
-// Context menu handler
-async function handleContextMenuClick(info, tab) {
+// Export handlers for use in init.js
+window.createHandlers = createHandlers;
+
+// Context menu handler - make it globally available
+window.handleContextMenuClick = async function(info, tab) {
+    console.log('VocabDict: Context menu clicked:', info.menuItemId, info.selectionText);
+    
     if (info.menuItemId === 'vocabdict-lookup' && info.selectionText) {
-        // Try to send to content script first
+        const word = info.selectionText.trim();
+        
+        // Validate word
+        if (!word || word.length < CONSTANTS.MIN_WORD_LENGTH || word.length > CONSTANTS.MAX_WORD_LENGTH) {
+            console.log('VocabDict: Invalid word selection:', word);
+            return;
+        }
+        
+        // Try to send to content script
         try {
+            console.log('VocabDict: Sending lookup message for word:', word);
             await browser.tabs.sendMessage(tab.id, {
                 type: MessageTypes.SELECTION_LOOKUP,
-                payload: { word: info.selectionText }
+                payload: { word: word }
             });
+            console.log('VocabDict: Successfully sent selection lookup to content script');
         } catch (error) {
-            // Content script not available, open popup
-            console.log('Content script not available, opening popup');
-            // You could implement popup opening with the word here
+            console.error('VocabDict: Failed to send message to content script:', error);
+            
+            // As a fallback, we could store the word and open the popup
+            try {
+                // Store the word temporarily for the popup to pick up
+                await browser.storage.local.set({
+                    pendingLookupWord: word,
+                    pendingLookupTimestamp: Date.now()
+                });
+                
+                // Open the popup (Note: This might not work in all contexts)
+                console.log('VocabDict: Stored word for popup:', word);
+                
+                // Alternative: Show a notification
+                if (browser.notifications) {
+                    browser.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'images/icon-128.png',
+                        title: 'VocabDict',
+                        message: `Please open VocabDict popup to look up "${word}"`
+                    });
+                }
+            } catch (fallbackError) {
+                console.error('VocabDict: Fallback also failed:', fallbackError);
+            }
         }
     }
-}
+};

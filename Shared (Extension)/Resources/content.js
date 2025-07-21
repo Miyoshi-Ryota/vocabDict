@@ -113,6 +113,8 @@
     
     // Handle messages from background script
     function handleMessage(request, sender, sendResponse) {
+        console.log('VocabDict Content: Received message:', request);
+        
         const { type, payload } = request;
         
         switch (type) {
@@ -120,21 +122,36 @@
                 if (payload.word) {
                     showFloatingWidgetForWord(payload.word, payload.position);
                 }
+                sendResponse({ status: 'success' });
                 break;
                 
             case 'hide_floating_widget':
                 hideFloatingWidget();
+                sendResponse({ status: 'success' });
                 break;
                 
             case 'selection_lookup':
-                // Triggered by keyboard shortcut
-                if (selectedText) {
+                // Triggered by keyboard shortcut or context menu
+                console.log('VocabDict: Selection lookup triggered', payload);
+                if (payload && payload.word) {
+                    // Word provided directly (from context menu)
+                    // Get current mouse position or use default
+                    const position = selectionPosition || { x: 100, y: 100 };
+                    showFloatingWidgetForWord(payload.word, position);
+                    sendResponse({ status: 'success', message: 'Widget shown for: ' + payload.word });
+                } else if (selectedText) {
+                    // Use current selection (from keyboard shortcut)
                     lookupSelectedText();
+                    sendResponse({ status: 'success', message: 'Looking up selected text' });
+                } else {
+                    console.log('VocabDict: No word to lookup');
+                    sendResponse({ status: 'error', message: 'No word to lookup' });
                 }
                 break;
                 
             default:
                 console.log('VocabDict: Unknown message type:', type);
+                sendResponse({ status: 'error', message: 'Unknown message type' });
         }
         
         return true; // Indicate async response

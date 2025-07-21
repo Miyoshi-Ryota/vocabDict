@@ -1,6 +1,30 @@
 // VocabDict Popup Script
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check for pending lookup word from context menu
+    try {
+        const stored = await browser.storage.local.get(['pendingLookupWord', 'pendingLookupTimestamp']);
+        if (stored.pendingLookupWord && stored.pendingLookupTimestamp) {
+            // Check if the word is recent (within last 5 seconds)
+            const age = Date.now() - stored.pendingLookupTimestamp;
+            if (age < 5000) {
+                console.log('VocabDict Popup: Found pending lookup word:', stored.pendingLookupWord);
+                
+                // Clear the pending word
+                await browser.storage.local.remove(['pendingLookupWord', 'pendingLookupTimestamp']);
+                
+                // Trigger lookup
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.value = stored.pendingLookupWord;
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+    } catch (error) {
+        console.error('VocabDict Popup: Error checking pending word:', error);
+    }
+    
     // Tab switching
     const tabs = document.querySelectorAll('.tab');
     const tabContents = document.querySelectorAll('.tab-content');

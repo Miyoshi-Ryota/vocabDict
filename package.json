@@ -11,6 +11,8 @@
     "test:integration": "jest tests/integration",
     "test:e2e": "jest --config jest.e2e.config.js",
     "test:safari": "jest --config jest.safari.config.js",
+    "test:real": "jest tests/**/*.real.test.js tests/integration/contextMenu.test.js",
+    "test:mocked": "jest tests/**/*.test.js --testPathIgnorePatterns=real.test.js",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:safari",
     "lint": "eslint \"Shared (Extension)/Resources/**/*.js\" \"tests/**/*.js\"",
     "lint:fix": "eslint \"Shared (Extension)/Resources/**/*.js\" \"tests/**/*.js\" --fix",
