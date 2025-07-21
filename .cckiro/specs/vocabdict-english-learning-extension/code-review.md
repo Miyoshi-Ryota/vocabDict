@@ -44,7 +44,7 @@ tests/helpers/browserMocks.js ──> Minimal browser API mocks
 ### Phase Assignment
 - **Phase 1 Files**: Modular background scripts (constants, models, database, handlers, init), `popup.css`, base of `popup.js`
 - **Phase 2 Files**: `content.js`, `dictionary.js`, dictionary features in `popup.js`
-- **Phase 3 Files**: Vocabulary list UI (completed), comprehensive testing framework
+- **Phase 3 Files**: Vocabulary list UI (core completed), comprehensive testing framework, auto-add/import-export (pending)
 - **Testing Framework**: Real implementation tests, minimal browser mocks, integration tests
 
 ## 2. Code Quality Issues
@@ -300,9 +300,10 @@ The codebase shows good functionality but needs structural improvements. The sin
 ### Remaining Issues (Post Phase 3):
 - Complex initialize() function (could be further split)
 - No rate limiting on message handling
+- **Phase 3 Incomplete**: Auto-add features and import/export functionality still pending
 - Learning mode UI (Phase 4 pending)
 
-## Update (2025-07-21) - Complete Phase 3 Implementation
+## Update (2025-07-21) - Phase 3 Major Progress (Core Features Complete)
 
 ### Major Achievements:
 1. ✅ **Modular Architecture Complete**:
@@ -322,11 +323,12 @@ The codebase shows good functionality but needs structural improvements. The sin
    - Integration tests for context menu and content script
    - Fixed false positive test issues from excessive mocking
 
-4. ✅ **Vocabulary List UI Complete**:
+4. ✅ **Vocabulary List UI Core Complete**:
    - Full list management interface implemented
    - Word display with definitions and removal functionality
    - Clean, responsive user interface
    - Proper word count tracking
+   - **Note**: Auto-add and import/export features still pending
 
 5. ✅ **Service Worker Compatibility**:
    - Added globalThis compatibility for service worker context

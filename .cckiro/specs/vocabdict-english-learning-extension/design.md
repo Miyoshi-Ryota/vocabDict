@@ -196,9 +196,9 @@ init.js (247 lines):
 
 **Implemented Views:**
 - ✅ Dictionary Search View (fully functional)
-- ⚠️ Vocabulary Lists View (placeholder only)
-- ❌ Learning Mode View (not started)
-- ⚠️ Settings View (UI present, persistence buggy)
+- ✅ Vocabulary Lists View (core functionality complete - display, add, remove words)
+- ❌ Learning Mode View (not started - Phase 4)
+- ✅ Settings View (theme switching working, auto-add settings pending)
 
 ### 4. Storage Architecture (Actual)
 

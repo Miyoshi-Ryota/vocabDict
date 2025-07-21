@@ -6,7 +6,7 @@ This implementation plan breaks down the development of VocabDict into manageabl
 ## Current Status (Last Updated: 2025-07-21)
 - **Phase 1**: ✅ COMPLETED (Including modularization improvements)
 - **Phase 2**: ✅ COMPLETED (Full dictionary and content script features)
-- **Phase 3**: ✅ COMPLETED (List UI fully implemented with comprehensive testing framework)
+- **Phase 3**: 🟡 MOSTLY COMPLETED (~80% done - core list UI done, auto-add/import-export pending)
 - **Phase 4**: ⏳ NOT STARTED (Learning mode with spaced repetition)
 - **Phase 5**: ⏳ NOT STARTED (Polish and optimization)
 
@@ -162,7 +162,7 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - Can add words to vocabulary lists
 - Search is responsive and fast
 
-## Phase 3: Vocabulary Management
+## Phase 3: Vocabulary Management 🟡 MOSTLY COMPLETED
 
 ### 3.1 Create List Management UI ✅ COMPLETED
 **Files implemented:**
@@ -199,41 +199,50 @@ Common words like: hello, world, learn, study, book, read, write, speak, listen,
 - ✅ Can remove words from lists
 - ✅ Word information displays completely
 
-### 3.3 Auto-add and Tracking Features ℹ️ TODO
+### 3.3 Auto-add and Tracking Features ⏳ PENDING
 **Files to modify:**
-- `Shared (Extension)/Resources/js/dictionary/dictionaryService.js`
-- `Shared (Extension)/Resources/background.js`
+- `Shared (Extension)/Resources/handlers.js`
+- `Shared (Extension)/Resources/models.js` (UserSettings)
+- `Shared (Extension)/Resources/popup.js` (Settings UI)
 
 **Tasks:**
 - Auto-add looked up words to default list
-- Increment lookup counter
+- Increment lookup counter automatically
 - Prevent duplicate additions
 - Add setting to disable auto-add
-- Track lookup history
+- Track lookup history for statistics
 
 **Acceptance Criteria:**
 - Words automatically added after lookup
 - Lookup count increases correctly
 - No duplicate words in lists
 - Can disable auto-add feature
+- Settings persist across sessions
 
-### 3.4 Import/Export Functionality ℹ️ TODO
-**Files to create:**
-- `Shared (Extension)/Resources/js/services/importExportService.js`
+**Status**: Not yet implemented - core list management works, but auto-add features are missing
+
+### 3.4 Import/Export Functionality ⏳ PENDING
+**Files to modify:**
+- `Shared (Extension)/Resources/handlers.js` (new export/import handlers)
+- `Shared (Extension)/Resources/popup.js` (Settings tab UI)
+- `Shared (Extension)/Resources/popup.html` (file input elements)
 
 **Tasks:**
-- Export lists as JSON/CSV
+- Export lists as JSON/CSV format
 - Import vocabulary from files
-- Validate imported data
-- Handle merge conflicts
-- Show import preview
-- Add progress indicators
+- Validate imported data structure
+- Handle merge conflicts gracefully
+- Show import preview before applying
+- Add progress indicators for large operations
 
 **Acceptance Criteria:**
-- Can export all data
-- Can import valid files
-- Invalid files show helpful errors
+- Can export all vocabulary data
+- Can import valid files successfully
+- Invalid files show helpful error messages
 - Progress shown for large imports
+- Data integrity maintained during import/export
+
+**Status**: Not yet implemented - would be valuable for user data management and backup
 
 ## Phase 4: Learning Mode
 
