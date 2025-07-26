@@ -2,29 +2,32 @@
 
 ## 1. Architecture Overview
 
-### 1.1 Extension Structure
+### 1.1 Extension Structure (Actual Implementation)
 ```
-vocabdict-extension/
-├── manifest.json              # Safari extension manifest
-├── background/
-│   ├── background.js         # Service worker for background tasks
-│   └── dictionary.js         # Dictionary data and lookup logic
-├── content/
-│   └── content.js           # Content script for page integration
-├── popup/
-│   ├── popup.html           # Extension popup UI
-│   ├── popup.js             # Popup logic
-│   └── popup.css            # Popup styles
-├── shared/
-│   ├── storage.js           # Data persistence layer
-│   ├── spaced-repetition.js # SRS algorithm implementation
-│   └── utils.js             # Shared utilities
-├── assets/
-│   ├── icons/               # Extension icons
-│   └── images/              # UI images
-└── tests/
-    ├── unit/                # Unit tests
-    └── integration/         # Integration tests
+VocabDict/
+├── src/
+│   ├── background/
+│   │   ├── background.js      # Service worker for background tasks
+│   │   └── message-handler.js # Centralized message handling
+│   ├── content/
+│   │   └── content.js         # Content script for page integration
+│   ├── popup/
+│   │   ├── popup.html         # Extension popup UI
+│   │   ├── popup.js           # Popup logic
+│   │   └── popup.css          # Popup styles
+│   ├── services/
+│   │   ├── dictionary-service.js   # Dictionary lookup logic
+│   │   ├── vocabulary-list.js      # Vocabulary list management
+│   │   ├── storage.js              # Data persistence layer
+│   │   └── spaced-repetition.js    # SRS algorithm service
+│   ├── data/
+│   │   └── dictionary.json    # Toy dictionary (50+ words)
+│   └── utils/
+│       └── constants.js       # Shared constants
+├── tests/
+│   ├── unit/                  # Unit tests (80+ tests)
+│   └── integration/           # Integration tests
+└── Shared (Extension)/Resources/  # Webpack output directory
 ```
 
 ### 1.2 Component Architecture
@@ -713,11 +716,11 @@ class NotificationManager {
 
 ## 9. Testing Strategy
 
-### 9.1 Unit Test Structure
+### 9.1 Unit Test Structure (Detroit School TDD)
 ```javascript
-// Example: dictionary.test.js
+// Example: dictionary.test.js - Using real objects
 describe('Dictionary Service', () => {
-  const dictionary = new DictionaryService(testData);
+  const dictionary = new DictionaryService(realDictionaryData);
   
   test('should find exact word match', () => {
     const result = dictionary.lookup('hello');
@@ -730,9 +733,35 @@ describe('Dictionary Service', () => {
     expect(result.word).toBe('hello');
   });
 });
+
+// Example: message-handler.test.js - Real services, not mocks
+describe('Message Handler', () => {
+  let services;
+  
+  beforeEach(async () => {
+    // Use real implementations
+    const dictionary = new DictionaryService(dictionaryData);
+    const storage = StorageManager;
+    services = { dictionary, storage };
+    
+    await browser.storage.local.clear();
+  });
+  
+  test('should handle LOOKUP_WORD message', async () => {
+    const result = await handleMessage({
+      type: MessageTypes.LOOKUP_WORD,
+      word: 'hello'
+    }, services);
+    
+    expect(result.success).toBe(true);
+    expect(result.data.word).toBe('hello');
+  });
+});
 ```
 
-### 9.2 Integration Test Areas
+### 9.2 Integration Test Areas (Day 3 Implementation)
+
+**Test Philosophy**: Following Detroit School TDD principles, our integration tests use real implementations of all services, with only browser APIs mocked. This ensures tests verify actual behavior and data flow.
 
 #### 9.2.1 Storage Operations
 ```javascript
@@ -920,6 +949,6 @@ describe('End-to-End User Flows', () => {
 
 ---
 
-**Document Version:** 1.3  
-**Last Updated:** 2025-07-26-13-20  
-**Status:** Updated based on Day 2 implementation decisions
+**Document Version:** 1.4  
+**Last Updated:** 2025-07-26-14-45  
+**Status:** Updated based on Day 3 implementation (background service, message handling, integration tests)
