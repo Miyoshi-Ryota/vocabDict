@@ -78,33 +78,52 @@
 - Default "My Vocabulary" list (cannot be deleted)
 
 #### 3.2.2 Word Entry Data Model
+
+**Architecture Principle**: Dictionary is the single source of truth for word definitions. VocabularyList only stores user-specific learning data.
+
 ```
-WordEntry {
-  id: unique identifier
+// Dictionary Entry (from DictionaryService)
+DictionaryEntry {
   word: string
-  definitions: array of definition objects
-  partOfSpeech: string
+  pronunciation: string
+  definitions: array of {
+    partOfSpeech: string
+    meaning: string
+    examples: array of strings
+  }
+  synonyms: array of strings
+  antonyms: array of strings
+}
+
+// User Word Data (in VocabularyList)
+UserWordData {
+  word: string (preserves case from dictionary)
   dateAdded: timestamp
-  lookupCount: number
   difficulty: enum (easy, medium, hard)
-  lastReviewed: timestamp
-  reviewHistory: array of review results
+  lastReviewed: timestamp (null if never reviewed)
+  nextReview: timestamp
+  reviewHistory: array of {
+    date: timestamp
+    result: enum (known, unknown, skipped)
+    timeSpent: number (seconds)
+  }
   customNotes: string (optional)
 }
+
+// Full Word Data (combined for display)
+FullWordData = DictionaryEntry + UserWordData
 ```
 
 #### 3.2.3 Automatic Features
-- Auto-add looked up words to designated list
-- Increment lookup counter on each search
+- Auto-add looked up words to designated list (optional setting)
 - Timestamp tracking for all actions
-- Smart duplicate detection
+- Smart duplicate detection (case-insensitive)
 
 #### 3.2.4 Sorting Options
 - Alphabetical (A-Z, Z-A)
 - Date added (newest/oldest first)
-- Lookup frequency
 - Difficulty level
-- Last reviewed date
+- Last reviewed date (with null values at end)
 - Review performance
 
 #### 3.2.5 Filtering Options
@@ -351,6 +370,6 @@ WordEntry {
 
 ---
 
-**Document Version:** 1.2  
-**Last Updated:** 2025-07-26-11-14  
-**Status:** Draft for Review
+**Document Version:** 1.3  
+**Last Updated:** 2025-07-26-13-25  
+**Status:** Updated based on Day 2 implementation decisions

@@ -92,25 +92,25 @@ Throughout development, general feedback and insights will be documented in:
 - [x] Create comprehensive testing documentation
 - [x] Successfully load extension in Safari
 
-### Day 2: Dictionary Service and Data Model (5 hours)
+### Day 2: Dictionary Service and Data Model (5 hours) ✅ COMPLETED
 
 #### 2.1 Dictionary Data Structure (1 hour)
-- [ ] Create toy dictionary JSON with 50-100 words
-- [ ] Design word data model
-- [ ] Write tests for data validation
+- [x] Create toy dictionary JSON with 50-100 words (50+ words added)
+- [x] Design word data model
+- [x] Write tests for data validation
 
 #### 2.2 Dictionary Service Implementation (2 hours)
-- [ ] Write tests for dictionary lookup
-- [ ] Implement DictionaryService class
-- [ ] Add fuzzy matching for misspellings
-- [ ] Test edge cases (case sensitivity, special characters)
+- [x] Write tests for dictionary lookup (25 tests)
+- [x] Implement DictionaryService class
+- [x] Add fuzzy matching for misspellings (Levenshtein distance)
+- [x] Test edge cases (case sensitivity, special characters)
 
 #### 2.3 Vocabulary List Model (2 hours)
-- [ ] Write tests for VocabularyList operations
-- [ ] Implement VocabularyList class
-- [ ] Add word management methods (add, remove, update)
-- [ ] Implement duplicate detection
-- [ ] Test sorting and filtering logic
+- [x] Write tests for VocabularyList operations (36 tests)
+- [x] Implement VocabularyList class (as a service, not model)
+- [x] Add word management methods (add, remove, update)
+- [x] Implement duplicate detection
+- [x] Test sorting and filtering logic
 
 ### Day 3: Background Service Worker and Message Handling (5 hours)
 

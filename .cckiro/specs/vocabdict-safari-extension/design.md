@@ -131,6 +131,8 @@ const dictionary = {
 
 ### 2.3 Vocabulary Manager
 
+**Architecture Principle**: The Dictionary is the single source of truth for word definitions. VocabularyList only stores user-specific data (learning progress, custom notes, etc.) and references the dictionary for word definitions.
+
 **List Structure**:
 ```javascript
 const vocabularyList = {
@@ -138,13 +140,10 @@ const vocabularyList = {
   name: "My Vocabulary",
   created: "2025-01-26T10:00:00Z",
   isDefault: true,
-  words: [
-    {
-      id: "word-uuid",
-      word: "hello",
-      definitions: [...],
+  words: {
+    "hello": {  // Key is normalized word (lowercase)
+      word: "hello", // Preserves original case from dictionary
       dateAdded: "2025-01-26T10:00:00Z",
-      lookupCount: 5,
       difficulty: "medium", // easy, medium, hard
       lastReviewed: "2025-01-26T10:00:00Z",
       nextReview: "2025-01-27T10:00:00Z",
@@ -157,7 +156,13 @@ const vocabularyList = {
       ],
       customNotes: "Common greeting"
     }
-  ]
+  }
+};
+
+// Word definitions come from the dictionary when needed:
+const fullWordData = {
+  ...dictionaryService.lookup("hello"),  // Definitions, pronunciation, etc.
+  ...vocabularyList.words["hello"]       // User-specific data
 };
 ```
 
@@ -284,11 +289,11 @@ const reviewSession = {
 ├─────────────────────────────────┤
 │ Words in "My Vocabulary":       │
 │ ┌─────────────────────────────┐ │
-│ │ eloquent          🟡 5x 📝  │ │
+│ │ eloquent          🟡 📝      │ │
 │ │ Last reviewed: 2 days ago   │ │
 │ └─────────────────────────────┘ │
 │ ┌─────────────────────────────┐ │
-│ │ serendipity       🔴 3x 📝  │ │
+│ │ serendipity       🔴 📝      │ │
 │ │ Review due: today           │ │
 │ └─────────────────────────────┘ │
 └─────────────────────────────────┘
@@ -915,6 +920,6 @@ describe('End-to-End User Flows', () => {
 
 ---
 
-**Document Version:** 1.2  
-**Last Updated:** 2025-07-26-11-30  
-**Status:** Draft for Review
+**Document Version:** 1.3  
+**Last Updated:** 2025-07-26-13-20  
+**Status:** Updated based on Day 2 implementation decisions
