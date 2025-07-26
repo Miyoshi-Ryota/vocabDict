@@ -109,9 +109,12 @@
 		2DA290602E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resources/background.js,
+				Resources/content.js,
 				Resources/data/dictionary.json,
 				Resources/popup.css,
 				Resources/popup.html,
+				Resources/popup.js,
 				SafariWebExtensionHandler.swift,
 			);
 			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
@@ -119,9 +122,12 @@
 		2DA290612E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resources/background.js,
+				Resources/content.js,
 				Resources/data/dictionary.json,
 				Resources/popup.css,
 				Resources/popup.html,
+				Resources/popup.js,
 				SafariWebExtensionHandler.swift,
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
@@ -143,6 +149,10 @@
 			exceptions = (
 				2DA290602E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (iOS)" target */,
 				2DA290612E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (macOS)" target */,
+			);
+			explicitFolders = (
+				Resources/_locales,
+				Resources/images,
 			);
 			path = "Shared (Extension)";
 			sourceTree = "<group>";

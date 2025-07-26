@@ -1,6 +1,5 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -43,8 +42,6 @@ module.exports = (env, argv) => {
     },
     
     plugins: [
-      new CleanWebpackPlugin(),
-      
       new CopyWebpackPlugin({
         patterns: [
           {
