@@ -1,11 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocabDict</title>
     <link rel="stylesheet" href="popup.css">
-    <script type="module" src="popup.js"></script>
 </head>
 <body>
-    <strong>Hello World!</strong>
+    <div class="popup-container">
+        <header class="popup-header">
+            <h1>VocabDict</h1>
+            <button class="settings-button" aria-label="Settings">⚙️</button>
+        </header>
+        
+        <nav class="tab-navigation">
+            <button class="tab-button active" data-tab="search">🔍 Search</button>
+            <button class="tab-button" data-tab="lists">📚 Lists</button>
+            <button class="tab-button" data-tab="learn">🎓 Learn</button>
+        </nav>
+        
+        <main class="tab-content">
+            <div id="search-tab" class="tab-panel active">
+                <input type="search" 
+                       class="search-input" 
+                       placeholder="Search for a word..."
+                       aria-label="Search for a word">
+                <div class="search-results"></div>
+            </div>
+            
+            <div id="lists-tab" class="tab-panel">
+                <h2>My Vocabulary Lists</h2>
+                <div class="lists-container"></div>
+            </div>
+            
+            <div id="learn-tab" class="tab-panel">
+                <h2>Learning Mode</h2>
+                <div class="learn-container"></div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="dist/popup.js"></script>
 </body>
 </html>
