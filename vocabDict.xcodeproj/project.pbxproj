@@ -109,9 +109,12 @@
 		2DA290602E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resources/_locales,
 				Resources/background.js,
 				Resources/content.js,
 				Resources/data/dictionary.json,
+				Resources/images,
+				Resources/manifest.json,
 				Resources/popup.css,
 				Resources/popup.html,
 				Resources/popup.js,
@@ -122,9 +125,12 @@
 		2DA290612E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resources/_locales,
 				Resources/background.js,
 				Resources/content.js,
 				Resources/data/dictionary.json,
+				Resources/images,
+				Resources/manifest.json,
 				Resources/popup.css,
 				Resources/popup.html,
 				Resources/popup.js,
