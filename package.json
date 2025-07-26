@@ -1,0 +1,27 @@
+{
+  "name": "vocabdict",
+  "version": "1.0.0",
+  "description": "VocabDict is a Safari Web Extension designed to help English learners improve their vocabulary through dictionary lookup, vocabulary management, and spaced repetition learning.",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "lint": "eslint src tests --ext .js",
+    "lint:fix": "eslint src tests --ext .js --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miyoshi-Ryota/vocabDict.git"
+  },
+  "keywords": ["safari-extension", "vocabulary", "english-learning", "dictionary"],
+  "author": "Ryota Miyoshi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Miyoshi-Ryota/vocabDict/issues"
+  },
+  "homepage": "https://github.com/Miyoshi-Ryota/vocabDict#readme"
+}
