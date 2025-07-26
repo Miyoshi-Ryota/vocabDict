@@ -16,9 +16,9 @@ module.exports = (env, argv) => {
     },
     
     output: {
-      path: path.resolve(__dirname, 'Shared (Extension)/Resources/dist'),
+      path: path.resolve(__dirname, 'Shared (Extension)/Resources'),
       filename: '[name].js',
-      clean: true
+      clean: false // Don't clean the entire Resources folder!
     },
     
     module: {
@@ -49,15 +49,15 @@ module.exports = (env, argv) => {
         patterns: [
           {
             from: 'src/popup/popup.html',
-            to: '../popup.html'
+            to: 'popup.html'
           },
           {
             from: 'src/popup/popup.css',
-            to: '../popup.css'
+            to: 'popup.css'
           },
           {
             from: 'src/data/dictionary.json',
-            to: '../data/dictionary.json'
+            to: 'data/dictionary.json'
           }
         ]
       })
