@@ -1,0 +1,66 @@
+{
+  "hello": {
+    "word": "hello",
+    "pronunciation": "/həˈloʊ/",
+    "definitions": [
+      {
+        "partOfSpeech": "interjection",
+        "meaning": "used as a greeting or to begin a phone conversation",
+        "examples": [
+          "Hello, how are you?",
+          "She said hello to everyone in the room"
+        ]
+      },
+      {
+        "partOfSpeech": "noun",
+        "meaning": "an utterance of 'hello'; a greeting",
+        "examples": [
+          "She gave me a warm hello",
+          "We exchanged hellos"
+        ]
+      }
+    ],
+    "synonyms": ["hi", "greetings", "hey", "howdy"],
+    "antonyms": ["goodbye", "farewell"]
+  },
+  "world": {
+    "word": "world",
+    "pronunciation": "/wɜːrld/",
+    "definitions": [
+      {
+        "partOfSpeech": "noun",
+        "meaning": "the earth, together with all of its countries and peoples",
+        "examples": [
+          "He traveled around the world",
+          "The whole world was watching"
+        ]
+      },
+      {
+        "partOfSpeech": "noun",
+        "meaning": "a particular region or group of countries",
+        "examples": [
+          "The English-speaking world",
+          "The ancient world"
+        ]
+      }
+    ],
+    "synonyms": ["earth", "globe", "planet"],
+    "antonyms": []
+  },
+  "learn": {
+    "word": "learn",
+    "pronunciation": "/lɜːrn/",
+    "definitions": [
+      {
+        "partOfSpeech": "verb",
+        "meaning": "gain or acquire knowledge of or skill in something by study, experience, or being taught",
+        "examples": [
+          "I'm learning to play the guitar",
+          "We learn from our mistakes"
+        ]
+      }
+    ],
+    "synonyms": ["study", "acquire", "master", "grasp"],
+    "antonyms": ["forget", "unlearn"]
+  }
+}
