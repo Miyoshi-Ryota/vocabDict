@@ -112,24 +112,24 @@ Throughout development, general feedback and insights will be documented in:
 - [x] Implement duplicate detection
 - [x] Test sorting and filtering logic
 
-### Day 3: Background Service Worker and Message Handling (5 hours)
+### Day 3: Background Service Worker and Message Handling (5 hours) ✅ COMPLETED
 
 #### 3.1 Background Service Worker Setup (2 hours)
-- [ ] Write tests for message handlers
-- [ ] Implement background.js service worker
-- [ ] Set up message routing system
-- [ ] Test message passing between components
+- [x] Write tests for message handlers (20 unit tests)
+- [x] Implement background.js service worker
+- [x] Set up message routing system
+- [x] Test message passing between components
 
 #### 3.2 Context Menu Integration (1 hour)
-- [ ] Implement macOS context menu creation
-- [ ] Add context menu click handler
-- [ ] Test context menu functionality
+- [x] Implement macOS context menu creation
+- [x] Add context menu click handler
+- [x] Test context menu functionality
 
 #### 3.3 Core Business Logic (2 hours)
-- [ ] Implement word lookup flow
-- [ ] Add automatic word tracking
-- [ ] Implement lookup counting
-- [ ] Test integration between services
+- [x] Implement word lookup flow
+- [x] Test integration between services (6 integration tests)
+- [x] Implement SpacedRepetition service
+- [x] Handle all message types with proper error handling
 
 ### Day 4: Extension Popup UI - Part 1 (6 hours)
 
@@ -319,6 +319,33 @@ VocabDict/
    - Mock only browser APIs, use real objects elsewhere
    - 19 tests written and passing on Day 1
 
+### Day 2 Insights
+1. **Architecture Decisions**:
+   - Dictionary is single source of truth for word definitions
+   - VocabularyList only manages user-specific data
+   - Services vs Models: Services manage state/operations, Models would be data structures
+
+2. **Implementation Details**:
+   - VocabularyList placed in services (not models) as it manages data
+   - Removed lookupCount from VocabularyList (belongs to dictionary if needed)
+   - 61 tests passing (dictionary + vocabulary list)
+
+### Day 3 Insights
+1. **Message Handler Architecture**:
+   - Centralized message handling in background service worker
+   - All services passed as dependencies for easy testing
+   - Async message handling with proper error propagation
+
+2. **Testing Strategy**:
+   - Real integration tests are more valuable than mock tests
+   - Test complete workflows, not just individual functions
+   - In-memory storage implementation for testing (not mocks)
+
+3. **Service Organization**:
+   - SpacedRepetition as a service (not model) - contains business logic
+   - Clear separation between message handling and business logic
+   - 26 new tests added (20 unit + 6 integration)
+
 ## Success Criteria
 
 By end of Day 7:
@@ -353,6 +380,6 @@ Each day ends with:
 
 ---
 
-**Document Version:** 1.2  
-**Last Updated:** 2025-07-26-13-08  
-**Status:** In Progress - Day 1 Complete
+**Document Version:** 1.3  
+**Last Updated:** 2025-07-26-14-30  
+**Status:** In Progress - Day 3 Complete
