@@ -66,6 +66,11 @@ This project follows Test-Driven Development (TDD) using the Detroit School appr
 - Use real objects where possible
 - Mock only external dependencies
 
+Current test coverage:
+- Unit tests: 87 tests
+- Integration tests: 6 comprehensive workflow tests
+- Services tested: Storage, Dictionary, VocabularyList, MessageHandler, SpacedRepetition
+
 ## Contributing
 1. Create a feature branch
 2. Make small, atomic commits
