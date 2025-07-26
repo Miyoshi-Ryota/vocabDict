@@ -23,44 +23,36 @@
     "synonyms": ["hi", "greetings", "hey", "howdy"],
     "antonyms": ["goodbye", "farewell"]
   },
-  "world": {
-    "word": "world",
-    "pronunciation": "/wɜːrld/",
+  "eloquent": {
+    "word": "eloquent",
+    "pronunciation": "/ˈɛləkwənt/",
     "definitions": [
       {
-        "partOfSpeech": "noun",
-        "meaning": "the earth, together with all of its countries and peoples",
+        "partOfSpeech": "adjective",
+        "meaning": "fluent or persuasive in speaking or writing",
         "examples": [
-          "He traveled around the world",
-          "The whole world was watching"
-        ]
-      },
-      {
-        "partOfSpeech": "noun",
-        "meaning": "a particular region or group of countries",
-        "examples": [
-          "The English-speaking world",
-          "The ancient world"
+          "An eloquent speaker captivated the audience",
+          "Her eloquent prose moved everyone to tears"
         ]
       }
     ],
-    "synonyms": ["earth", "globe", "planet"],
-    "antonyms": []
+    "synonyms": ["articulate", "expressive", "fluent", "persuasive"],
+    "antonyms": ["inarticulate", "incoherent"]
   },
-  "learn": {
-    "word": "learn",
-    "pronunciation": "/lɜːrn/",
+  "serendipity": {
+    "word": "serendipity",
+    "pronunciation": "/ˌsɛrənˈdɪpɪti/",
     "definitions": [
       {
-        "partOfSpeech": "verb",
-        "meaning": "gain or acquire knowledge of or skill in something by study, experience, or being taught",
+        "partOfSpeech": "noun",
+        "meaning": "the occurrence and development of events by chance in a happy or beneficial way",
         "examples": [
-          "I'm learning to play the guitar",
-          "We learn from our mistakes"
+          "A fortunate stroke of serendipity brought them together",
+          "It was pure serendipity that we met at the café"
         ]
       }
     ],
-    "synonyms": ["study", "acquire", "master", "grasp"],
-    "antonyms": ["forget", "unlearn"]
+    "synonyms": ["chance", "fortune", "luck", "happenstance"],
+    "antonyms": ["misfortune", "bad luck"]
   }
 }
