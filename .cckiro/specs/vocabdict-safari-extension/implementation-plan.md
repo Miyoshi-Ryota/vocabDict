@@ -131,34 +131,48 @@ Throughout development, general feedback and insights will be documented in:
 - [x] Implement SpacedRepetition service
 - [x] Handle all message types with proper error handling
 
-### Day 4: Extension Popup UI - Part 1 (6 hours)
+### Day 4: Extension Popup UI - Part 1 (6 hours) ✅ COMPLETED
 
 #### 4.1 Popup HTML/CSS Structure (2 hours)
-- [ ] Create popup.html with tab navigation
-- [ ] Implement professional CSS design system
-- [ ] Add responsive layout
-- [ ] Implement theme switching (light/dark)
+- [x] Create popup.html with tab navigation
+- [x] Implement professional CSS design system
+- [x] Add responsive layout
+- [x] Implement theme switching (light/dark)
 
 #### 4.2 Search Tab Implementation (2 hours)
-- [ ] Write tests for search functionality
-- [ ] Implement search input with debouncing
-- [ ] Create word display component
-- [ ] Add "Add to List" functionality
-- [ ] Implement recent searches
+- [x] Write tests for search functionality
+- [x] Implement search input with debouncing
+- [x] Create word display component
+- [x] Add "Add to List" functionality
+- [x] Implement recent searches
 
 #### 4.3 Lists Tab - Basic Structure (2 hours)
-- [ ] Create lists view UI
-- [ ] Implement list creation/deletion
-- [ ] Add word list display
-- [ ] Test list management operations
+- [x] Create lists view UI
+- [x] Implement list creation/deletion
+- [x] Add word list display
+- [x] Test list management operations
+
+#### 4.4 Additional Work Completed (not in original plan)
+- [x] Toast notification system for user feedback
+- [x] Settings tab implementation (moved from Day 6)
+- [x] Theme persistence in browser storage
+- [x] Comprehensive integration tests (10 tests)
+- [x] Window.matchMedia polyfill for testing
+
+#### 4.5 Deferred to Day 5
+- [ ] Sorting options (alphabetical, date)
+- [ ] Filtering by difficulty
+- [ ] Word detail view
+- [ ] Edit/delete word functionality
+- [ ] Learning tab implementation (placeholder created)
 
 ### Day 5: Extension Popup UI - Part 2 & Learning Mode (6 hours)
 
 #### 5.1 Lists Tab - Advanced Features (2 hours)
-- [ ] Implement sorting (alphabetical, date, lookups)
-- [ ] Add filtering by difficulty
-- [ ] Create word detail view
-- [ ] Add edit/delete word functionality
+- [ ] Implement sorting (alphabetical, date, lookups) - *Deferred from Day 4*
+- [ ] Add filtering by difficulty - *Deferred from Day 4*
+- [ ] Create word detail view - *Deferred from Day 4*
+- [ ] Add edit/delete word functionality - *Deferred from Day 4*
 
 #### 5.2 Learning Mode - Spaced Repetition (2 hours)
 - [ ] Write tests for SpacedRepetition class
@@ -346,6 +360,32 @@ VocabDict/
    - Clear separation between message handling and business logic
    - 26 new tests added (20 unit + 6 integration)
 
+### Day 4 Insights
+1. **Popup UI Architecture**:
+   - Complete 4-tab navigation system (Search, Lists, Learn, Settings)
+   - Professional CSS design system with CSS variables
+   - Theme switching with system preference detection
+   - Toast notification system for user feedback (added beyond plan)
+
+2. **Testing Approach Evolution**:
+   - Updated browser mock to use real message handler
+   - Created waitFor helpers for reliable async testing
+   - Added window.matchMedia polyfill for theme testing
+   - 35 new tests added (25 unit + 10 integration)
+
+3. **Implementation Details**:
+   - Debounced search with 300ms delay
+   - Recent searches persistence
+   - ARIA attributes for accessibility
+   - Responsive design for various screen sizes
+   - Settings tab implemented early (was planned for Day 6)
+
+4. **Scope Adjustments**:
+   - Learning tab created but not implemented (just placeholder)
+   - Advanced list features (sorting/filtering) deferred to Day 5
+   - Added toast notifications for better UX (not in original plan)
+   - Settings tab brought forward from Day 6
+
 ## Success Criteria
 
 By end of Day 7:
@@ -380,6 +420,6 @@ Each day ends with:
 
 ---
 
-**Document Version:** 1.3  
-**Last Updated:** 2025-07-26-14-30  
-**Status:** In Progress - Day 3 Complete
+**Document Version:** 1.4  
+**Last Updated:** 2025-07-27  
+**Status:** In Progress - Day 4 Complete
