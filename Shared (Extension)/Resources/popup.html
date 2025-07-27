@@ -9,35 +9,162 @@
 <body>
     <div class="popup-container">
         <header class="popup-header">
-            <h1>VocabDict</h1>
-            <button class="settings-button" aria-label="Settings">⚙️</button>
+            <h1 class="app-title">VocabDict</h1>
+            <button class="icon-button settings-button" aria-label="Settings">
+                <span aria-hidden="true">⚙️</span>
+            </button>
         </header>
         
-        <nav class="tab-navigation">
-            <button class="tab-button active" data-tab="search">🔍 Search</button>
-            <button class="tab-button" data-tab="lists">📚 Lists</button>
-            <button class="tab-button" data-tab="learn">🎓 Learn</button>
+        <nav class="tab-navigation" role="tablist">
+            <button class="tab-button active" 
+                    data-tab="search" 
+                    role="tab" 
+                    aria-selected="true"
+                    aria-controls="search-tab">
+                <span class="tab-icon">🔍</span>
+                <span class="tab-label">Search</span>
+            </button>
+            <button class="tab-button" 
+                    data-tab="lists" 
+                    role="tab" 
+                    aria-selected="false"
+                    aria-controls="lists-tab">
+                <span class="tab-icon">📚</span>
+                <span class="tab-label">Lists</span>
+            </button>
+            <button class="tab-button" 
+                    data-tab="learn" 
+                    role="tab" 
+                    aria-selected="false"
+                    aria-controls="learn-tab">
+                <span class="tab-icon">🎓</span>
+                <span class="tab-label">Learn</span>
+            </button>
+            <button class="tab-button" 
+                    data-tab="settings" 
+                    role="tab" 
+                    aria-selected="false"
+                    aria-controls="settings-tab">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">Settings</span>
+            </button>
         </nav>
         
         <main class="tab-content">
-            <div id="search-tab" class="tab-panel active">
-                <input type="search" 
-                       class="search-input" 
-                       placeholder="Search for a word..."
-                       aria-label="Search for a word">
-                <div class="search-results"></div>
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-panel active" role="tabpanel">
+                <div class="search-section">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="search" 
+                               class="search-input" 
+                               placeholder="Search for a word..."
+                               aria-label="Search for a word"
+                               autocomplete="off">
+                    </div>
+                    
+                    <div class="recent-searches">
+                        <h3 class="section-title">Recent Searches</h3>
+                        <ul class="recent-searches-list" aria-label="Recent searches">
+                            <!-- Populated by JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="search-results" aria-live="polite" aria-label="Search results">
+                    <!-- Populated by JavaScript -->
+                </div>
             </div>
             
-            <div id="lists-tab" class="tab-panel">
-                <h2>My Vocabulary Lists</h2>
-                <div class="lists-container"></div>
+            <!-- Lists Tab -->
+            <div id="lists-tab" class="tab-panel" role="tabpanel">
+                <div class="lists-header">
+                    <h2 class="section-title">My Lists</h2>
+                    <button class="btn-primary btn-small" id="new-list-button">
+                        + New List
+                    </button>
+                </div>
+                
+                <div class="lists-container">
+                    <!-- List items populated by JavaScript -->
+                </div>
+                
+                <div class="list-controls">
+                    <div class="control-group">
+                        <label for="sort-select" class="control-label">Sort by:</label>
+                        <select id="sort-select" class="control-select">
+                            <option value="recent">Most Recent</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="word-count">Word Count</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="filter-select" class="control-label">Filter:</label>
+                        <select id="filter-select" class="control-select">
+                            <option value="all">All Difficulties</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="words-in-list">
+                    <!-- Words populated by JavaScript when a list is selected -->
+                </div>
             </div>
             
-            <div id="learn-tab" class="tab-panel">
-                <h2>Learning Mode</h2>
-                <div class="learn-container"></div>
+            <!-- Learn Tab -->
+            <div id="learn-tab" class="tab-panel" role="tabpanel">
+                <div class="learn-header">
+                    <h2 class="section-title">Daily Review</h2>
+                    <span class="words-due-count"><!-- Count populated by JS --></span>
+                </div>
+                
+                <div class="learn-container">
+                    <!-- Learning interface populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-panel" role="tabpanel">
+                <h2 class="section-title">Settings</h2>
+                
+                <div class="settings-section">
+                    <div class="setting-item">
+                        <label for="theme-select">Theme</label>
+                        <select id="theme-select" class="control-select">
+                            <option value="auto">Auto (System)</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="auto-add-toggle">
+                            <input type="checkbox" id="auto-add-toggle" checked>
+                            Automatically add looked up words
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="review-limit">Daily review limit</label>
+                        <input type="number" id="review-limit" value="30" min="5" max="100">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <button class="btn-secondary" id="export-data">Export Data</button>
+                        <button class="btn-secondary" id="import-data">Import Data</button>
+                    </div>
+                </div>
             </div>
         </main>
+        
+        <!-- Toast notifications container -->
+        <div class="toast-container" aria-live="polite" aria-atomic="true">
+            <!-- Toast messages populated by JavaScript -->
+        </div>
     </div>
     
     <script src="popup.js"></script>

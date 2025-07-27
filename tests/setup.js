@@ -1,6 +1,14 @@
 // Create in-memory storage implementation
 const inMemoryStorage = {};
 
+// Load message handler and dependencies
+const { handleMessage } = require('../src/background/message-handler');
+const DictionaryService = require('../src/services/dictionary-service');
+const StorageManager = require('../src/services/storage');
+const dictionaryData = require('../src/data/dictionary.json');
+
+const dictionary = new DictionaryService(dictionaryData);
+
 // Mock browser extension APIs for testing
 global.browser = {
   storage: {
@@ -42,7 +50,15 @@ global.browser = {
     }
   },
   runtime: {
-    sendMessage: jest.fn(),
+    sendMessage: jest.fn((message) => {
+      // Use real message handler with StorageManager
+      const services = {
+        dictionary,
+        storage: StorageManager
+      };
+      
+      return handleMessage(message, services);
+    }),
     onMessage: {
       addListener: jest.fn()
     },
@@ -61,7 +77,24 @@ global.browser = {
   }
 };
 
+// Polyfill browser APIs that jsdom doesn't provide
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  }))
+});
+
 // Reset mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
+  // Clear storage
+  Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
 });

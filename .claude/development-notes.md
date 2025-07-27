@@ -34,11 +34,12 @@
 - Run `./scripts/build-extension.sh` for quick builds
 
 ## Testing
-- Unit tests: 87 tests passing (Day 3)
-- Integration tests: 6 comprehensive workflow tests
-- Coverage: StorageManager, constants, dictionary, vocabulary list, message handler, spaced repetition
+- Unit tests: 131 tests passing (Day 4)
+- Integration tests: 16 comprehensive workflow tests
+- Coverage: StorageManager, constants, dictionary, vocabulary list, message handler, spaced repetition, popup UI
 - Mock only browser APIs, use real implementations elsewhere
 - Detroit School TDD: Test real behaviors, not implementation details
+- Use waitFor helpers instead of fixed timeouts for reliable async testing
 
 ## Debugging Safari Extensions
 - Enable Developer mode in Safari
@@ -95,3 +96,51 @@ global.browser = {
 3. Message types defined as constants for type safety
 4. Async/await throughout for better error handling
 5. Normalized word keys (lowercase) for consistency
+
+## Day 4 Insights - Extension Popup UI
+
+### UI Architecture
+- 4-tab navigation system (Search, Lists, Learn, Settings)
+- Professional CSS design system with CSS variables
+- Theme switching (Auto/Light/Dark) with system preference detection
+- Toast notification system for user feedback
+
+### Testing Strategy Updates
+1. **Browser Mock Enhancement**: Updated `setup.js` to use real message handler
+   ```javascript
+   const { handleMessage } = require('../src/background/message-handler');
+   const StorageManager = require('../src/services/storage');
+   
+   browser.runtime.sendMessage = jest.fn((message) => {
+     const services = { dictionary, storage: StorageManager };
+     return handleMessage(message, services);
+   });
+   ```
+
+2. **Async Testing Helpers**: Created `waitFor` utilities to avoid fixed timeouts
+   - `waitFor(condition, timeout)` - Wait for any condition
+   - `waitForElement(selector, container)` - Wait for DOM element
+   - `waitForText(element, text)` - Wait for text content
+
+3. **Browser API Polyfills**: Added `window.matchMedia` for theme detection in tests
+
+### CSS Design System
+- Complete color palette for light/dark themes
+- Consistent spacing system (xs through 2xl)
+- Smooth transitions and animations
+- Accessibility support (high contrast, reduced motion)
+- Professional button styles with hover states
+
+### Key Implementation Details
+1. **Debounced Search**: 300ms delay on search input
+2. **Recent Searches**: Stored in browser.storage.local
+3. **Tab Management**: ARIA attributes for accessibility
+4. **Theme Persistence**: Settings saved to storage
+5. **Responsive Design**: Works on various screen sizes
+
+### Testing Best Practices
+- Test actual DOM changes, not implementation details
+- Use integration tests for user workflows
+- Verify CSS properties and computed styles
+- Test accessibility attributes
+- Ensure theme switching works correctly

@@ -64,12 +64,15 @@ VocabDict/
 This project follows Test-Driven Development (TDD) using the Detroit School approach:
 - Write tests first
 - Use real objects where possible
-- Mock only external dependencies
+- Mock only external dependencies (browser APIs)
+- Use integration tests with real message handlers
 
 Current test coverage:
-- Unit tests: 87 tests
-- Integration tests: 6 comprehensive workflow tests
+- Unit tests: 131 tests covering all services and UI components
+- Integration tests: 16 comprehensive workflow tests
 - Services tested: Storage, Dictionary, VocabularyList, MessageHandler, SpacedRepetition
+- UI tested: Popup interface with real DOM and event handling
+- Test approach: Uses waitFor helpers instead of fixed timeouts for reliable async testing
 
 ## Contributing
 1. Create a feature branch

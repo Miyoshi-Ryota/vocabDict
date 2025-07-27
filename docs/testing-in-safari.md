@@ -125,12 +125,18 @@ For faster development:
 
 - [ ] Extension loads without errors
 - [ ] Popup opens and displays correctly
-- [ ] Tab navigation works
-- [ ] Search input accepts text
+- [ ] Tab navigation works (Search, Lists, Learn, Settings)
+- [ ] Search input accepts text with 300ms debounce
+- [ ] Search results display with pronunciation, definitions, synonyms
+- [ ] "Add to List" button shows success feedback
+- [ ] Recent searches are saved and displayed
+- [ ] Lists tab shows vocabulary lists with word counts
+- [ ] Theme switching works (Auto/Light/Dark)
+- [ ] Settings are persisted across popup reopens
+- [ ] Toast notifications appear for user actions
 - [ ] Context menu appears on text selection (macOS)
 - [ ] Text selection button appears (iOS)
 - [ ] Storage operations work (check in console)
-- [ ] Light/dark theme switching works
 - [ ] No console errors in background/content/popup
 
 ## Production Testing

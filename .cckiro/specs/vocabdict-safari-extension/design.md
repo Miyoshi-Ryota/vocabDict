@@ -227,22 +227,46 @@ const reviewSession = {
 
 ## 3. User Interface Design
 
-### 3.1 Extension Popup Layout
+### 3.1 Extension Popup Layout (Day 4 Implementation)
 
-```
-┌─────────────────────────────────┐
-│  VocabDict        ⚙️            │  <- Header with settings
-├─────────────────────────────────┤
-│  🔍  📚  🎓  ⚙️                 │  <- Tab navigation
-├─────────────────────────────────┤
-│                                 │
-│         [Content Area]          │  <- Dynamic content
-│                                 │
-│                                 │
-└─────────────────────────────────┘
+```html
+<!-- Actual popup.html structure -->
+<div class="popup-container">
+  <header class="header">
+    <h1 class="header-title">VocabDict</h1>
+    <button class="theme-toggle" aria-label="Toggle theme">
+      <span class="theme-icon">🌓</span>
+    </button>
+  </header>
+  
+  <nav class="tab-navigation" role="tablist">
+    <button class="tab-button active" data-tab="search" role="tab">
+      <span class="tab-icon">🔍</span>
+      <span class="tab-label">Search</span>
+    </button>
+    <button class="tab-button" data-tab="lists" role="tab">
+      <span class="tab-icon">📚</span>
+      <span class="tab-label">Lists</span>
+    </button>
+    <button class="tab-button" data-tab="learn" role="tab">
+      <span class="tab-icon">🎓</span>
+      <span class="tab-label">Learn</span>
+    </button>
+    <button class="tab-button" data-tab="settings" role="tab">
+      <span class="tab-icon">⚙️</span>
+      <span class="tab-label">Settings</span>
+    </button>
+  </nav>
+  
+  <main class="content">
+    <!-- Tab panels with dynamic content -->
+  </main>
+  
+  <div class="toast-container" aria-live="polite"></div>
+</div>
 ```
 
-### 3.2 Search Tab Design
+### 3.2 Search Tab Design (Day 4 - Implemented)
 
 ```
 ┌─────────────────────────────────┐
@@ -272,7 +296,9 @@ const reviewSession = {
 └─────────────────────────────────┘
 ```
 
-### 3.3 Lists Tab Design
+### 3.3 Lists Tab Design (Day 4 - Partially Implemented)
+
+**Note**: Basic structure implemented. Sorting/filtering deferred to Day 5.
 
 ```
 ┌─────────────────────────────────┐
@@ -302,7 +328,9 @@ const reviewSession = {
 └─────────────────────────────────┘
 ```
 
-### 3.4 Learn Tab Design
+### 3.4 Learn Tab Design (Day 4 - Not Implemented)
+
+**Note**: Tab created but functionality deferred to Day 5.
 
 ```
 ┌─────────────────────────────────┐
@@ -327,23 +355,115 @@ const reviewSession = {
 └─────────────────────────────────┘
 ```
 
-### 3.5 Visual Components
+### 3.5 Visual Components (Day 4 Implementation)
 
-**Button Styles**:
+#### Toast Notification System (Added beyond plan)
 ```css
-.btn-primary {
-  background: linear-gradient(135deg, #0066CC, #0052A3);
-  color: white;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
 }
 
-.btn-primary:hover {
+.toast {
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 250px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+}
+
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--error); }
+.toast.warning { border-left: 4px solid var(--warning); }
+.toast.info { border-left: 4px solid var(--primary); }
+```
+
+#### Settings Tab (Moved from Day 6)
+```html
+<div id="settings-tab" class="tab-content">
+  <h2 class="section-title">Settings</h2>
+  
+  <div class="settings-section">
+    <label class="setting-item">
+      <span class="setting-label">Theme</span>
+      <select id="theme-select" class="setting-control">
+        <option value="auto">Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+    
+    <label class="setting-item">
+      <span class="setting-label">Daily Review Limit</span>
+      <input type="number" id="review-limit" min="10" max="100" value="30">
+    </label>
+  </div>
+</div>
+```
+
+**Actual CSS Design System (Complete)**:
+```css
+:root {
+  /* Color Palette - Light Theme */
+  --primary: #0066CC;
+  --primary-hover: #0052A3;
+  --secondary: #6B5B95;
+  --accent: #00B4D8;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  
+  /* Spacing System */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* Transitions */
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --border: #334155;
+}
+```
+
+**Button Implementation**:
+```css
+.button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+}
+
+.button-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.button-primary:hover {
+  background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
 }
 ```
 
@@ -759,7 +879,7 @@ describe('Message Handler', () => {
 });
 ```
 
-### 9.2 Integration Test Areas (Day 3 Implementation)
+### 9.2 Integration Test Areas (Day 3-4 Implementation)
 
 **Test Philosophy**: Following Detroit School TDD principles, our integration tests use real implementations of all services, with only browser APIs mocked. This ensures tests verify actual behavior and data flow.
 
@@ -893,6 +1013,43 @@ describe('Context Menu Integration', () => {
 ```
 
 #### 9.2.5 Complete User Flow Tests
+
+**Day 4 Popup Integration Tests**:
+```javascript
+describe('Popup User Interactions', () => {
+  test('should search for a word and display results', async () => {
+    const searchInput = document.querySelector('.search-input');
+    searchInput.value = 'hello';
+    searchInput.dispatchEvent(new Event('input'));
+    
+    const wordCard = await waitForElement('.word-card');
+    expect(wordCard.querySelector('.word-title').textContent).toBe('hello');
+    expect(wordCard.querySelector('.pronunciation').textContent).toBe('/həˈloʊ/');
+  });
+  
+  test('should add word to list with toast notification', async () => {
+    const addButton = document.querySelector('.add-to-list-button');
+    addButton.click();
+    
+    const toast = await waitForElement('.toast');
+    expect(toast.textContent).toContain('Added to "My Vocabulary"');
+  });
+  
+  test('should save and display recent searches', async () => {
+    searchInput.value = 'test';
+    searchInput.dispatchEvent(new Event('input'));
+    
+    await waitFor(() => {
+      const recentSearches = document.querySelectorAll('.recent-search-item');
+      return Array.from(recentSearches).some(item => 
+        item.textContent.includes('test')
+      );
+    });
+  });
+});
+```
+
+#### 9.2.6 Theme System Testing
 ```javascript
 describe('End-to-End User Flows', () => {
   test('complete word learning flow', async () => {
@@ -927,6 +1084,29 @@ describe('End-to-End User Flows', () => {
 });
 ```
 
+#### 9.2.6 Theme System Testing
+```javascript
+describe('Theme Management', () => {
+  test('should detect and apply system theme preference', () => {
+    window.matchMedia = jest.fn().mockImplementation(query => ({
+      matches: query === '(prefers-color-scheme: dark)',
+      media: query,
+      addEventListener: jest.fn()
+    }));
+    
+    const theme = ThemeManager.detectTheme();
+    expect(theme).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+  
+  test('should persist theme preference', async () => {
+    await ThemeManager.setTheme('light');
+    const stored = await browser.storage.local.get('settings');
+    expect(stored.settings.theme).toBe('light');
+  });
+});
+```
+
 ## 10. Accessibility Features
 
 ### 10.1 ARIA Labels
@@ -949,6 +1129,6 @@ describe('End-to-End User Flows', () => {
 
 ---
 
-**Document Version:** 1.4  
-**Last Updated:** 2025-07-26-14-45  
-**Status:** Updated based on Day 3 implementation (background service, message handling, integration tests)
+**Document Version:** 1.5  
+**Last Updated:** 2025-07-27  
+**Status:** Updated based on Day 4 implementation (popup UI partial, theme system, toast notifications)
