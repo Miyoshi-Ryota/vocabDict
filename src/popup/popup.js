@@ -1,5 +1,17 @@
 // Popup script for VocabDict Safari Extension
 
+// Browser API compatibility - MUST be first
+if (typeof browser === 'undefined' && typeof chrome !== 'undefined') {
+    window.browser = chrome;
+}
+
+// Initialize popup when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize managers
+    ThemeManager.init();
+    TabManager.init();
+});
+
 // Theme Management
 const ThemeManager = {
   init() {
@@ -81,14 +93,16 @@ const TabManager = {
 
   showTab(tabName) {
     // Update buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
       const isActive = button.dataset.tab === tabName;
       button.classList.toggle('active', isActive);
       button.setAttribute('aria-selected', isActive);
     });
 
     // Update panels
-    document.querySelectorAll('.tab-panel').forEach(panel => {
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    tabPanels.forEach(panel => {
       const isActive = panel.id === `${tabName}-tab`;
       panel.classList.toggle('active', isActive);
     });
@@ -565,13 +579,4 @@ const NotificationManager = {
   }
 };
 
-// Initialize popup when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('VocabDict popup initializing...');
-  
-  // Initialize managers
-  ThemeManager.init();
-  TabManager.init();
-  
-  console.log('VocabDict popup ready');
-});
+// Initialize popup when DOM is ready - moved to top with debug code

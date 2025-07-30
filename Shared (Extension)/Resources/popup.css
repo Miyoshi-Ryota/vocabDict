@@ -77,6 +77,11 @@
   padding: 0;
 }
 
+html {
+  width: 400px;
+  height: 600px;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
   font-size: 14px;
