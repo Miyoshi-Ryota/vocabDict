@@ -18,7 +18,7 @@ const services = {
  */
 browser.runtime.onInstalled.addListener(async () => {
   console.log('VocabDict extension installed');
-  
+
   // Initialize default vocabulary list if none exists
   const lists = await storage.get('vocab_lists');
   if (!lists || lists.length === 0) {
@@ -27,7 +27,7 @@ browser.runtime.onInstalled.addListener(async () => {
     await storage.set('vocab_lists', [defaultList.toJSON()]);
     console.log('Created default vocabulary list');
   }
-  
+
   // Create context menu for macOS
   if (browser.contextMenus) {
     browser.contextMenus.create({
@@ -43,16 +43,16 @@ browser.runtime.onInstalled.addListener(async () => {
  * Handle context menu clicks
  */
 if (browser.contextMenus && browser.contextMenus.onClicked) {
-  browser.contextMenus.onClicked.addListener(async (info, tab) => {
+  browser.contextMenus.onClicked.addListener(async (info, _tab) => {
     if (info.menuItemId === 'lookup-vocabdict' && info.selectionText) {
       console.log('Context menu clicked:', info.selectionText);
-      
+
       // Look up the word
       const response = await handleMessage({
         type: MessageTypes.LOOKUP_WORD,
         word: info.selectionText
       }, services);
-      
+
       // Store the lookup result in cache for popup to display
       if (response.success && response.data) {
         await storage.set('last_lookup', {
@@ -60,7 +60,7 @@ if (browser.contextMenus && browser.contextMenus.onClicked) {
           result: response.data,
           timestamp: new Date().toISOString()
         });
-        
+
         // Open the extension popup to show the result
         if (browser.action && browser.action.openPopup) {
           browser.action.openPopup();
@@ -75,7 +75,7 @@ if (browser.contextMenus && browser.contextMenus.onClicked) {
  */
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Received message:', message);
-  
+
   // Handle the message asynchronously
   handleMessage(message, services)
     .then(response => {
@@ -86,7 +86,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.error('Error handling message:', error);
       sendResponse({ success: false, error: error.message });
     });
-  
+
   // Return true to indicate we'll send response asynchronously
   return true;
 });
@@ -96,7 +96,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
  */
 browser.runtime.onConnect.addListener((port) => {
   console.log('Port connected:', port.name);
-  
+
   port.onMessage.addListener(async (message) => {
     try {
       const response = await handleMessage(message, services);
@@ -105,7 +105,7 @@ browser.runtime.onConnect.addListener((port) => {
       port.postMessage({ success: false, error: error.message });
     }
   });
-  
+
   port.onDisconnect.addListener(() => {
     console.log('Port disconnected:', port.name);
   });

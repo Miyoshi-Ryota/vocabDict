@@ -14,10 +14,10 @@ describe('Background Service Integration Tests', () => {
     dictionary = new DictionaryService(dictionaryData);
     storage = StorageManager;
     services = { dictionary, storage };
-    
+
     // Clear storage
     await browser.storage.local.clear();
-    
+
     // Initialize with default list
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
     await storage.set('vocab_lists', [defaultList.toJSON()]);
@@ -38,7 +38,7 @@ describe('Background Service Integration Tests', () => {
       expect(lookupResponse.success).toBe(true);
       expect(lookupResponse.data.word).toBe('serendipity');
       expect(lookupResponse.data.pronunciation).toBe('/ˌsɛrənˈdɪpɪti/');
-      
+
       // 2. Get lists to find where to add
       const listsResponse = await handleMessage({
         type: MessageTypes.GET_LISTS
@@ -52,7 +52,7 @@ describe('Background Service Integration Tests', () => {
       const addResponse = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'serendipity',
-        listId: listId,
+        listId,
         metadata: {
           difficulty: 'hard',
           customNotes: 'Found this while reading'
@@ -65,8 +65,8 @@ describe('Background Service Integration Tests', () => {
 
       // 4. Verify the word was actually saved
       const updatedLists = await storage.get('vocab_lists');
-      expect(updatedLists[0].words['serendipity']).toBeDefined();
-      expect(updatedLists[0].words['serendipity'].customNotes).toBe('Found this while reading');
+      expect(updatedLists[0].words.serendipity).toBeDefined();
+      expect(updatedLists[0].words.serendipity.customNotes).toBe('Found this while reading');
     });
 
     test('should handle fuzzy matching for misspelled words', async () => {
@@ -91,19 +91,19 @@ describe('Background Service Integration Tests', () => {
       // 1. Add multiple words with different review times
       const words = ['hello', 'eloquent', 'serendipity'];
       const yesterday = new Date(Date.now() - 86400000);
-      
+
       for (const word of words) {
         await handleMessage({
           type: MessageTypes.ADD_TO_LIST,
-          word: word,
-          listId: listId
+          word,
+          listId
         }, services);
 
         // Set them as due for review
         await handleMessage({
           type: MessageTypes.UPDATE_WORD,
-          listId: listId,
-          word: word,
+          listId,
+          word,
           updates: { nextReview: yesterday.toISOString() }
         }, services);
       }
@@ -120,7 +120,7 @@ describe('Background Service Integration Tests', () => {
       // 3. Submit review for first word (known)
       const reviewResponse1 = await handleMessage({
         type: MessageTypes.SUBMIT_REVIEW,
-        listId: listId,
+        listId,
         word: 'hello',
         reviewResult: 'known',
         timeSpent: 2.5
@@ -132,7 +132,7 @@ describe('Background Service Integration Tests', () => {
       // 4. Submit review for second word (unknown)
       const reviewResponse2 = await handleMessage({
         type: MessageTypes.SUBMIT_REVIEW,
-        listId: listId,
+        listId,
         word: 'eloquent',
         reviewResult: 'unknown',
         timeSpent: 5.0
@@ -152,7 +152,7 @@ describe('Background Service Integration Tests', () => {
 
       // 6. Verify review history was saved
       const finalLists = await storage.get('vocab_lists');
-      const helloWord = finalLists[0].words['hello'];
+      const helloWord = finalLists[0].words.hello;
       expect(helloWord.reviewHistory).toHaveLength(1);
       expect(helloWord.reviewHistory[0].result).toBe('known');
       expect(helloWord.lastReviewed).toBeDefined();
@@ -177,7 +177,7 @@ describe('Background Service Integration Tests', () => {
       }, services);
 
       expect(listsResponse.data).toHaveLength(2);
-      
+
       // 3. Add same word to both lists with different metadata
       const defaultListId = listsResponse.data[0].id;
 
@@ -192,7 +192,7 @@ describe('Background Service Integration Tests', () => {
         type: MessageTypes.ADD_TO_LIST,
         word: 'resilient',
         listId: techListId,
-        metadata: { 
+        metadata: {
           difficulty: 'easy',
           customNotes: 'Important quality in software'
         }
@@ -200,13 +200,13 @@ describe('Background Service Integration Tests', () => {
 
       // 4. Verify both lists have the word with different metadata
       const finalLists = await storage.get('vocab_lists');
-      
+
       const defaultList = finalLists.find(l => l.id === defaultListId);
       const techList = finalLists.find(l => l.id === techListId);
-      
-      expect(defaultList.words['resilient'].difficulty).toBe('medium');
-      expect(techList.words['resilient'].difficulty).toBe('easy');
-      expect(techList.words['resilient'].customNotes).toBe('Important quality in software');
+
+      expect(defaultList.words.resilient.difficulty).toBe('medium');
+      expect(techList.words.resilient.difficulty).toBe('easy');
+      expect(techList.words.resilient.customNotes).toBe('Important quality in software');
     });
   });
 
@@ -220,22 +220,22 @@ describe('Background Service Integration Tests', () => {
         handleMessage({
           type: MessageTypes.ADD_TO_LIST,
           word: 'hello',
-          listId: listId
+          listId
         }, services),
         handleMessage({
           type: MessageTypes.ADD_TO_LIST,
           word: 'eloquent',
-          listId: listId
+          listId
         }, services),
         handleMessage({
           type: MessageTypes.ADD_TO_LIST,
           word: 'aesthetic',
-          listId: listId
+          listId
         }, services)
       ];
 
       const results = await Promise.all(promises);
-      
+
       // All should succeed
       results.forEach(result => {
         expect(result.success).toBe(true);
@@ -254,14 +254,14 @@ describe('Background Service Integration Tests', () => {
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'ephemeral',
-        listId: listId
+        listId
       }, services);
 
       // Update it multiple times
       for (let i = 0; i < 5; i++) {
         await handleMessage({
           type: MessageTypes.UPDATE_WORD,
-          listId: listId,
+          listId,
           word: 'ephemeral',
           updates: {
             customNotes: `Update ${i + 1}`
@@ -271,11 +271,11 @@ describe('Background Service Integration Tests', () => {
 
       // Verify final state
       const finalLists = await storage.get('vocab_lists');
-      expect(finalLists[0].words['ephemeral'].customNotes).toBe('Update 5');
-      
+      expect(finalLists[0].words.ephemeral.customNotes).toBe('Update 5');
+
       // Original data should still be intact
-      expect(finalLists[0].words['ephemeral'].word).toBe('ephemeral');
-      expect(finalLists[0].words['ephemeral'].dateAdded).toBeDefined();
+      expect(finalLists[0].words.ephemeral.word).toBe('ephemeral');
+      expect(finalLists[0].words.ephemeral.dateAdded).toBeDefined();
     });
   });
 });

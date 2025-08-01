@@ -18,23 +18,23 @@ class SpacedRepetition {
         30: 60
       }
     };
-    
+
     if (result === 'mastered') {
       return null; // Remove from active reviews
     }
-    
+
     if (result === 'unknown') {
       return 1; // Reset to day 1
     }
-    
+
     if (result === 'known') {
       return intervals.known[currentInterval] || currentInterval * 2;
     }
-    
+
     // Skip doesn't change interval
     return currentInterval;
   }
-  
+
   /**
    * Get words due for review from a collection
    * @param {Array} words - Array of word objects with nextReview property
@@ -43,12 +43,12 @@ class SpacedRepetition {
    */
   static getReviewQueue(words, maxWords = 30) {
     const now = new Date();
-    
+
     return words
       .filter(word => {
         // Only include words that have nextReview and it's due
-        return word.nextReview && 
-               word.nextReview !== null && 
+        return word.nextReview &&
+               word.nextReview !== null &&
                new Date(word.nextReview) <= now;
       })
       .sort((a, b) => {
@@ -57,7 +57,7 @@ class SpacedRepetition {
       })
       .slice(0, maxWords);
   }
-  
+
   /**
    * Calculate the current interval based on last review
    * @param {string|null} lastReviewed - ISO date string of last review
@@ -67,14 +67,14 @@ class SpacedRepetition {
     if (!lastReviewed) {
       return 1; // New word
     }
-    
+
     const daysSinceLastReview = Math.ceil(
       (new Date() - new Date(lastReviewed)) / 86400000
     );
-    
+
     return Math.max(1, daysSinceLastReview);
   }
-  
+
   /**
    * Calculate next review date based on current date and interval
    * @param {number} intervalDays - Interval in days

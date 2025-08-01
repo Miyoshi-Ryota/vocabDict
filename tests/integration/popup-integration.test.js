@@ -4,19 +4,18 @@
 
 const fs = require('fs');
 const path = require('path');
-const { waitFor, waitForElement, waitForText } = require('../helpers/wait-helpers');
+const { waitFor, waitForElement } = require('../helpers/wait-helpers');
 
 describe('Popup Integration Tests', () => {
   let popupHTML;
-  let popupJS;
-  
+
   beforeEach(() => {
     // Load actual popup HTML
     popupHTML = fs.readFileSync(
       path.join(__dirname, '../../src/popup/popup.html'),
       'utf8'
     );
-    
+
     // Also load CSS for computed styles
     const popupCSS = fs.readFileSync(
       path.join(__dirname, '../../src/popup/popup.css'),
@@ -25,12 +24,12 @@ describe('Popup Integration Tests', () => {
     const style = document.createElement('style');
     style.innerHTML = popupCSS;
     document.head.appendChild(style);
-    
+
     document.body.innerHTML = popupHTML;
-    
+
     // Load popup JS
     require('../../src/popup/popup.js');
-    
+
     // Trigger DOMContentLoaded
     const event = new Event('DOMContentLoaded');
     document.dispatchEvent(event);
@@ -47,24 +46,24 @@ describe('Popup Integration Tests', () => {
     test('should search for a word and display results', async () => {
       const searchInput = document.querySelector('.search-input');
       const searchResults = document.querySelector('.search-results');
-      
+
       // Type in search input
       searchInput.value = 'hello';
       searchInput.dispatchEvent(new Event('input'));
-      
+
       // Wait for word card to appear (this handles both debounce and async response)
       const wordCard = await waitForElement('.word-card', searchResults);
       expect(wordCard).toBeTruthy();
-      
+
       // Verify the correct word is displayed
       const wordTitle = wordCard.querySelector('.word-title');
       expect(wordTitle.textContent).toBe('hello');
-      
+
       // Check pronunciation is displayed
       const pronunciation = wordCard.querySelector('.word-pronunciation');
       expect(pronunciation).toBeTruthy();
       expect(pronunciation.textContent).toContain('/həˈloʊ/');
-      
+
       // Check definition is displayed
       const definition = wordCard.querySelector('.word-definition');
       expect(definition).toBeTruthy();
@@ -74,11 +73,11 @@ describe('Popup Integration Tests', () => {
     test('should handle search with no results', async () => {
       const searchInput = document.querySelector('.search-input');
       const searchResults = document.querySelector('.search-results');
-      
+
       // Search for non-existent word
       searchInput.value = 'xyzabc123notaword';
       searchInput.dispatchEvent(new Event('input'));
-      
+
       // Wait for error message to appear
       const errorMessage = await waitForElement('.error-message', searchResults);
       expect(errorMessage).toBeTruthy();
@@ -89,30 +88,30 @@ describe('Popup Integration Tests', () => {
       // Initial state - no recent searches
       const recentSearchesList = document.querySelector('.recent-searches-list');
       expect(recentSearchesList.children.length).toBe(0);
-      
+
       // Perform a search
       const searchInput = document.querySelector('.search-input');
       const searchResults = document.querySelector('.search-results');
       searchInput.value = 'hello';
       searchInput.dispatchEvent(new Event('input'));
-      
+
       // Wait for search results to appear (confirming search completed)
       await waitForElement('.word-card', searchResults);
-      
+
       // Navigate away and back to see recent searches
       // (Recent searches are loaded when the search tab is shown)
       const listsTab = document.querySelector('[data-tab="lists"]');
       listsTab.click();
       const searchTab = document.querySelector('[data-tab="search"]');
       searchTab.click();
-      
+
       // Wait for recent search to appear in the list
       await waitFor(() => {
         const items = recentSearchesList.querySelectorAll('li');
-        return items.length > 0 && 
+        return items.length > 0 &&
                Array.from(items).some(item => item.textContent === 'hello');
       });
-      
+
       // Verify the recent search is displayed
       const recentItems = recentSearchesList.querySelectorAll('li');
       expect(recentItems.length).toBeGreaterThan(0);
@@ -122,28 +121,28 @@ describe('Popup Integration Tests', () => {
     test('should search when clicking on recent search item', async () => {
       // Set up initial recent searches
       await browser.storage.local.set({ recentSearches: ['previous', 'search'] });
-      
+
       // Switch to a different tab and back to trigger reload of recent searches
       const listsTab = document.querySelector('[data-tab="lists"]');
       listsTab.click();
       const searchTab = document.querySelector('[data-tab="search"]');
       searchTab.click();
-      
+
       // Wait for recent searches to load
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Click on a recent search item
       const recentItems = document.querySelectorAll('.recent-searches-list li');
       expect(recentItems.length).toBeGreaterThan(0);
-      
+
       recentItems[0].click();
-      
+
       // Check if search was triggered
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'lookup_word',
         word: 'previous'
       });
-      
+
       // Check if search input was updated
       const searchInput = document.querySelector('.search-input');
       expect(searchInput.value).toBe('previous');
@@ -157,15 +156,15 @@ describe('Popup Integration Tests', () => {
       const listsTab = document.querySelector('[data-tab="lists"]');
       const searchPanel = document.getElementById('search-tab');
       const listsPanel = document.getElementById('lists-tab');
-      
+
       expect(searchTab.classList.contains('active')).toBe(true);
       expect(searchPanel.classList.contains('active')).toBe(true);
       expect(listsTab.classList.contains('active')).toBe(false);
       expect(listsPanel.classList.contains('active')).toBe(false);
-      
+
       // Click lists tab
       listsTab.click();
-      
+
       // Check state after switch
       expect(searchTab.classList.contains('active')).toBe(false);
       expect(searchPanel.classList.contains('active')).toBe(false);
@@ -179,46 +178,46 @@ describe('Popup Integration Tests', () => {
       // Switch to lists tab
       const listsTab = document.querySelector('[data-tab="lists"]');
       listsTab.click();
-      
+
       // Wait for tab to be active
       await waitFor(() => {
         const listTab = document.getElementById('lists-tab');
         return listTab.classList.contains('active');
       });
-      
+
       // Click new list button to open dialog
       const newListBtn = document.getElementById('new-list-button');
       newListBtn.click();
-      
+
       // Wait for dialog to appear
       await waitFor(() => {
         const dialog = document.getElementById('new-list-dialog');
         return dialog.style.display === 'flex';
       });
-      
+
       // Fill in the dialog input
       const nameInput = document.getElementById('new-list-name');
       nameInput.value = 'My New List';
       nameInput.dispatchEvent(new Event('input'));
-      
+
       // Click create button
       const createBtn = document.getElementById('confirm-new-list');
       createBtn.click();
-      
+
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Check if create list was called
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'create_list',
         name: 'My New List'
       });
-      
+
       // Check if lists were reloaded
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'get_lists'
       });
-      
+
       // Check if dialog was closed
       const dialog = document.getElementById('new-list-dialog');
       expect(dialog.style.display).toBe('none');
@@ -231,7 +230,7 @@ describe('Popup Integration Tests', () => {
           {
             id: 'list1',
             name: 'Test List 1',
-            words: { 'test': { word: 'test' } },
+            words: { test: { word: 'test' } },
             created: new Date().toISOString(),
             updated: new Date().toISOString()
           },
@@ -244,24 +243,24 @@ describe('Popup Integration Tests', () => {
           }
         ]
       });
-      
+
       // Switch to lists tab
       const listsTab = document.querySelector('[data-tab="lists"]');
       listsTab.click();
-      
+
       // Wait for lists to load
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Check if lists are displayed
       const listItems = document.querySelectorAll('.list-item');
       expect(listItems.length).toBe(2);
-      
+
       // Click on first list
       listItems[0].click();
-      
+
       // Check if list is selected
       expect(listItems[0].classList.contains('selected')).toBe(true);
-      
+
       // Check if words are displayed
       await new Promise(resolve => setTimeout(resolve, 100));
       const wordsContainer = document.querySelector('.words-in-list');
@@ -282,25 +281,25 @@ describe('Popup Integration Tests', () => {
           updated: new Date().toISOString()
         }]
       });
-      
+
       // Search for a word
       const searchInput = document.querySelector('.search-input');
       const searchResults = document.querySelector('.search-results');
       searchInput.value = 'hello';
       searchInput.dispatchEvent(new Event('input'));
-      
+
       // Wait for search results to appear
       await waitForElement('.word-card', searchResults);
-      
+
       // Click add to list button
       const addToListBtn = document.querySelector('.add-to-list-btn');
       expect(addToListBtn).toBeTruthy();
       addToListBtn.click();
-      
+
       // Wait for success toast notification
       const toastContainer = document.querySelector('.toast-container');
       const successToast = await waitForElement('.toast.success', toastContainer);
-      
+
       // Verify success message
       expect(successToast).toBeTruthy();
       expect(successToast.textContent).toContain('Added "hello" to My Words');
@@ -312,18 +311,18 @@ describe('Popup Integration Tests', () => {
       // Switch to settings tab
       const settingsTab = document.querySelector('[data-tab="settings"]');
       settingsTab.click();
-      
+
       // Get theme selector
       const themeSelect = document.getElementById('theme-select');
       expect(themeSelect.value).toBe('dark');
-      
+
       // Change theme to light
       themeSelect.value = 'light';
       themeSelect.dispatchEvent(new Event('change'));
-      
+
       // Check if theme was applied
       expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-      
+
       // Check if setting was saved
       await new Promise(resolve => setTimeout(resolve, 100));
       expect(browser.storage.local.set).toHaveBeenCalledWith({
@@ -335,14 +334,14 @@ describe('Popup Integration Tests', () => {
       // Switch to settings tab
       const settingsTab = document.querySelector('[data-tab="settings"]');
       settingsTab.click();
-      
+
       // Get auto-add toggle
       const autoAddToggle = document.getElementById('auto-add-toggle');
       expect(autoAddToggle.checked).toBe(true);
-      
+
       // Toggle off
       autoAddToggle.click();
-      
+
       // Check if setting was saved
       await new Promise(resolve => setTimeout(resolve, 100));
       expect(browser.storage.local.set).toHaveBeenCalledWith({

@@ -2,14 +2,14 @@
 
 // Browser API compatibility - MUST be first
 if (typeof browser === 'undefined' && typeof chrome !== 'undefined') {
-    window.browser = chrome;
+  window.browser = chrome;
 }
 
 // Initialize popup when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize managers
-    ThemeManager.init();
-    TabManager.init();
+document.addEventListener('DOMContentLoaded', function () {
+  // Initialize managers
+  ThemeManager.init();
+  TabManager.init();
 });
 
 // Theme Management
@@ -25,7 +25,7 @@ const ThemeManager = {
       const settings = result.settings || {};
       const theme = settings.theme || 'dark';
       this.applyTheme(theme);
-      
+
       // Update theme selector if it exists
       const themeSelect = document.getElementById('theme-select');
       if (themeSelect) {
@@ -46,7 +46,7 @@ const ThemeManager = {
       themeSelect.addEventListener('change', async (e) => {
         const theme = e.target.value;
         this.applyTheme(theme);
-        
+
         // Save preference
         const result = await browser.storage.local.get('settings');
         const settings = result.settings || {};
@@ -125,7 +125,7 @@ const SearchTab = {
     searchInput.addEventListener('input', (e) => {
       clearTimeout(this.searchTimeout);
       const query = e.target.value.trim();
-      
+
       if (query.length === 0) {
         this.clearSearchResults();
         return;
@@ -187,26 +187,32 @@ const SearchTab = {
           <div class="definition-section">
             <div class="word-part-of-speech">${def.partOfSpeech}</div>
             <div class="word-definition">${def.meaning}</div>
-            ${def.examples.length > 0 ? `
+            ${def.examples.length > 0
+? `
               <div class="word-examples">
                 <h4>Examples:</h4>
                 <ul>
                   ${def.examples.map(ex => `<li>${ex}</li>`).join('')}
                 </ul>
               </div>
-            ` : ''}
+            `
+: ''}
           </div>
         `).join('')}
-        ${wordData.synonyms.length > 0 ? `
+        ${wordData.synonyms.length > 0
+? `
           <div class="word-synonyms">
             <strong>Synonyms:</strong> ${wordData.synonyms.join(', ')}
           </div>
-        ` : ''}
-        ${wordData.antonyms.length > 0 ? `
+        `
+: ''}
+        ${wordData.antonyms.length > 0
+? `
           <div class="word-synonyms">
             <strong>Antonyms:</strong> ${wordData.antonyms.join(', ')}
           </div>
-        ` : ''}
+        `
+: ''}
       </div>
     `;
 
@@ -220,14 +226,16 @@ const SearchTab = {
     resultsContainer.innerHTML = `
       <div class="no-results">
         <p>No results found for "<strong>${query}</strong>"</p>
-        ${suggestions.length > 0 ? `
+        ${suggestions.length > 0
+? `
           <p class="small-text">Did you mean:</p>
           <ul class="suggestions-list">
             ${suggestions.map(s => `
               <li><a href="#" data-suggestion="${s}">${s}</a></li>
             `).join('')}
           </ul>
-        ` : ''}
+        `
+: ''}
       </div>
     `;
 
@@ -415,9 +423,9 @@ const ListsTab = {
           <div class="word-list-text">
             <div class="word-list-word">${word.word}</div>
             <div class="word-list-status">
-              ${word.lastReviewed ? 
-                `Last reviewed: ${this.formatDate(word.lastReviewed)}` : 
-                'Not reviewed yet'}
+              ${word.lastReviewed
+                ? `Last reviewed: ${this.formatDate(word.lastReviewed)}`
+                : 'Not reviewed yet'}
             </div>
           </div>
           <div class="word-actions">
@@ -436,7 +444,6 @@ const ListsTab = {
     }
 
     // Dialog controls
-    const dialog = document.getElementById('new-list-dialog');
     const cancelBtn = document.getElementById('cancel-new-list');
     const confirmBtn = document.getElementById('confirm-new-list');
     const nameInput = document.getElementById('new-list-name');
@@ -484,7 +491,7 @@ const ListsTab = {
   async createNewList() {
     const nameInput = document.getElementById('new-list-name');
     const name = nameInput ? nameInput.value.trim() : '';
-    
+
     if (!name) {
       NotificationManager.show('Please enter a list name', 'warning');
       return;
@@ -493,7 +500,7 @@ const ListsTab = {
     try {
       const response = await browser.runtime.sendMessage({
         type: 'create_list',
-        name: name
+        name
       });
 
       if (response.success) {
@@ -585,24 +592,24 @@ const SettingsTab = {
 const NotificationManager = {
   show(message, type = 'info') {
     const container = document.querySelector('.toast-container');
-    
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     const icons = {
       info: 'ℹ️',
       success: '✅',
       warning: '⚠️',
       error: '❌'
     };
-    
+
     toast.innerHTML = `
       <span class="toast-icon">${icons[type]}</span>
       <span class="toast-message">${message}</span>
     `;
-    
+
     container.appendChild(toast);
-    
+
     // Auto-remove after 3 seconds
     setTimeout(() => {
       toast.style.opacity = '0';

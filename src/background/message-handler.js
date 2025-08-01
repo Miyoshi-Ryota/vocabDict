@@ -35,10 +35,10 @@ async function handleMessage(message, services) {
         // Try fuzzy search using the fuzzy match method
         const suggestions = dictionary.fuzzyMatch(message.word, 5);
         if (suggestions.length > 0) {
-          return { 
-            success: true, 
+          return {
+            success: true,
             data: null,
-            suggestions: suggestions
+            suggestions
           };
         }
 
@@ -58,19 +58,19 @@ async function handleMessage(message, services) {
 
         const lists = await storage.get('vocab_lists') || [];
         const listIndex = lists.findIndex(l => l.id === message.listId);
-        
+
         if (listIndex === -1) {
           return { success: false, error: 'List not found' };
         }
 
         // Recreate VocabularyList instance
         const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
-        
+
         try {
           const wordEntry = list.addWord(message.word, message.metadata);
           lists[listIndex] = list.toJSON();
           await storage.set('vocab_lists', lists);
-          
+
           return { success: true, data: wordEntry };
         } catch (error) {
           return { success: false, error: error.message };
@@ -94,10 +94,10 @@ async function handleMessage(message, services) {
 
         const lists = await storage.get('vocab_lists') || [];
         const newList = new VocabularyList(trimmedName, dictionary);
-        
+
         lists.push(newList.toJSON());
         await storage.set('vocab_lists', lists);
-        
+
         return { success: true, data: newList.toJSON() };
       }
 
@@ -108,35 +108,35 @@ async function handleMessage(message, services) {
 
         const lists = await storage.get('vocab_lists') || [];
         const listIndex = lists.findIndex(l => l.id === message.listId);
-        
+
         if (listIndex === -1) {
           return { success: false, error: 'List not found' };
         }
 
         const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
         const updated = list.updateWord(message.word, message.updates);
-        
+
         if (!updated) {
           return { success: false, error: 'Word not found in list' };
         }
 
         lists[listIndex] = list.toJSON();
         await storage.set('vocab_lists', lists);
-        
+
         return { success: true, data: updated };
       }
 
       case MessageTypes.GET_REVIEW_QUEUE: {
         const lists = await storage.get('vocab_lists') || [];
         const maxWords = message.maxWords || 30;
-        
+
         // Collect all words from all lists
         const allWords = [];
-        
+
         for (const listData of lists) {
           const list = VocabularyList.fromJSON(listData, dictionary);
           const words = list.getWords();
-          
+
           for (const word of words) {
             allWords.push({
               ...word,
@@ -145,10 +145,10 @@ async function handleMessage(message, services) {
             });
           }
         }
-        
+
         // Use SpacedRepetition service to get review queue
         const queue = SpacedRepetition.getReviewQueue(allWords, maxWords);
-        
+
         return { success: true, data: queue };
       }
 
@@ -159,14 +159,14 @@ async function handleMessage(message, services) {
 
         const lists = await storage.get('vocab_lists') || [];
         const listIndex = lists.findIndex(l => l.id === message.listId);
-        
+
         if (listIndex === -1) {
           return { success: false, error: 'List not found' };
         }
 
         const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
         const wordData = list.getWord(message.word);
-        
+
         if (!wordData) {
           return { success: false, error: 'Word not found in list' };
         }
@@ -174,7 +174,7 @@ async function handleMessage(message, services) {
         // Calculate intervals using SpacedRepetition service
         const currentInterval = SpacedRepetition.getCurrentInterval(wordData.lastReviewed);
         const nextInterval = SpacedRepetition.calculateNextReview(currentInterval, message.reviewResult);
-        
+
         // Handle mastered words
         if (nextInterval === null) {
           // Remove from active reviews by setting nextReview to null
@@ -187,12 +187,12 @@ async function handleMessage(message, services) {
               timeSpent: message.timeSpent || 0
             }]
           };
-          
+
           list.updateWord(message.word, updates);
         } else {
           // Calculate next review date
           const nextReviewDate = SpacedRepetition.getNextReviewDate(nextInterval);
-          
+
           const updates = {
             lastReviewed: new Date().toISOString(),
             nextReview: nextReviewDate.toISOString(),
@@ -202,13 +202,13 @@ async function handleMessage(message, services) {
               timeSpent: message.timeSpent || 0
             }]
           };
-          
+
           list.updateWord(message.word, updates);
         }
-        
+
         lists[listIndex] = list.toJSON();
         await storage.set('vocab_lists', lists);
-        
+
         return { success: true, data: { nextInterval } };
       }
 

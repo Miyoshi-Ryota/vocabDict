@@ -56,7 +56,7 @@ global.browser = {
         dictionary,
         storage: StorageManager
       };
-      
+
       return handleMessage(message, services);
     }),
     onMessage: {
@@ -88,7 +88,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeListener: jest.fn(),
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    dispatchEvent: jest.fn()
   }))
 });
 
