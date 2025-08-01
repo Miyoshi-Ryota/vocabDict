@@ -133,7 +133,7 @@ VocabDict is a Safari Web Extension designed for English learners to improve the
 - Responsive design for different screen sizes
 
 ##### 5.2 Visual Design
-- Light/dark mode support (follows system preference)
+- Light/dark mode manual selection (default: dark theme due to Safari extension API limitations)
 - Clear typography for readability
 - Consistent color scheme for difficulty levels
 - Loading states for async operations

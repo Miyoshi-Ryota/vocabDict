@@ -1129,6 +1129,6 @@ describe('Theme Management', () => {
 
 ---
 
-**Document Version:** 1.5  
-**Last Updated:** 2025-07-27  
-**Status:** Updated based on Day 4 implementation (popup UI partial, theme system, toast notifications)
+**Document Version:** 1.6  
+**Last Updated:** 2025-08-01  
+**Status:** Updated for Safari extension compatibility fixes, new list dialog, and theme system changes

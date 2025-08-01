@@ -158,6 +158,11 @@ Throughout development, general feedback and insights will be documented in:
 - [x] Theme persistence in browser storage
 - [x] Comprehensive integration tests (10 tests)
 - [x] Window.matchMedia polyfill for testing
+- [x] Fixed Safari extension popup not displaying issue (CSP and CSS issues)
+- [x] Implemented custom dialog system for new list creation (replaced browser prompt)
+- [x] Removed auto theme detection due to Safari API limitations
+- [x] Set dark theme as default instead of auto-detection
+- [x] Fixed all failing tests to match new theme system
 
 #### 4.5 Deferred to Day 5
 - [ ] Sorting options (alphabetical, date)
@@ -386,6 +391,12 @@ VocabDict/
    - Added toast notifications for better UX (not in original plan)
    - Settings tab brought forward from Day 6
 
+5. **Safari Extension Challenges Resolved**:
+   - **Popup not displaying**: Fixed CSP blocking inline scripts and Safari CSS body dimension issues
+   - **New list creation**: Replaced browser prompt() with custom dialog (Safari blocks prompt in extensions)
+   - **Theme detection**: Removed auto system theme detection due to unreliable Safari extension API support
+   - **Testing strategy**: Updated all tests to match new implementation patterns
+
 ## Success Criteria
 
 By end of Day 7:
@@ -420,6 +431,6 @@ Each day ends with:
 
 ---
 
-**Document Version:** 1.4  
-**Last Updated:** 2025-07-27  
-**Status:** In Progress - Day 4 Complete
+**Document Version:** 1.5  
+**Last Updated:** 2025-08-01  
+**Status:** Day 4 Complete with Additional Safari Extension Fixes - Ready for Day 5

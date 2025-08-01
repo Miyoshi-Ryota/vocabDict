@@ -370,6 +370,6 @@ FullWordData = DictionaryEntry + UserWordData
 
 ---
 
-**Document Version:** 1.4  
-**Last Updated:** 2025-07-27  
-**Status:** Updated based on Day 4 implementation (popup UI completed)
+**Document Version:** 1.5  
+**Last Updated:** 2025-08-01  
+**Status:** Updated for Safari extension compatibility fixes and theme system changes
