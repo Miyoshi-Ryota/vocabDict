@@ -5,7 +5,7 @@ class VocabularyList {
     if (!dictionary) {
       throw new Error('Dictionary is required');
     }
-    
+
     this.id = uuidv4();
     this.name = name;
     this.created = new Date().toISOString();
@@ -22,18 +22,18 @@ class VocabularyList {
    */
   addWord(wordText, metadata = {}) {
     const normalizedWord = wordText.trim().toLowerCase();
-    
+
     // Check if word exists in dictionary
     const dictionaryEntry = this.dictionary.lookup(wordText);
     if (!dictionaryEntry) {
       throw new Error('Word not found in dictionary');
     }
-    
+
     // Check if word already exists in list
     if (this.words[normalizedWord]) {
       throw new Error('Word already exists in list');
     }
-    
+
     // Create user-specific data for this word
     const userWordData = {
       word: dictionaryEntry.word, // Use the correct case from dictionary
@@ -44,7 +44,7 @@ class VocabularyList {
       nextReview: new Date(Date.now() + 86400000).toISOString(), // Default: review tomorrow
       reviewHistory: []
     };
-    
+
     this.words[normalizedWord] = userWordData;
     return userWordData;
   }
@@ -56,11 +56,11 @@ class VocabularyList {
    */
   removeWord(wordText) {
     const normalizedWord = wordText.trim().toLowerCase();
-    
+
     if (!this.words[normalizedWord]) {
       return null;
     }
-    
+
     const removed = this.words[normalizedWord];
     delete this.words[normalizedWord];
     return removed;
@@ -74,19 +74,19 @@ class VocabularyList {
    */
   updateWord(wordText, updates) {
     const normalizedWord = wordText.trim().toLowerCase();
-    
+
     if (!this.words[normalizedWord]) {
       return null;
     }
-    
+
     // Only update allowed properties
     const allowedProps = ['difficulty', 'customNotes', 'lastReviewed', 'nextReview', 'reviewHistory'];
     allowedProps.forEach(prop => {
-      if (updates.hasOwnProperty(prop)) {
+      if (Object.hasOwn(updates, prop)) {
         this.words[normalizedWord][prop] = updates[prop];
       }
     });
-    
+
     return this.words[normalizedWord];
   }
 
@@ -97,14 +97,14 @@ class VocabularyList {
    */
   getWord(wordText) {
     const normalizedWord = wordText.trim().toLowerCase();
-    
+
     if (!this.words[normalizedWord]) {
       return null;
     }
-    
+
     // Get dictionary data
     const dictionaryData = this.dictionary.lookup(wordText);
-    
+
     // Merge dictionary data with user data
     return {
       ...dictionaryData,
@@ -134,7 +134,7 @@ class VocabularyList {
    */
   sortBy(criteria, order = 'asc') {
     const words = this.getWords();
-    
+
     const sortFunctions = {
       alphabetical: (a, b) => a.word.localeCompare(b.word),
       dateAdded: (a, b) => new Date(a.dateAdded) - new Date(b.dateAdded),
@@ -150,27 +150,27 @@ class VocabularyList {
         return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
       }
     };
-    
+
     if (criteria === 'lastReviewed') {
       // Special handling for lastReviewed to keep nulls at the end
       const reviewed = words.filter(w => w.lastReviewed);
       const notReviewed = words.filter(w => !w.lastReviewed);
-      
+
       reviewed.sort((a, b) => {
         const comparison = new Date(a.lastReviewed) - new Date(b.lastReviewed);
         return order === 'desc' ? -comparison : comparison;
       });
-      
+
       return [...reviewed, ...notReviewed];
     } else {
       const sortFn = sortFunctions[criteria] || sortFunctions.alphabetical;
       words.sort(sortFn);
-      
+
       if (order === 'desc') {
         words.reverse();
       }
     }
-    
+
     return words;
   }
 
@@ -182,16 +182,16 @@ class VocabularyList {
    */
   filterBy(filterType, filterValue) {
     const words = this.getWords();
-    
+
     switch (filterType) {
       case 'difficulty':
         return words.filter(word => word.difficulty === filterValue);
-        
-      case 'reviewStatus':
+
+      case 'reviewStatus': {
         const now = new Date();
         switch (filterValue) {
           case 'due':
-            return words.filter(word => 
+            return words.filter(word =>
               word.nextReview && new Date(word.nextReview) <= now
             );
           case 'new':
@@ -201,7 +201,8 @@ class VocabularyList {
           default:
             return words;
         }
-        
+      }
+
       default:
         return words;
     }
@@ -215,26 +216,26 @@ class VocabularyList {
   search(query) {
     const normalizedQuery = query.toLowerCase();
     const words = this.getWords();
-    
+
     return words.filter(word => {
       // Search in word text
       if (word.word.toLowerCase().includes(normalizedQuery)) {
         return true;
       }
-      
+
       // Search in definitions
-      if (word.definitions.some(def => 
+      if (word.definitions.some(def =>
         def.meaning.toLowerCase().includes(normalizedQuery) ||
         def.examples.some(ex => ex.toLowerCase().includes(normalizedQuery))
       )) {
         return true;
       }
-      
+
       // Search in custom notes
       if (word.customNotes && word.customNotes.toLowerCase().includes(normalizedQuery)) {
         return true;
       }
-      
+
       return false;
     });
   }
@@ -246,7 +247,7 @@ class VocabularyList {
   getStatistics() {
     const words = this.getWords();
     const now = new Date();
-    
+
     const stats = {
       totalWords: words.length,
       byDifficulty: {
@@ -258,23 +259,23 @@ class VocabularyList {
       wordsReviewed: 0,
       wordsDue: 0
     };
-    
+
     words.forEach(word => {
       // Count by difficulty
       stats.byDifficulty[word.difficulty]++;
-      
+
       // Count reviews
       if (word.reviewHistory && word.reviewHistory.length > 0) {
         stats.totalReviews += word.reviewHistory.length;
         stats.wordsReviewed++;
       }
-      
+
       // Count due words
       if (word.nextReview && new Date(word.nextReview) <= now) {
         stats.wordsDue++;
       }
     });
-    
+
     return stats;
   }
 

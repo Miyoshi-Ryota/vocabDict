@@ -1,5 +1,17 @@
 // Popup script for VocabDict Safari Extension
 
+// Browser API compatibility - MUST be first
+if (typeof browser === 'undefined' && typeof chrome !== 'undefined') {
+  window.browser = chrome;
+}
+
+// Initialize popup when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+  // Initialize managers
+  ThemeManager.init();
+  TabManager.init();
+});
+
 // Theme Management
 const ThemeManager = {
   init() {
@@ -11,9 +23,9 @@ const ThemeManager = {
     // Check for saved theme preference
     browser.storage.local.get('settings').then(result => {
       const settings = result.settings || {};
-      const theme = settings.theme || 'auto';
+      const theme = settings.theme || 'dark';
       this.applyTheme(theme);
-      
+
       // Update theme selector if it exists
       const themeSelect = document.getElementById('theme-select');
       if (themeSelect) {
@@ -24,34 +36,17 @@ const ThemeManager = {
 
   applyTheme(theme) {
     const root = document.documentElement;
-    
-    if (theme === 'auto') {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    } else {
-      root.setAttribute('data-theme', theme);
-    }
+    root.setAttribute('data-theme', theme);
   },
 
   setupThemeListeners() {
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      browser.storage.local.get('settings').then(result => {
-        const settings = result.settings || {};
-        if (settings.theme === 'auto') {
-          this.applyTheme('auto');
-        }
-      });
-    });
-
     // Listen for theme selector changes
     const themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
       themeSelect.addEventListener('change', async (e) => {
         const theme = e.target.value;
         this.applyTheme(theme);
-        
+
         // Save preference
         const result = await browser.storage.local.get('settings');
         const settings = result.settings || {};
@@ -81,14 +76,16 @@ const TabManager = {
 
   showTab(tabName) {
     // Update buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
       const isActive = button.dataset.tab === tabName;
       button.classList.toggle('active', isActive);
       button.setAttribute('aria-selected', isActive);
     });
 
     // Update panels
-    document.querySelectorAll('.tab-panel').forEach(panel => {
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    tabPanels.forEach(panel => {
       const isActive = panel.id === `${tabName}-tab`;
       panel.classList.toggle('active', isActive);
     });
@@ -128,7 +125,7 @@ const SearchTab = {
     searchInput.addEventListener('input', (e) => {
       clearTimeout(this.searchTimeout);
       const query = e.target.value.trim();
-      
+
       if (query.length === 0) {
         this.clearSearchResults();
         return;
@@ -190,26 +187,32 @@ const SearchTab = {
           <div class="definition-section">
             <div class="word-part-of-speech">${def.partOfSpeech}</div>
             <div class="word-definition">${def.meaning}</div>
-            ${def.examples.length > 0 ? `
+            ${def.examples.length > 0
+? `
               <div class="word-examples">
                 <h4>Examples:</h4>
                 <ul>
                   ${def.examples.map(ex => `<li>${ex}</li>`).join('')}
                 </ul>
               </div>
-            ` : ''}
+            `
+: ''}
           </div>
         `).join('')}
-        ${wordData.synonyms.length > 0 ? `
+        ${wordData.synonyms.length > 0
+? `
           <div class="word-synonyms">
             <strong>Synonyms:</strong> ${wordData.synonyms.join(', ')}
           </div>
-        ` : ''}
-        ${wordData.antonyms.length > 0 ? `
+        `
+: ''}
+        ${wordData.antonyms.length > 0
+? `
           <div class="word-synonyms">
             <strong>Antonyms:</strong> ${wordData.antonyms.join(', ')}
           </div>
-        ` : ''}
+        `
+: ''}
       </div>
     `;
 
@@ -223,14 +226,16 @@ const SearchTab = {
     resultsContainer.innerHTML = `
       <div class="no-results">
         <p>No results found for "<strong>${query}</strong>"</p>
-        ${suggestions.length > 0 ? `
+        ${suggestions.length > 0
+? `
           <p class="small-text">Did you mean:</p>
           <ul class="suggestions-list">
             ${suggestions.map(s => `
               <li><a href="#" data-suggestion="${s}">${s}</a></li>
             `).join('')}
           </ul>
-        ` : ''}
+        `
+: ''}
       </div>
     `;
 
@@ -418,9 +423,9 @@ const ListsTab = {
           <div class="word-list-text">
             <div class="word-list-word">${word.word}</div>
             <div class="word-list-status">
-              ${word.lastReviewed ? 
-                `Last reviewed: ${this.formatDate(word.lastReviewed)}` : 
-                'Not reviewed yet'}
+              ${word.lastReviewed
+                ? `Last reviewed: ${this.formatDate(word.lastReviewed)}`
+                : 'Not reviewed yet'}
             </div>
           </div>
           <div class="word-actions">
@@ -435,24 +440,72 @@ const ListsTab = {
     // New list button
     const newListBtn = document.getElementById('new-list-button');
     if (newListBtn) {
-      newListBtn.addEventListener('click', () => this.createNewList());
+      newListBtn.addEventListener('click', () => this.showNewListDialog());
+    }
+
+    // Dialog controls
+    const cancelBtn = document.getElementById('cancel-new-list');
+    const confirmBtn = document.getElementById('confirm-new-list');
+    const nameInput = document.getElementById('new-list-name');
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => this.hideNewListDialog());
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => this.createNewList());
+    }
+
+    if (nameInput) {
+      nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          this.createNewList();
+        } else if (e.key === 'Escape') {
+          this.hideNewListDialog();
+        }
+      });
     }
 
     // Sort and filter controls would be implemented here
   },
 
+  showNewListDialog() {
+    const dialog = document.getElementById('new-list-dialog');
+    const nameInput = document.getElementById('new-list-name');
+    if (dialog) {
+      dialog.style.display = 'flex';
+      if (nameInput) {
+        nameInput.value = '';
+        nameInput.focus();
+      }
+    }
+  },
+
+  hideNewListDialog() {
+    const dialog = document.getElementById('new-list-dialog');
+    if (dialog) {
+      dialog.style.display = 'none';
+    }
+  },
+
   async createNewList() {
-    const name = prompt('Enter list name:');
-    if (!name) return;
+    const nameInput = document.getElementById('new-list-name');
+    const name = nameInput ? nameInput.value.trim() : '';
+
+    if (!name) {
+      NotificationManager.show('Please enter a list name', 'warning');
+      return;
+    }
 
     try {
       const response = await browser.runtime.sendMessage({
         type: 'create_list',
-        name: name
+        name
       });
 
       if (response.success) {
         NotificationManager.show(`Created list "${name}"`, 'success');
+        this.hideNewListDialog();
         this.loadLists();
       } else {
         NotificationManager.show(response.error || 'Failed to create list', 'error');
@@ -494,7 +547,7 @@ const SettingsTab = {
   async loadSettings() {
     const result = await browser.storage.local.get('settings');
     const settings = result.settings || {
-      theme: 'auto',
+      theme: 'dark',
       autoAddLookups: true,
       dailyReviewLimit: 30
     };
@@ -539,24 +592,24 @@ const SettingsTab = {
 const NotificationManager = {
   show(message, type = 'info') {
     const container = document.querySelector('.toast-container');
-    
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     const icons = {
       info: 'ℹ️',
       success: '✅',
       warning: '⚠️',
       error: '❌'
     };
-    
+
     toast.innerHTML = `
       <span class="toast-icon">${icons[type]}</span>
       <span class="toast-message">${message}</span>
     `;
-    
+
     container.appendChild(toast);
-    
+
     // Auto-remove after 3 seconds
     setTimeout(() => {
       toast.style.opacity = '0';
@@ -565,13 +618,4 @@ const NotificationManager = {
   }
 };
 
-// Initialize popup when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('VocabDict popup initializing...');
-  
-  // Initialize managers
-  ThemeManager.init();
-  TabManager.init();
-  
-  console.log('VocabDict popup ready');
-});
+// Initialize popup when DOM is ready - moved to top with debug code

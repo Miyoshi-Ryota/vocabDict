@@ -12,10 +12,10 @@ describe('Background Message Handler', () => {
     // Use real services
     dictionary = new DictionaryService(dictionaryData);
     storage = StorageManager;
-    
+
     // Clear storage before each test
     await browser.storage.local.clear();
-    
+
     // Create default list
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
     await storage.set('vocab_lists', [defaultList.toJSON()]);
@@ -78,11 +78,11 @@ describe('Background Message Handler', () => {
       const result = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       expect(result.success).toBe(true);
-      
+
       // Verify word was added
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
@@ -98,7 +98,7 @@ describe('Background Message Handler', () => {
       const result = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'notaword',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       expect(result.success).toBe(false);
@@ -124,14 +124,14 @@ describe('Background Message Handler', () => {
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       // Try to add again
       const result = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       expect(result.success).toBe(false);
@@ -210,15 +210,15 @@ describe('Background Message Handler', () => {
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       // Update the word
       const result = await handleMessage({
         type: MessageTypes.UPDATE_WORD,
-        listId: listId,
+        listId,
         word: 'hello',
-        updates: { 
+        updates: {
           difficulty: 'hard',
           customNotes: 'Common greeting'
         }
@@ -240,7 +240,7 @@ describe('Background Message Handler', () => {
 
       const result = await handleMessage({
         type: MessageTypes.UPDATE_WORD,
-        listId: listId,
+        listId,
         word: 'nonexistent',
         updates: { difficulty: 'hard' }
       }, { dictionary, storage });
@@ -263,26 +263,26 @@ describe('Background Message Handler', () => {
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'world',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       // Update review times
       await handleMessage({
         type: MessageTypes.UPDATE_WORD,
-        listId: listId,
+        listId,
         word: 'hello',
         updates: { nextReview: yesterday.toISOString() }
       }, { dictionary, storage });
 
       await handleMessage({
         type: MessageTypes.UPDATE_WORD,
-        listId: listId,
+        listId,
         word: 'world',
         updates: { nextReview: tomorrow.toISOString() }
       }, { dictionary, storage });
@@ -306,14 +306,14 @@ describe('Background Message Handler', () => {
       for (const word of words) {
         await handleMessage({
           type: MessageTypes.ADD_TO_LIST,
-          word: word,
-          listId: listId
+          word,
+          listId
         }, { dictionary, storage });
 
         await handleMessage({
           type: MessageTypes.UPDATE_WORD,
-          listId: listId,
-          word: word,
+          listId,
+          word,
           updates: { nextReview: yesterday.toISOString() }
         }, { dictionary, storage });
       }
@@ -337,13 +337,12 @@ describe('Background Message Handler', () => {
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
-      const reviewDate = new Date().toISOString();
       const result = await handleMessage({
         type: MessageTypes.SUBMIT_REVIEW,
-        listId: listId,
+        listId,
         word: 'hello',
         reviewResult: 'known',
         timeSpent: 3.5
@@ -355,7 +354,7 @@ describe('Background Message Handler', () => {
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
       const wordData = list.getWord('hello');
-      
+
       expect(wordData.lastReviewed).toBeDefined();
       expect(wordData.reviewHistory).toHaveLength(1);
       expect(wordData.reviewHistory[0].result).toBe('known');
@@ -371,12 +370,12 @@ describe('Background Message Handler', () => {
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
-        listId: listId
+        listId
       }, { dictionary, storage });
 
       await handleMessage({
         type: MessageTypes.SUBMIT_REVIEW,
-        listId: listId,
+        listId,
         word: 'hello',
         reviewResult: 'known',
         timeSpent: 2.0
@@ -385,7 +384,7 @@ describe('Background Message Handler', () => {
       // Review as unknown
       const result = await handleMessage({
         type: MessageTypes.SUBMIT_REVIEW,
-        listId: listId,
+        listId,
         word: 'hello',
         reviewResult: 'unknown',
         timeSpent: 3.0
@@ -397,11 +396,10 @@ describe('Background Message Handler', () => {
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
       const wordData = list.getWord('hello');
-      
+
       const nextReview = new Date(wordData.nextReview);
-      const tomorrow = new Date(Date.now() + 86400000);
       const dayAfter = new Date(Date.now() + 2 * 86400000);
-      
+
       expect(nextReview.getTime()).toBeGreaterThan(new Date().getTime());
       expect(nextReview.getTime()).toBeLessThan(dayAfter.getTime());
     });

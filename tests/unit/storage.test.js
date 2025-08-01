@@ -4,7 +4,7 @@ describe('StorageManager', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
-    
+
     // Reset storage mock
     browser.storage.local.get.mockResolvedValue({});
     browser.storage.local.set.mockResolvedValue(undefined);
@@ -18,7 +18,7 @@ describe('StorageManager', () => {
       browser.storage.local.get.mockResolvedValue(mockData);
 
       const result = await StorageManager.get('test');
-      
+
       expect(browser.storage.local.get).toHaveBeenCalledWith('test');
       expect(result).toBe('value');
     });
@@ -27,7 +27,7 @@ describe('StorageManager', () => {
       browser.storage.local.get.mockResolvedValue({});
 
       const result = await StorageManager.get('nonexistent');
-      
+
       expect(result).toBeUndefined();
     });
 

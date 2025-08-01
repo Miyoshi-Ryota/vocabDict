@@ -16,13 +16,13 @@ describe('DictionaryService', () => {
 
     test('should normalize keys to lowercase', () => {
       const testData = {
-        'HELLO': { word: 'hello' },
-        'World': { word: 'world' }
+        HELLO: { word: 'hello' },
+        World: { word: 'world' }
       };
       const service = new DictionaryService(testData);
-      expect(service.data['hello']).toBeDefined();
-      expect(service.data['world']).toBeDefined();
-      expect(service.data['HELLO']).toBeUndefined();
+      expect(service.data.hello).toBeDefined();
+      expect(service.data.world).toBeDefined();
+      expect(service.data.HELLO).toBeUndefined();
     });
   });
 
@@ -116,7 +116,7 @@ describe('DictionaryService', () => {
       const adjectives = dictionary.getWordsByPartOfSpeech('adjective');
       expect(Array.isArray(adjectives)).toBe(true);
       expect(adjectives.length).toBeGreaterThan(0);
-      
+
       // Check that all returned words have adjective definitions
       adjectives.forEach(word => {
         const entry = dictionary.lookup(word);
@@ -183,11 +183,11 @@ describe('DictionaryService', () => {
       expect(wordEntry).toHaveProperty('definitions');
       expect(wordEntry).toHaveProperty('synonyms');
       expect(wordEntry).toHaveProperty('antonyms');
-      
+
       expect(Array.isArray(wordEntry.definitions)).toBe(true);
       expect(Array.isArray(wordEntry.synonyms)).toBe(true);
       expect(Array.isArray(wordEntry.antonyms)).toBe(true);
-      
+
       wordEntry.definitions.forEach(def => {
         expect(def).toHaveProperty('partOfSpeech');
         expect(def).toHaveProperty('meaning');

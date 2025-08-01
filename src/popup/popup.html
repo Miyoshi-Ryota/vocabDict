@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VocabDict</title>
     <link rel="stylesheet" href="popup.css">
+    <style>
+        /* Safari extension workaround - must use inline styles for body dimensions */
+        html, body {
+            width: 400px;
+            height: 600px;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
     <div class="popup-container">
@@ -85,6 +94,18 @@
                     </button>
                 </div>
                 
+                <!-- New List Dialog -->
+                <div id="new-list-dialog" class="dialog-overlay" style="display: none;">
+                    <div class="dialog">
+                        <h3>Create New List</h3>
+                        <input type="text" id="new-list-name" class="dialog-input" placeholder="Enter list name..." autofocus>
+                        <div class="dialog-buttons">
+                            <button class="btn-secondary" id="cancel-new-list">Cancel</button>
+                            <button class="btn-primary" id="confirm-new-list">Create</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="lists-container">
                     <!-- List items populated by JavaScript -->
                 </div>
@@ -135,9 +156,8 @@
                     <div class="setting-item">
                         <label for="theme-select">Theme</label>
                         <select id="theme-select" class="control-select">
-                            <option value="auto">Auto (System)</option>
                             <option value="light">Light</option>
-                            <option value="dark">Dark</option>
+                            <option value="dark" selected>Dark</option>
                         </select>
                     </div>
                     

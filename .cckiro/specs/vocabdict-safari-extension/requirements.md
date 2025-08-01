@@ -242,10 +242,10 @@ FullWordData = DictionaryEntry + UserWordData
 - Adaptive layout for different screen sizes
 
 ### 4.4 Theme Support
-- Light/dark mode following system preference
-- Manual theme override option
+- Light/dark mode manual selection (default: dark)
 - High contrast mode
 - Consistent theme across all screens
+- Note: Auto system theme detection removed due to Safari extension API limitations
 
 ### 4.5 Accessibility
 - WCAG 2.1 AA compliance
@@ -370,6 +370,6 @@ FullWordData = DictionaryEntry + UserWordData
 
 ---
 
-**Document Version:** 1.4  
-**Last Updated:** 2025-07-27  
-**Status:** Updated based on Day 4 implementation (popup UI completed)
+**Document Version:** 1.5  
+**Last Updated:** 2025-08-01  
+**Status:** Updated for Safari extension compatibility fixes and theme system changes

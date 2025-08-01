@@ -16,12 +16,12 @@ class DictionaryService {
     if (!word || typeof word !== 'string') {
       return null;
     }
-    
+
     const normalizedWord = word.trim().toLowerCase();
     if (!normalizedWord) {
       return null;
     }
-    
+
     return this.data[normalizedWord] || null;
   }
 
@@ -35,27 +35,27 @@ class DictionaryService {
     if (!word || typeof word !== 'string') {
       return [];
     }
-    
+
     const normalizedWord = word.trim().toLowerCase();
     if (!normalizedWord) {
       return [];
     }
-    
+
     // Calculate Levenshtein distance
     const levenshtein = (a, b) => {
       const matrix = [];
-      
+
       if (a.length === 0) return b.length;
       if (b.length === 0) return a.length;
-      
+
       for (let i = 0; i <= b.length; i++) {
         matrix[i] = [i];
       }
-      
+
       for (let j = 0; j <= a.length; j++) {
         matrix[0][j] = j;
       }
-      
+
       for (let i = 1; i <= b.length; i++) {
         for (let j = 1; j <= a.length; j++) {
           if (b.charAt(i - 1) === a.charAt(j - 1)) {
@@ -63,27 +63,27 @@ class DictionaryService {
           } else {
             matrix[i][j] = Math.min(
               matrix[i - 1][j - 1] + 1, // substitution
-              matrix[i][j - 1] + 1,     // insertion
-              matrix[i - 1][j] + 1      // deletion
+              matrix[i][j - 1] + 1, // insertion
+              matrix[i - 1][j] + 1 // deletion
             );
           }
         }
       }
-      
+
       return matrix[b.length][a.length];
     };
-    
+
     // Find words with low Levenshtein distance
     const suggestions = [];
     const maxDistance = Math.min(3, Math.floor(normalizedWord.length / 2));
-    
+
     for (const dictWord in this.data) {
       const distance = levenshtein(normalizedWord, dictWord);
       if (distance > 0 && distance <= maxDistance) {
         suggestions.push({ word: dictWord, distance });
       }
     }
-    
+
     // Sort by distance and return top suggestions
     return suggestions
       .sort((a, b) => a.distance - b.distance)
@@ -108,10 +108,10 @@ class DictionaryService {
     if (!partOfSpeech || typeof partOfSpeech !== 'string') {
       return [];
     }
-    
+
     const normalizedPos = partOfSpeech.toLowerCase();
     const results = [];
-    
+
     for (const word in this.data) {
       const entry = this.data[word];
       const hasPartOfSpeech = entry.definitions.some(
@@ -121,7 +121,7 @@ class DictionaryService {
         results.push(word);
       }
     }
-    
+
     return results.sort();
   }
 
@@ -145,10 +145,10 @@ class DictionaryService {
     if (!searchTerm || typeof searchTerm !== 'string') {
       return [];
     }
-    
+
     const normalizedTerm = searchTerm.toLowerCase();
     const results = [];
-    
+
     for (const word in this.data) {
       const entry = this.data[word];
       const hasMatch = entry.definitions.some(def => {
@@ -156,12 +156,12 @@ class DictionaryService {
         const examples = def.examples.join(' ').toLowerCase();
         return meaning.includes(normalizedTerm) || examples.includes(normalizedTerm);
       });
-      
+
       if (hasMatch) {
         results.push(word);
       }
     }
-    
+
     return results.sort();
   }
 }

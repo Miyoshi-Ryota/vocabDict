@@ -34,7 +34,7 @@ describe('VocabularyList', () => {
   describe('addWord', () => {
     test('should add word that exists in dictionary', () => {
       const entry = list.addWord('hello');
-      
+
       expect(entry).toBeDefined();
       expect(entry.word).toBe('hello');
       expect(entry.dateAdded).toBeDefined();
@@ -43,8 +43,8 @@ describe('VocabularyList', () => {
       expect(entry.nextReview).toBeDefined();
       expect(entry.reviewHistory).toEqual([]);
       expect(entry.customNotes).toBe('');
-      
-      expect(list.words['hello']).toBe(entry);
+
+      expect(list.words.hello).toBe(entry);
     });
 
     test('should throw error for word not in dictionary', () => {
@@ -66,7 +66,7 @@ describe('VocabularyList', () => {
         difficulty: 'hard',
         customNotes: 'Common greeting'
       });
-      
+
       expect(entry.difficulty).toBe('hard');
       expect(entry.customNotes).toBe('Common greeting');
     });
@@ -80,10 +80,10 @@ describe('VocabularyList', () => {
 
     test('should remove word by text', () => {
       const removed = list.removeWord('hello');
-      
+
       expect(removed).toBeDefined();
       expect(removed.word).toBe('hello');
-      expect(list.words['hello']).toBeUndefined();
+      expect(list.words.hello).toBeUndefined();
       expect(Object.keys(list.words).length).toBe(1);
     });
 
@@ -110,7 +110,7 @@ describe('VocabularyList', () => {
         difficulty: 'hard',
         customNotes: 'Updated note'
       });
-      
+
       expect(updated.difficulty).toBe('hard');
       expect(updated.customNotes).toBe('Updated note');
     });
@@ -122,7 +122,7 @@ describe('VocabularyList', () => {
         nextReview: new Date(Date.now() + 86400000).toISOString(),
         reviewHistory: [{ date: now, result: 'known', timeSpent: 3.5 }]
       });
-      
+
       expect(updated.lastReviewed).toBe(now);
       expect(updated.reviewHistory.length).toBe(1);
     });
@@ -130,7 +130,7 @@ describe('VocabularyList', () => {
     test('should handle case-insensitive update', () => {
       const updated = list.updateWord('HELLO', { difficulty: 'easy' });
       expect(updated).toBeDefined();
-      expect(list.words['hello'].difficulty).toBe('easy');
+      expect(list.words.hello.difficulty).toBe('easy');
     });
 
     test('should return null for non-existent word', () => {
@@ -146,7 +146,7 @@ describe('VocabularyList', () => {
 
     test('should get word with full data', () => {
       const word = list.getWord('hello');
-      
+
       expect(word).toBeDefined();
       expect(word.word).toBe('hello');
       expect(word.definitions).toBeDefined(); // From dictionary
@@ -179,7 +179,7 @@ describe('VocabularyList', () => {
 
     test('should return all words with full data', () => {
       const words = list.getWords();
-      
+
       expect(words.length).toBe(3);
       words.forEach(word => {
         expect(word.definitions).toBeDefined();
@@ -194,13 +194,13 @@ describe('VocabularyList', () => {
       list.addWord('zealous', { difficulty: 'hard' });
       list.addWord('aesthetic', { difficulty: 'easy' });
       list.addWord('brevity', { difficulty: 'medium' });
-      
+
       // Set different review dates
       const now = Date.now();
-      list.updateWord('zealous', { 
+      list.updateWord('zealous', {
         lastReviewed: new Date(now - 3 * 86400000).toISOString() // 3 days ago
       });
-      list.updateWord('aesthetic', { 
+      list.updateWord('aesthetic', {
         lastReviewed: new Date(now - 1 * 86400000).toISOString() // 1 day ago
       });
       // brevity has no review date
@@ -247,9 +247,9 @@ describe('VocabularyList', () => {
       list.addWord('aesthetic', { difficulty: 'easy' });
       list.addWord('eloquent', { difficulty: 'medium' });
       list.addWord('serendipity', { difficulty: 'hard' });
-      
+
       // Add review dates to some words
-      list.updateWord('hello', { 
+      list.updateWord('hello', {
         lastReviewed: new Date().toISOString(),
         nextReview: new Date(Date.now() - 86400000).toISOString() // Yesterday (due)
       });
@@ -322,7 +322,7 @@ describe('VocabularyList', () => {
 
     test('should calculate statistics', () => {
       const stats = list.getStatistics();
-      
+
       expect(stats.totalWords).toBe(4);
       expect(stats.byDifficulty.easy).toBe(2);
       expect(stats.byDifficulty.medium).toBe(1);
@@ -337,7 +337,7 @@ describe('VocabularyList', () => {
         lastReviewed: new Date().toISOString(),
         reviewHistory: [{ date: new Date().toISOString(), result: 'known', timeSpent: 3 }]
       });
-      
+
       const stats = list.getStatistics();
       expect(stats.totalReviews).toBe(1);
       expect(stats.wordsReviewed).toBe(1);
@@ -347,7 +347,7 @@ describe('VocabularyList', () => {
   describe('serialization', () => {
     test('should convert to JSON', () => {
       list.addWord('hello');
-      
+
       const json = list.toJSON();
       expect(json).toHaveProperty('id');
       expect(json).toHaveProperty('name', 'Test List');
@@ -355,7 +355,7 @@ describe('VocabularyList', () => {
       expect(json).toHaveProperty('isDefault', false);
       expect(json).toHaveProperty('words');
       expect(Object.keys(json.words).length).toBe(1);
-      expect(json.words['hello']).toBeDefined();
+      expect(json.words.hello).toBeDefined();
     });
 
     test('should create from JSON', () => {
@@ -365,7 +365,7 @@ describe('VocabularyList', () => {
         created: new Date().toISOString(),
         isDefault: true,
         words: {
-          'hello': {
+          hello: {
             word: 'hello',
             dateAdded: new Date().toISOString(),
             difficulty: 'easy',
@@ -376,14 +376,14 @@ describe('VocabularyList', () => {
           }
         }
       };
-      
+
       const imported = VocabularyList.fromJSON(json, dictionary);
       expect(imported.id).toBe('list-123');
       expect(imported.name).toBe('Imported List');
       expect(imported.isDefault).toBe(true);
       expect(Object.keys(imported.words).length).toBe(1);
-      expect(imported.words['hello'].difficulty).toBe('easy');
-      expect(imported.words['hello'].customNotes).toBe('Test note');
+      expect(imported.words.hello.difficulty).toBe('easy');
+      expect(imported.words.hello.customNotes).toBe('Test note');
     });
   });
 });
