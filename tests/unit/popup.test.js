@@ -206,13 +206,12 @@ describe('Popup UI Tests', () => {
       
       expect(themeSelect).toBeTruthy();
       expect(themeSelect.classList.contains('control-select')).toBe(true);
-      expect(themeSelect.options).toHaveLength(3);
-      expect(themeSelect.options[0].value).toBe('auto');
-      expect(themeSelect.options[0].text).toBe('Auto (System)');
-      expect(themeSelect.options[1].value).toBe('light');
-      expect(themeSelect.options[1].text).toBe('Light');
-      expect(themeSelect.options[2].value).toBe('dark');
-      expect(themeSelect.options[2].text).toBe('Dark');
+      expect(themeSelect.options).toHaveLength(2);
+      expect(themeSelect.options[0].value).toBe('light');
+      expect(themeSelect.options[0].text).toBe('Light');
+      expect(themeSelect.options[1].value).toBe('dark');
+      expect(themeSelect.options[1].text).toBe('Dark');
+      expect(themeSelect.options[1].selected).toBe(true);
     });
 
     test('should have auto-add toggle', () => {

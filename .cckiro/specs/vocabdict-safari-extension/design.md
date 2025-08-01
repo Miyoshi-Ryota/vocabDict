@@ -395,9 +395,8 @@ const reviewSession = {
     <label class="setting-item">
       <span class="setting-label">Theme</span>
       <select id="theme-select" class="setting-control">
-        <option value="auto">Auto</option>
         <option value="light">Light</option>
-        <option value="dark">Dark</option>
+        <option value="dark" selected>Dark</option>
       </select>
     </label>
     
@@ -795,18 +794,19 @@ window.addEventListener('orientationchange', () => {
 }
 ```
 
-### 7.2 Theme Detection
+### 7.2 Theme Management
+
+**Note**: Auto system theme detection was removed due to Safari extension API limitations.
 
 ```javascript
-function detectTheme() {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) return savedTheme;
-  
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark';
-  }
-  return 'light';
+// Simplified theme management - manual selection only
+function applyTheme(theme) {
+  const root = document.documentElement;
+  root.setAttribute('data-theme', theme);
 }
+
+// Default theme: dark
+const defaultTheme = 'dark';
 ```
 
 ## 8. Error Handling

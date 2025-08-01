@@ -180,12 +180,33 @@ describe('Popup Integration Tests', () => {
       const listsTab = document.querySelector('[data-tab="lists"]');
       listsTab.click();
       
-      // Mock prompt
-      window.prompt = jest.fn(() => 'My New List');
+      // Wait for tab to be active
+      await waitFor(() => {
+        const listTab = document.getElementById('lists-tab');
+        return listTab.classList.contains('active');
+      });
       
-      // Click new list button
+      // Click new list button to open dialog
       const newListBtn = document.getElementById('new-list-button');
       newListBtn.click();
+      
+      // Wait for dialog to appear
+      await waitFor(() => {
+        const dialog = document.getElementById('new-list-dialog');
+        return dialog.style.display === 'flex';
+      });
+      
+      // Fill in the dialog input
+      const nameInput = document.getElementById('new-list-name');
+      nameInput.value = 'My New List';
+      nameInput.dispatchEvent(new Event('input'));
+      
+      // Click create button
+      const createBtn = document.getElementById('confirm-new-list');
+      createBtn.click();
+      
+      // Wait for async operations
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Check if create list was called
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
@@ -193,13 +214,14 @@ describe('Popup Integration Tests', () => {
         name: 'My New List'
       });
       
-      // Wait for response
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       // Check if lists were reloaded
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'get_lists'
       });
+      
+      // Check if dialog was closed
+      const dialog = document.getElementById('new-list-dialog');
+      expect(dialog.style.display).toBe('none');
     });
 
     test('should display lists and allow selection', async () => {
@@ -293,19 +315,19 @@ describe('Popup Integration Tests', () => {
       
       // Get theme selector
       const themeSelect = document.getElementById('theme-select');
-      expect(themeSelect.value).toBe('auto');
+      expect(themeSelect.value).toBe('dark');
       
-      // Change theme to dark
-      themeSelect.value = 'dark';
+      // Change theme to light
+      themeSelect.value = 'light';
       themeSelect.dispatchEvent(new Event('change'));
       
       // Check if theme was applied
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
       
       // Check if setting was saved
       await new Promise(resolve => setTimeout(resolve, 100));
       expect(browser.storage.local.set).toHaveBeenCalledWith({
-        settings: { theme: 'dark' }
+        settings: { theme: 'light' }
       });
     });
 

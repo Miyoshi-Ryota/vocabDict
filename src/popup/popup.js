@@ -23,7 +23,7 @@ const ThemeManager = {
     // Check for saved theme preference
     browser.storage.local.get('settings').then(result => {
       const settings = result.settings || {};
-      const theme = settings.theme || 'auto';
+      const theme = settings.theme || 'dark';
       this.applyTheme(theme);
       
       // Update theme selector if it exists
@@ -36,27 +36,10 @@ const ThemeManager = {
 
   applyTheme(theme) {
     const root = document.documentElement;
-    
-    if (theme === 'auto') {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    } else {
-      root.setAttribute('data-theme', theme);
-    }
+    root.setAttribute('data-theme', theme);
   },
 
   setupThemeListeners() {
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      browser.storage.local.get('settings').then(result => {
-        const settings = result.settings || {};
-        if (settings.theme === 'auto') {
-          this.applyTheme('auto');
-        }
-      });
-    });
-
     // Listen for theme selector changes
     const themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
@@ -449,15 +432,63 @@ const ListsTab = {
     // New list button
     const newListBtn = document.getElementById('new-list-button');
     if (newListBtn) {
-      newListBtn.addEventListener('click', () => this.createNewList());
+      newListBtn.addEventListener('click', () => this.showNewListDialog());
+    }
+
+    // Dialog controls
+    const dialog = document.getElementById('new-list-dialog');
+    const cancelBtn = document.getElementById('cancel-new-list');
+    const confirmBtn = document.getElementById('confirm-new-list');
+    const nameInput = document.getElementById('new-list-name');
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => this.hideNewListDialog());
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => this.createNewList());
+    }
+
+    if (nameInput) {
+      nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          this.createNewList();
+        } else if (e.key === 'Escape') {
+          this.hideNewListDialog();
+        }
+      });
     }
 
     // Sort and filter controls would be implemented here
   },
 
+  showNewListDialog() {
+    const dialog = document.getElementById('new-list-dialog');
+    const nameInput = document.getElementById('new-list-name');
+    if (dialog) {
+      dialog.style.display = 'flex';
+      if (nameInput) {
+        nameInput.value = '';
+        nameInput.focus();
+      }
+    }
+  },
+
+  hideNewListDialog() {
+    const dialog = document.getElementById('new-list-dialog');
+    if (dialog) {
+      dialog.style.display = 'none';
+    }
+  },
+
   async createNewList() {
-    const name = prompt('Enter list name:');
-    if (!name) return;
+    const nameInput = document.getElementById('new-list-name');
+    const name = nameInput ? nameInput.value.trim() : '';
+    
+    if (!name) {
+      NotificationManager.show('Please enter a list name', 'warning');
+      return;
+    }
 
     try {
       const response = await browser.runtime.sendMessage({
@@ -467,6 +498,7 @@ const ListsTab = {
 
       if (response.success) {
         NotificationManager.show(`Created list "${name}"`, 'success');
+        this.hideNewListDialog();
         this.loadLists();
       } else {
         NotificationManager.show(response.error || 'Failed to create list', 'error');
@@ -508,7 +540,7 @@ const SettingsTab = {
   async loadSettings() {
     const result = await browser.storage.local.get('settings');
     const settings = result.settings || {
-      theme: 'auto',
+      theme: 'dark',
       autoAddLookups: true,
       dailyReviewLimit: 30
     };
