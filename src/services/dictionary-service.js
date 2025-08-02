@@ -1,18 +1,37 @@
 class DictionaryService {
-  constructor(dictionaryData) {
+  constructor(dictionaryData, storageManager = null) {
     this.data = {};
     // Normalize all keys to lowercase for case-insensitive lookup
     Object.keys(dictionaryData).forEach(key => {
       this.data[key.toLowerCase()] = dictionaryData[key];
     });
+    
+    this.storageManager = storageManager;
+    this.lookupStatistics = new Map();
+  }
+
+  /**
+   * Load lookup statistics from storage
+   */
+  async loadLookupStatistics() {
+    if (!this.storageManager) return;
+    
+    try {
+      const stats = await this.storageManager.get('dictionary_lookup_stats');
+      if (stats) {
+        this.lookupStatistics = new Map(Object.entries(stats));
+      }
+    } catch (error) {
+      console.error('Failed to load lookup statistics:', error);
+    }
   }
 
   /**
    * Look up a word in the dictionary
    * @param {string} word - The word to look up
-   * @returns {Object|null} The word entry or null if not found
+   * @returns {Promise<Object|null>} The word entry or null if not found
    */
-  lookup(word) {
+  async lookup(word) {
     if (!word || typeof word !== 'string') {
       return null;
     }
@@ -22,7 +41,62 @@ class DictionaryService {
       return null;
     }
 
-    return this.data[normalizedWord] || null;
+    const result = this.data[normalizedWord] || null;
+    
+    // Increment lookup count if word was found
+    if (result) {
+      await this.incrementLookupCount(normalizedWord);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Increment lookup count for a word
+   * @param {string} normalizedWord - The normalized word to increment
+   */
+  async incrementLookupCount(normalizedWord) {
+    if (!this.storageManager) return;
+    
+    const current = this.lookupStatistics.get(normalizedWord) || { 
+      count: 0, 
+      firstLookup: null, 
+      lastLookup: null 
+    };
+    
+    const now = new Date().toISOString();
+    
+    current.count++;
+    current.lastLookup = now;
+    if (!current.firstLookup) {
+      current.firstLookup = now;
+    }
+    
+    this.lookupStatistics.set(normalizedWord, current);
+    
+    // Persist to storage
+    try {
+      await this.storageManager.set('dictionary_lookup_stats', 
+        Object.fromEntries(this.lookupStatistics)
+      );
+    } catch (error) {
+      console.error('Failed to persist lookup statistics:', error);
+    }
+  }
+
+  /**
+   * Get lookup count for a word
+   * @param {string} word - The word to get count for
+   * @returns {number} The lookup count (0 if never looked up)
+   */
+  getLookupCount(word) {
+    if (!word || typeof word !== 'string') {
+      return 0;
+    }
+    
+    const normalizedWord = word.trim().toLowerCase();
+    const stats = this.lookupStatistics.get(normalizedWord);
+    return stats ? stats.count : 0;
   }
 
   /**

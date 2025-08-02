@@ -1,13 +1,20 @@
 const VocabularyList = require('../../src/services/vocabulary-list');
 const DictionaryService = require('../../src/services/dictionary-service');
+const StorageManager = require('../../src/services/storage');
 const dictionaryData = require('../../src/data/dictionary.json');
 
 describe('VocabularyList', () => {
   let list;
   let dictionary;
+  let storageManager;
 
-  beforeEach(() => {
-    dictionary = new DictionaryService(dictionaryData);
+  beforeEach(async () => {
+    // Clear storage before each test
+    await browser.storage.local.clear();
+    
+    storageManager = StorageManager;
+    dictionary = new DictionaryService(dictionaryData, storageManager);
+    await dictionary.loadLookupStatistics();
     list = new VocabularyList('Test List', dictionary);
   });
 
@@ -32,8 +39,8 @@ describe('VocabularyList', () => {
   });
 
   describe('addWord', () => {
-    test('should add word that exists in dictionary', () => {
-      const entry = list.addWord('hello');
+    test('should add word that exists in dictionary', async () => {
+      const entry = await list.addWord('hello');
 
       expect(entry).toBeDefined();
       expect(entry.word).toBe('hello');
@@ -47,22 +54,22 @@ describe('VocabularyList', () => {
       expect(list.words.hello).toBe(entry);
     });
 
-    test('should throw error for word not in dictionary', () => {
-      expect(() => list.addWord('nonexistentword')).toThrow('Word not found in dictionary');
+    test('should throw error for word not in dictionary', async () => {
+      await expect(list.addWord('nonexistentword')).rejects.toThrow('Word not found in dictionary');
     });
 
-    test('should not add duplicate word', () => {
-      list.addWord('hello');
-      expect(() => list.addWord('hello')).toThrow('Word already exists in list');
+    test('should not add duplicate word', async () => {
+      await list.addWord('hello');
+      await expect(list.addWord('hello')).rejects.toThrow('Word already exists in list');
     });
 
-    test('should handle case-insensitive duplicate detection', () => {
-      list.addWord('hello');
-      expect(() => list.addWord('HELLO')).toThrow('Word already exists in list');
+    test('should handle case-insensitive duplicate detection', async () => {
+      await list.addWord('hello');
+      await expect(list.addWord('HELLO')).rejects.toThrow('Word already exists in list');
     });
 
-    test('should accept optional metadata', () => {
-      const entry = list.addWord('hello', {
+    test('should accept optional metadata', async () => {
+      const entry = await list.addWord('hello', {
         difficulty: 'hard',
         customNotes: 'Common greeting'
       });
@@ -238,6 +245,21 @@ describe('VocabularyList', () => {
       expect(sorted[0].difficulty).toBe('easy');
       expect(sorted[1].difficulty).toBe('medium');
       expect(sorted[2].difficulty).toBe('hard');
+    });
+
+    test('should sort by lookup count', async () => {
+      // Set up lookup counts in dictionary
+      await dictionary.lookup('zealous'); // 1 lookup
+      await dictionary.lookup('aesthetic'); // 1 lookup  
+      await dictionary.lookup('aesthetic'); // 2 lookups
+      await dictionary.lookup('aesthetic'); // 3 lookups
+      await dictionary.lookup('brevity'); // 1 lookup
+      await dictionary.lookup('brevity'); // 2 lookups
+
+      const sorted = list.sortBy('lookupCount', 'desc');
+      expect(sorted[0].word).toBe('aesthetic'); // 3 lookups
+      expect(sorted[1].word).toBe('brevity'); // 2 lookups  
+      expect(sorted[2].word).toBe('zealous'); // 1 lookup
     });
   });
 

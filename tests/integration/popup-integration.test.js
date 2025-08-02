@@ -306,6 +306,229 @@ describe('Popup Integration Tests', () => {
     });
   });
 
+  describe('Lists Tab - Sorting and Filtering', () => {
+    beforeEach(async () => {
+      // Set up test data with multiple lists and words
+      await browser.storage.local.set({
+        vocab_lists: [{
+          id: 'test-list-1',
+          name: 'Test List',
+          created: new Date().toISOString(),
+          words: {
+            hello: {
+              word: 'hello',
+              dateAdded: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+              difficulty: 'easy',
+              lastReviewed: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+            },
+            eloquent: {
+              word: 'eloquent',
+              dateAdded: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+              difficulty: 'medium',
+              lastReviewed: null
+            },
+            serendipity: {
+              word: 'serendipity',
+              dateAdded: new Date().toISOString(), // today
+              difficulty: 'hard',
+              lastReviewed: new Date(Date.now() - 3 * 86400000).toISOString() // 3 days ago
+            },
+            aesthetic: {
+              word: 'aesthetic',
+              dateAdded: new Date(Date.now() - 3 * 86400000).toISOString(), // 3 days ago
+              difficulty: 'easy',
+              lastReviewed: null
+            }
+          }
+        }]
+      });
+    });
+
+    test('should display list and select it', async () => {
+      // Switch to lists tab
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      // Wait for lists to load
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      // Click on the list to select it
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      // Wait for words to load
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Verify all words are displayed initially
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems.length).toBe(4);
+    });
+
+    test('should sort words alphabetically', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Change sort to alphabetical
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'alphabetical';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check order
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems[0].textContent).toBe('aesthetic');
+      expect(wordItems[1].textContent).toBe('eloquent');
+      expect(wordItems[2].textContent).toBe('hello');
+      expect(wordItems[3].textContent).toBe('serendipity');
+    });
+
+    test('should sort words by date added', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Change sort to date added
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'date-added';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check order (newest first)
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems[0].textContent).toBe('serendipity'); // today
+      expect(wordItems[1].textContent).toBe('eloquent'); // 1 day ago
+      expect(wordItems[2].textContent).toBe('hello'); // 2 days ago
+      expect(wordItems[3].textContent).toBe('aesthetic'); // 3 days ago
+    });
+
+    test('should filter words by difficulty', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Filter by easy difficulty
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check only easy words are shown
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems.length).toBe(2);
+      expect(wordItems[0].textContent).toBe('hello');
+      expect(wordItems[1].textContent).toBe('aesthetic');
+
+      // Change filter to medium
+      filterSelect.value = 'medium';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const mediumWords = document.querySelectorAll('.word-list-word');
+      expect(mediumWords.length).toBe(1);
+      expect(mediumWords[0].textContent).toBe('eloquent');
+
+      // Reset to all
+      filterSelect.value = 'all';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const allWords = document.querySelectorAll('.word-list-word');
+      expect(allWords.length).toBe(4);
+    });
+
+    test('should apply both sorting and filtering together', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Filter by easy difficulty
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      // Sort alphabetically
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'alphabetical';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check filtered and sorted results
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems.length).toBe(2); // Only easy words
+      expect(wordItems[0].textContent).toBe('aesthetic'); // First alphabetically
+      expect(wordItems[1].textContent).toBe('hello'); // Second alphabetically
+    });
+  });
+
   describe('Settings management', () => {
     test('should change theme', async () => {
       // Switch to settings tab
