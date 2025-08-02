@@ -171,26 +171,42 @@ Throughout development, general feedback and insights will be documented in:
 - [ ] Edit/delete word functionality
 - [ ] Learning tab implementation (placeholder created)
 
-### Day 5: Extension Popup UI - Part 2 & Learning Mode (6 hours)
+### Day 5: Extension Popup UI - Part 2 & Learning Mode (6 hours) ⚠️ PARTIALLY COMPLETED
 
-#### 5.1 Lists Tab - Advanced Features (2 hours)
-- [ ] Implement sorting (alphabetical, date, lookups) - *Deferred from Day 4*
-- [ ] Add filtering by difficulty - *Deferred from Day 4*
-- [ ] Create word detail view - *Deferred from Day 4*
-- [ ] Add edit/delete word functionality - *Deferred from Day 4*
+#### 5.1 Lists Tab - Advanced Features (2 hours) ✅ COMPLETED
+- [x] Implement sorting (alphabetical, date, lookups) - *Deferred from Day 4*
+  - [x] 6 sort options: Recent, Alphabetical, Date Added, Last Reviewed, Difficulty, Lookup Count
+  - [x] Dynamic sort indicators with descriptive labels
+  - [x] Sort-specific information display (lookup counts, dates, difficulty badges)
+- [x] Add filtering by difficulty - *Deferred from Day 4*
+  - [x] 4 filter options: All, Easy, Medium, Hard
+  - [x] Real-time filtering with visual feedback
+  - [x] Filter status indicators and result counts
+- [x] Enhanced UI/UX features - *Beyond original scope*
+  - [x] Status section with sort/filter indicators
+  - [x] Result count display
+  - [x] Comprehensive integration tests (25+ tests)
+- [ ] Create word detail view - *Still deferred*
+- [ ] Add edit/delete word functionality - *Still deferred*
 
-#### 5.2 Learning Mode - Spaced Repetition (2 hours)
-- [ ] Write tests for SpacedRepetition class
-- [ ] Implement spaced repetition algorithm
-- [ ] Create review queue logic
-- [ ] Test interval calculations
+#### 5.2 Learning Mode - Spaced Repetition (2 hours) ❌ INCOMPLETE
+- [ ] Write tests for SpacedRepetition class - *NOT DONE*
+- [x] Implement spaced repetition algorithm - *Service class exists but untested*
+- [x] Create review queue logic - *Basic implementation exists*
+- [ ] Test interval calculations - *NOT DONE*
 
-#### 5.3 Learning Mode - UI (2 hours)
+#### 5.3 Learning Mode - UI (2 hours) ❌ NOT STARTED
 - [ ] Create flashcard component
 - [ ] Implement flip animation
 - [ ] Add review action buttons
 - [ ] Create progress tracking UI
 - [ ] Test review session flow
+
+#### 5.4 Status Summary
+**Completed**: Lists Tab advanced features (sorting/filtering) with comprehensive testing
+**Incomplete**: SpacedRepetition service exists but has no tests (violates TDD principles)
+**Not Started**: Learning Mode UI and flashcard system
+**Overall Progress**: ~33% of Day 5 tasks completed (only 5.1 fully done)
 
 ### Day 6: Content Script and Mobile Optimization (5 hours)
 
