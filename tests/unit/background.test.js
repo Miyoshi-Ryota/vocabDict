@@ -86,7 +86,7 @@ describe('Background Message Handler', () => {
       // Verify word was added
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
-      const wordData = list.getWord('hello');
+      const wordData = await list.getWord('hello');
       expect(wordData).toBeDefined();
       expect(wordData.word).toBe('hello');
     });
@@ -229,7 +229,7 @@ describe('Background Message Handler', () => {
       // Verify update
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
-      const wordData = list.getWord('hello');
+      const wordData = await list.getWord('hello');
       expect(wordData.difficulty).toBe('hard');
       expect(wordData.customNotes).toBe('Common greeting');
     });
@@ -353,7 +353,7 @@ describe('Background Message Handler', () => {
       // Verify review was recorded
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
-      const wordData = list.getWord('hello');
+      const wordData = await list.getWord('hello');
 
       expect(wordData.lastReviewed).toBeDefined();
       expect(wordData.reviewHistory).toHaveLength(1);
@@ -395,7 +395,7 @@ describe('Background Message Handler', () => {
       // Check that interval was reset
       const updatedLists = await storage.get('vocab_lists');
       const list = VocabularyList.fromJSON(updatedLists[0], dictionary);
-      const wordData = list.getWord('hello');
+      const wordData = await list.getWord('hello');
 
       const nextReview = new Date(wordData.nextReview);
       const dayAfter = new Date(Date.now() + 2 * 86400000);
