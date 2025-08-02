@@ -35,7 +35,6 @@ describe('Popup Integration Tests', () => {
     document.dispatchEvent(event);
   });
 
-
   describe('Search functionality', () => {
     test('should search for a word and display results', async () => {
       const searchInput = document.querySelector('.search-input');
@@ -342,22 +341,22 @@ describe('Popup Integration Tests', () => {
       // Reset filter and sort to defaults to prevent test interference
       const filterSelect = document.getElementById('filter-select');
       const sortSelect = document.getElementById('sort-select');
-      
+
       if (filterSelect) {
         filterSelect.value = 'all';
         filterSelect.dispatchEvent(new Event('change'));
-        
+
         // Wait for filter to be applied
         await waitFor(() => {
           const wordItems = document.querySelectorAll('.word-list-item');
           return wordItems.length === 4; // All words should be visible
         });
       }
-      
+
       if (sortSelect) {
         sortSelect.value = 'recent';
         sortSelect.dispatchEvent(new Event('change'));
-        
+
         // Wait for sort to be applied
         await waitFor(() => {
           const firstWord = document.querySelector('.word-list-word');
@@ -365,7 +364,6 @@ describe('Popup Integration Tests', () => {
         });
       }
     });
-
 
     test('should display list and select it', async () => {
       // Switch to lists tab
@@ -588,28 +586,27 @@ describe('Popup Integration Tests', () => {
           }
         }]
       });
-      
+
       // Create lookup statistics by performing actual lookups
       // This simulates real user behavior instead of artificially setting storage
-      
+
       // aesthetic: 1 lookup
       await browser.runtime.sendMessage({ type: 'lookup_word', word: 'aesthetic' });
-      
+
       // eloquent: 2 lookups
       await browser.runtime.sendMessage({ type: 'lookup_word', word: 'eloquent' });
       await browser.runtime.sendMessage({ type: 'lookup_word', word: 'eloquent' });
-      
+
       // hello: 5 lookups
       for (let i = 0; i < 5; i++) {
         await browser.runtime.sendMessage({ type: 'lookup_word', word: 'hello' });
       }
-      
+
       // serendipity: 8 lookups
       for (let i = 0; i < 8; i++) {
         await browser.runtime.sendMessage({ type: 'lookup_word', word: 'serendipity' });
       }
     });
-
 
     test('should display lookup counts when sorting by lookup count', async () => {
       // Switch to lists tab and select list
@@ -647,7 +644,7 @@ describe('Popup Integration Tests', () => {
       // Verify sort order (ascending by default)
       const words = Array.from(document.querySelectorAll('.word-list-word')).map(el => el.textContent);
       expect(words[0]).toBe('aesthetic'); // 1 lookup
-      expect(words[1]).toBe('eloquent'); // 2 lookups  
+      expect(words[1]).toBe('eloquent'); // 2 lookups
       expect(words[2]).toBe('hello'); // 5 lookups
       expect(words[3]).toBe('serendipity'); // 8 lookups
     });
@@ -720,9 +717,8 @@ describe('Popup Integration Tests', () => {
       });
 
       // Verify sort order (easy to hard)
-      const words = Array.from(document.querySelectorAll('.word-list-word')).map(el => el.textContent);
       const difficulties = Array.from(document.querySelectorAll('.difficulty-badge')).map(el => el.textContent);
-      
+
       // Easy words first
       expect(difficulties[0]).toBe('Easy');
       expect(difficulties[1]).toBe('Easy');
@@ -760,7 +756,7 @@ describe('Popup Integration Tests', () => {
       // Check that sort indicator is displayed
       const sortIndicator = document.getElementById('sort-indicator');
       expect(sortIndicator).toBeTruthy();
-      
+
       // Default should be "Most Recent (newest first)"
       expect(sortIndicator.textContent).toContain('Most Recent');
       expect(sortIndicator.textContent).toContain('newest first');
@@ -840,7 +836,7 @@ describe('Popup Integration Tests', () => {
 
     test('should correctly apply filter changes when list is already selected', async () => {
       // This test reproduces a real user scenario where filter changes might not apply
-      
+
       // Switch to lists tab and select list
       const listsTab = document.querySelector('[data-tab="lists"]');
       listsTab.click();
