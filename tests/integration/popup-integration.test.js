@@ -424,7 +424,7 @@ describe('Popup Integration Tests', () => {
 
       // Change sort to date added
       const sortSelect = document.getElementById('sort-select');
-      sortSelect.value = 'date-added';
+      sortSelect.value = 'dateAdded';
       sortSelect.dispatchEvent(new Event('change'));
 
       // Wait for re-render

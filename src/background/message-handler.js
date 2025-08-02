@@ -5,6 +5,7 @@ const MessageTypes = {
   LOOKUP_WORD: 'lookup_word',
   ADD_TO_LIST: 'add_to_list',
   GET_LISTS: 'get_lists',
+  GET_LIST_WORDS: 'get_list_words',
   CREATE_LIST: 'create_list',
   UPDATE_WORD: 'update_word',
   GET_REVIEW_QUEUE: 'get_review_queue',
@@ -80,6 +81,46 @@ async function handleMessage(message, services) {
       case MessageTypes.GET_LISTS: {
         const lists = await storage.get('vocab_lists') || [];
         return { success: true, data: lists };
+      }
+
+      case MessageTypes.GET_LIST_WORDS: {
+        if (!message.listId) {
+          return { success: false, error: 'ListId is required' };
+        }
+
+        const lists = await storage.get('vocab_lists') || [];
+        const listData = lists.find(l => l.id === message.listId);
+
+        if (!listData) {
+          return { success: false, error: 'List not found' };
+        }
+
+        // Create VocabularyList instance
+        const list = VocabularyList.fromJSON(listData, dictionary);
+        
+        // Get all words
+        let words = await list.getWords();
+
+        // Apply filtering first
+        if (message.filterBy && message.filterBy !== 'all') {
+          words = await list.filterBy('difficulty', message.filterBy);
+        }
+
+        // Apply sorting to the filtered results by creating a temporary list
+        if (message.sortBy && words.length > 0) {
+          const sortOrder = message.sortOrder || 'asc';
+          
+          // Create a temporary list with only the filtered words
+          const tempList = new VocabularyList('temp', dictionary);
+          words.forEach(word => {
+            tempList.words[word.word] = word;
+          });
+          
+          // Sort using the temporary list
+          words = await tempList.sortBy(message.sortBy, sortOrder);
+        }
+
+        return { success: true, data: words };
       }
 
       case MessageTypes.CREATE_LIST: {

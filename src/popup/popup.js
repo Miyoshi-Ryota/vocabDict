@@ -332,6 +332,9 @@ const SearchTab = {
 // Lists Tab
 const ListsTab = {
   currentListId: null,
+  currentList: null,
+  currentSort: 'recent',
+  currentFilter: 'all',
 
   init() {
     this.loadLists();
@@ -398,6 +401,7 @@ const ListsTab = {
       if (response.success) {
         const list = response.data.find(l => l.id === listId);
         if (list) {
+          this.currentList = list;
           this.displayListWords(list);
         }
       }
@@ -406,34 +410,68 @@ const ListsTab = {
     }
   },
 
-  displayListWords(list) {
-    const container = document.querySelector('.words-in-list');
-    const words = Object.values(list.words);
-
-    if (words.length === 0) {
-      container.innerHTML = '<p class="text-center">No words in this list</p>';
-      return;
+  refreshWordsList() {
+    if (this.currentList) {
+      this.displayListWords(this.currentList);
     }
+  },
 
-    container.innerHTML = `
-      <h3 class="section-title">Words in "${list.name}"</h3>
-      ${words.map(word => `
-        <div class="word-list-item">
-          <div class="difficulty-indicator difficulty-${word.difficulty || 'medium'}"></div>
-          <div class="word-list-text">
-            <div class="word-list-word">${word.word}</div>
-            <div class="word-list-status">
-              ${word.lastReviewed
-                ? `Last reviewed: ${this.formatDate(word.lastReviewed)}`
-                : 'Not reviewed yet'}
+  async displayListWords(list) {
+    const container = document.querySelector('.words-in-list');
+    
+    try {
+      // Get sorted and filtered words from background
+      const sortBy = this.currentSort === 'recent' ? 'dateAdded' : this.currentSort;
+      let sortOrder = 'asc';
+      
+      // Use desc order for date-based sorting to show newest first
+      if (sortBy === 'dateAdded' || sortBy === 'lastReviewed') {
+        sortOrder = 'desc';
+      }
+      
+      const response = await browser.runtime.sendMessage({
+        type: 'get_list_words',
+        listId: list.id,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+        filterBy: this.currentFilter
+      });
+
+      if (!response.success) {
+        container.innerHTML = '<p class="text-center">Error loading words</p>';
+        return;
+      }
+
+      const words = response.data || [];
+
+      if (words.length === 0) {
+        container.innerHTML = '<p class="text-center">No words in this list</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <h3 class="section-title">Words in "${list.name}"</h3>
+        ${words.map(word => `
+          <div class="word-list-item">
+            <div class="difficulty-indicator difficulty-${word.difficulty || 'medium'}"></div>
+            <div class="word-list-text">
+              <div class="word-list-word">${word.word}</div>
+              <div class="word-list-status">
+                ${word.lastReviewed
+                  ? `Last reviewed: ${this.formatDate(word.lastReviewed)}`
+                  : 'Not reviewed yet'}
+              </div>
+            </div>
+            <div class="word-actions">
+              <button class="word-action-btn" title="Edit notes">📝</button>
             </div>
           </div>
-          <div class="word-actions">
-            <button class="word-action-btn" title="Edit notes">📝</button>
-          </div>
-        </div>
-      `).join('')}
-    `;
+        `).join('')}
+      `;
+    } catch (error) {
+      console.error('Error displaying words:', error);
+      container.innerHTML = '<p class="text-center">Error loading words</p>';
+    }
   },
 
   setupListControls() {
@@ -466,7 +504,23 @@ const ListsTab = {
       });
     }
 
-    // Sort and filter controls would be implemented here
+    // Sort and filter controls
+    const sortSelect = document.getElementById('sort-select');
+    const filterSelect = document.getElementById('filter-select');
+
+    if (sortSelect) {
+      sortSelect.addEventListener('change', (e) => {
+        this.currentSort = e.target.value;
+        this.refreshWordsList();
+      });
+    }
+
+    if (filterSelect) {
+      filterSelect.addEventListener('change', (e) => {
+        this.currentFilter = e.target.value;
+        this.refreshWordsList();
+      });
+    }
   },
 
   showNewListDialog() {
