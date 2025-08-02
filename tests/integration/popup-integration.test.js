@@ -35,13 +35,6 @@ describe('Popup Integration Tests', () => {
     document.dispatchEvent(event);
   });
 
-  afterEach(() => {
-    document.body.innerHTML = '';
-    document.head.innerHTML = '';
-    // Clear module cache for popup.js so it can be reloaded fresh
-    delete require.cache[require.resolve('../../src/popup/popup.js')];
-  });
-
   describe('Search functionality', () => {
     test('should search for a word and display results', async () => {
       const searchInput = document.querySelector('.search-input');
@@ -303,6 +296,584 @@ describe('Popup Integration Tests', () => {
       // Verify success message
       expect(successToast).toBeTruthy();
       expect(successToast.textContent).toContain('Added "hello" to My Words');
+    });
+  });
+
+  describe('Lists Tab - Sorting and Filtering', () => {
+    beforeEach(async () => {
+      // Set up test data with multiple lists and words
+      await browser.storage.local.set({
+        vocab_lists: [{
+          id: 'test-list-1',
+          name: 'Test List',
+          created: new Date().toISOString(),
+          words: {
+            hello: {
+              word: 'hello',
+              dateAdded: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+              difficulty: 'easy',
+              lastReviewed: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+            },
+            eloquent: {
+              word: 'eloquent',
+              dateAdded: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+              difficulty: 'medium',
+              lastReviewed: null
+            },
+            serendipity: {
+              word: 'serendipity',
+              dateAdded: new Date().toISOString(), // today
+              difficulty: 'hard',
+              lastReviewed: new Date(Date.now() - 3 * 86400000).toISOString() // 3 days ago
+            },
+            aesthetic: {
+              word: 'aesthetic',
+              dateAdded: new Date(Date.now() - 3 * 86400000).toISOString(), // 3 days ago
+              difficulty: 'easy',
+              lastReviewed: null
+            }
+          }
+        }]
+      });
+    });
+
+    afterEach(async () => {
+      // Reset filter and sort to defaults to prevent test interference
+      const filterSelect = document.getElementById('filter-select');
+      const sortSelect = document.getElementById('sort-select');
+
+      if (filterSelect) {
+        filterSelect.value = 'all';
+        filterSelect.dispatchEvent(new Event('change'));
+
+        // Wait for filter to be applied
+        await waitFor(() => {
+          const wordItems = document.querySelectorAll('.word-list-item');
+          return wordItems.length === 4; // All words should be visible
+        });
+      }
+
+      if (sortSelect) {
+        sortSelect.value = 'recent';
+        sortSelect.dispatchEvent(new Event('change'));
+
+        // Wait for sort to be applied
+        await waitFor(() => {
+          const firstWord = document.querySelector('.word-list-word');
+          return firstWord && firstWord.textContent === 'serendipity'; // Most recent word first
+        });
+      }
+    });
+
+    test('should display list and select it', async () => {
+      // Switch to lists tab
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      // Wait for lists to load
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      // Click on the list to select it
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      // Wait for words to load
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Verify all words are displayed initially
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems.length).toBe(4);
+    });
+
+    test('should sort words alphabetically', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Change sort to alphabetical
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'alphabetical';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check order
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems[0].textContent).toBe('aesthetic');
+      expect(wordItems[1].textContent).toBe('eloquent');
+      expect(wordItems[2].textContent).toBe('hello');
+      expect(wordItems[3].textContent).toBe('serendipity');
+    });
+
+    test('should sort words by date added', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Change sort to date added
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'dateAdded';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check order (newest first)
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems[0].textContent).toBe('serendipity'); // today
+      expect(wordItems[1].textContent).toBe('eloquent'); // 1 day ago
+      expect(wordItems[2].textContent).toBe('hello'); // 2 days ago
+      expect(wordItems[3].textContent).toBe('aesthetic'); // 3 days ago
+    });
+
+    test('should filter words by difficulty', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Filter by easy difficulty
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check only easy words are shown
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems.length).toBe(2);
+      expect(wordItems[0].textContent).toBe('hello');
+      expect(wordItems[1].textContent).toBe('aesthetic');
+
+      // Change filter to medium
+      filterSelect.value = 'medium';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const mediumWords = document.querySelectorAll('.word-list-word');
+      expect(mediumWords.length).toBe(1);
+      expect(mediumWords[0].textContent).toBe('eloquent');
+
+      // Reset to all
+      filterSelect.value = 'all';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const allWords = document.querySelectorAll('.word-list-word');
+      expect(allWords.length).toBe(4);
+    });
+
+    test('should apply both sorting and filtering together', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Filter by easy difficulty
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      // Sort alphabetically
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'alphabetical';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      // Wait for re-render
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check filtered and sorted results
+      const wordItems = document.querySelectorAll('.word-list-word');
+      expect(wordItems.length).toBe(2); // Only easy words
+      expect(wordItems[0].textContent).toBe('aesthetic'); // First alphabetically
+      expect(wordItems[1].textContent).toBe('hello'); // Second alphabetically
+    });
+  });
+
+  describe('Enhanced UI/UX for Sorting and Filtering', () => {
+    beforeEach(async () => {
+      // Set up test vocabulary list
+      await browser.storage.local.set({
+        vocab_lists: [{
+          id: 'test-list-1',
+          name: 'Test List',
+          created: new Date().toISOString(),
+          words: {
+            hello: {
+              word: 'hello',
+              dateAdded: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+              difficulty: 'easy',
+              lastReviewed: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+            },
+            eloquent: {
+              word: 'eloquent',
+              dateAdded: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+              difficulty: 'medium',
+              lastReviewed: null
+            },
+            serendipity: {
+              word: 'serendipity',
+              dateAdded: new Date().toISOString(), // today
+              difficulty: 'hard',
+              lastReviewed: new Date(Date.now() - 3 * 86400000).toISOString() // 3 days ago
+            },
+            aesthetic: {
+              word: 'aesthetic',
+              dateAdded: new Date(Date.now() - 3 * 86400000).toISOString(), // 3 days ago
+              difficulty: 'easy',
+              lastReviewed: null
+            }
+          }
+        }]
+      });
+
+      // Create lookup statistics by performing actual lookups
+      // This simulates real user behavior instead of artificially setting storage
+
+      // aesthetic: 1 lookup
+      await browser.runtime.sendMessage({ type: 'lookup_word', word: 'aesthetic' });
+
+      // eloquent: 2 lookups
+      await browser.runtime.sendMessage({ type: 'lookup_word', word: 'eloquent' });
+      await browser.runtime.sendMessage({ type: 'lookup_word', word: 'eloquent' });
+
+      // hello: 5 lookups
+      for (let i = 0; i < 5; i++) {
+        await browser.runtime.sendMessage({ type: 'lookup_word', word: 'hello' });
+      }
+
+      // serendipity: 8 lookups
+      for (let i = 0; i < 8; i++) {
+        await browser.runtime.sendMessage({ type: 'lookup_word', word: 'serendipity' });
+      }
+    });
+
+    test('should display lookup counts when sorting by lookup count', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Sort by lookup count
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'lookupCount';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check that lookup counts are displayed
+      const wordItems = document.querySelectorAll('.word-list-item');
+      wordItems.forEach(item => {
+        const lookupCount = item.querySelector('.lookup-count');
+        expect(lookupCount).toBeTruthy();
+        expect(lookupCount.textContent).toMatch(/\d+ lookups?/);
+      });
+
+      // Verify sort order (ascending by default)
+      const words = Array.from(document.querySelectorAll('.word-list-word')).map(el => el.textContent);
+      expect(words[0]).toBe('aesthetic'); // 1 lookup
+      expect(words[1]).toBe('eloquent'); // 2 lookups
+      expect(words[2]).toBe('hello'); // 5 lookups
+      expect(words[3]).toBe('serendipity'); // 8 lookups
+    });
+
+    test('should display date information when sorting by date', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Sort by date added
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'dateAdded';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check that date information is displayed
+      const wordItems = document.querySelectorAll('.word-list-item');
+      wordItems.forEach(item => {
+        const dateInfo = item.querySelector('.date-added');
+        expect(dateInfo).toBeTruthy();
+        expect(dateInfo.textContent).toMatch(/Added: (today|yesterday|\d+ days ago)/);
+      });
+    });
+
+    test('should display difficulty indicators clearly when sorting by difficulty', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Sort by difficulty
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'difficulty';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check that difficulty is prominently displayed
+      const wordItems = document.querySelectorAll('.word-list-item');
+      wordItems.forEach(item => {
+        const difficultyBadge = item.querySelector('.difficulty-badge');
+        expect(difficultyBadge).toBeTruthy();
+        expect(difficultyBadge.textContent).toMatch(/^(Easy|Medium|Hard)$/);
+      });
+
+      // Verify sort order (easy to hard)
+      const difficulties = Array.from(document.querySelectorAll('.difficulty-badge')).map(el => el.textContent);
+
+      // Easy words first
+      expect(difficulties[0]).toBe('Easy');
+      expect(difficulties[1]).toBe('Easy');
+      // Then medium
+      expect(difficulties[2]).toBe('Medium');
+      // Then hard
+      expect(difficulties[3]).toBe('Hard');
+    });
+
+    test('should show sort direction indicator', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Reset sort to default (recent)
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.value = 'recent';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check that sort indicator is displayed
+      const sortIndicator = document.getElementById('sort-indicator');
+      expect(sortIndicator).toBeTruthy();
+
+      // Default should be "Most Recent (newest first)"
+      expect(sortIndicator.textContent).toContain('Most Recent');
+      expect(sortIndicator.textContent).toContain('newest first');
+
+      // Change to alphabetical
+      sortSelect.value = 'alphabetical';
+      sortSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(sortIndicator.textContent).toContain('Alphabetical');
+      expect(sortIndicator.textContent).toContain('A-Z');
+    });
+
+    test('should show active filter status and result count', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Check initial result count
+      const resultCount = document.getElementById('result-count');
+      expect(resultCount).toBeTruthy();
+      expect(resultCount.textContent).toBe('4 words');
+
+      // Apply filter
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check filter indicator
+      const filterIndicator = document.getElementById('filter-indicator');
+      expect(filterIndicator).toBeTruthy();
+      expect(filterIndicator.textContent).toContain('Easy difficulty only');
+
+      // Check updated result count
+      expect(resultCount.textContent).toBe('2 words');
+    });
+
+    test('should show status section when list is selected', async () => {
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Check that status section is visible
+      const listStatus = document.getElementById('list-status');
+      expect(listStatus).toBeTruthy();
+      expect(listStatus.style.display).not.toBe('none');
+    });
+
+    test('should correctly apply filter changes when list is already selected', async () => {
+      // This test reproduces a real user scenario where filter changes might not apply
+
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Apply easy filter
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify filter was applied
+      let wordItems = document.querySelectorAll('.word-list-item');
+      expect(wordItems.length).toBe(2);
+
+      // Now change filter back to all
+      filterSelect.value = 'all';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify all words are shown again
+      wordItems = document.querySelectorAll('.word-list-item');
+      expect(wordItems.length).toBe(4);
     });
   });
 

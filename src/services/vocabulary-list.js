@@ -18,13 +18,13 @@ class VocabularyList {
    * Add a word to the vocabulary list
    * @param {string} wordText - The word to add
    * @param {Object} metadata - Optional metadata (difficulty, customNotes)
-   * @returns {Object} The word entry with user data
+   * @returns {Promise<Object>} The word entry with user data
    */
-  addWord(wordText, metadata = {}) {
+  async addWord(wordText, metadata = {}) {
     const normalizedWord = wordText.trim().toLowerCase();
 
     // Check if word exists in dictionary
-    const dictionaryEntry = this.dictionary.lookup(wordText);
+    const dictionaryEntry = this.dictionary.getDictionaryData(wordText);
     if (!dictionaryEntry) {
       throw new Error('Word not found in dictionary');
     }
@@ -93,9 +93,9 @@ class VocabularyList {
   /**
    * Get a word with full data (dictionary + user data)
    * @param {string} wordText - The word to get
-   * @returns {Object|null} The complete word data or null
+   * @returns {Promise<Object|null>} The complete word data or null
    */
-  getWord(wordText) {
+  async getWord(wordText) {
     const normalizedWord = wordText.trim().toLowerCase();
 
     if (!this.words[normalizedWord]) {
@@ -103,7 +103,7 @@ class VocabularyList {
     }
 
     // Get dictionary data
-    const dictionaryData = this.dictionary.lookup(wordText);
+    const dictionaryData = this.dictionary.getDictionaryData(wordText);
 
     // Merge dictionary data with user data
     return {
@@ -114,26 +114,28 @@ class VocabularyList {
 
   /**
    * Get all words with full data
-   * @returns {Array} Array of complete word data
+   * @returns {Promise<Array>} Array of complete word data
    */
-  getWords() {
-    return Object.values(this.words).map(userWordData => {
-      const dictionaryData = this.dictionary.lookup(userWordData.word);
-      return {
+  async getWords() {
+    const results = [];
+    for (const userWordData of Object.values(this.words)) {
+      const dictionaryData = this.dictionary.getDictionaryData(userWordData.word);
+      results.push({
         ...dictionaryData,
         ...userWordData
-      };
-    });
+      });
+    }
+    return results;
   }
 
   /**
    * Sort words by various criteria
-   * @param {string} criteria - Sort criteria (alphabetical, dateAdded, lastReviewed, difficulty)
+   * @param {string} criteria - Sort criteria (alphabetical, dateAdded, lastReviewed, difficulty, lookupCount)
    * @param {string} order - Sort order (asc, desc)
-   * @returns {Array} Sorted array of words
+   * @returns {Promise<Array>} Sorted array of words
    */
-  sortBy(criteria, order = 'asc') {
-    const words = this.getWords();
+  async sortBy(criteria, order = 'asc') {
+    const words = await this.getWords();
 
     const sortFunctions = {
       alphabetical: (a, b) => a.word.localeCompare(b.word),
@@ -148,6 +150,11 @@ class VocabularyList {
       difficulty: (a, b) => {
         const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
         return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+      },
+      lookupCount: (a, b) => {
+        const countA = this.dictionary.getLookupCount(a.word);
+        const countB = this.dictionary.getLookupCount(b.word);
+        return countA - countB;
       }
     };
 
@@ -178,10 +185,10 @@ class VocabularyList {
    * Filter words by various criteria
    * @param {string} filterType - Filter type (difficulty, reviewStatus)
    * @param {string} filterValue - Filter value
-   * @returns {Array} Filtered array of words
+   * @returns {Promise<Array>} Filtered array of words
    */
-  filterBy(filterType, filterValue) {
-    const words = this.getWords();
+  async filterBy(filterType, filterValue) {
+    const words = await this.getWords();
 
     switch (filterType) {
       case 'difficulty':
@@ -211,11 +218,11 @@ class VocabularyList {
   /**
    * Search for words in the list
    * @param {string} query - Search query
-   * @returns {Array} Array of matching words
+   * @returns {Promise<Array>} Array of matching words
    */
-  search(query) {
+  async search(query) {
     const normalizedQuery = query.toLowerCase();
-    const words = this.getWords();
+    const words = await this.getWords();
 
     return words.filter(word => {
       // Search in word text
@@ -242,10 +249,10 @@ class VocabularyList {
 
   /**
    * Get statistics about the vocabulary list
-   * @returns {Object} Statistics object
+   * @returns {Promise<Object>} Statistics object
    */
-  getStatistics() {
-    const words = this.getWords();
+  async getStatistics() {
+    const words = await this.getWords();
     const now = new Date();
 
     const stats = {

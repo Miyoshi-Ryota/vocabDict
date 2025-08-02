@@ -156,11 +156,19 @@ describe('Popup UI Tests', () => {
       // Sort select
       expect(sortSelect).toBeTruthy();
       expect(sortSelect.classList.contains('control-select')).toBe(true);
-      expect(sortSelect.options).toHaveLength(3);
+      expect(sortSelect.options).toHaveLength(6);
       expect(sortSelect.options[0].value).toBe('recent');
       expect(sortSelect.options[0].text).toBe('Most Recent');
       expect(sortSelect.options[1].value).toBe('alphabetical');
-      expect(sortSelect.options[2].value).toBe('word-count');
+      expect(sortSelect.options[1].text).toBe('Alphabetical');
+      expect(sortSelect.options[2].value).toBe('dateAdded');
+      expect(sortSelect.options[2].text).toBe('Date Added');
+      expect(sortSelect.options[3].value).toBe('lastReviewed');
+      expect(sortSelect.options[3].text).toBe('Last Reviewed');
+      expect(sortSelect.options[4].value).toBe('difficulty');
+      expect(sortSelect.options[4].text).toBe('Difficulty');
+      expect(sortSelect.options[5].value).toBe('lookupCount');
+      expect(sortSelect.options[5].text).toBe('Lookup Count');
 
       // Filter select
       expect(filterSelect).toBeTruthy();

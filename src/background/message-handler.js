@@ -5,6 +5,7 @@ const MessageTypes = {
   LOOKUP_WORD: 'lookup_word',
   ADD_TO_LIST: 'add_to_list',
   GET_LISTS: 'get_lists',
+  GET_LIST_WORDS: 'get_list_words',
   CREATE_LIST: 'create_list',
   UPDATE_WORD: 'update_word',
   GET_REVIEW_QUEUE: 'get_review_queue',
@@ -27,7 +28,7 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Word parameter is required' };
         }
 
-        const result = dictionary.lookup(message.word);
+        const result = await dictionary.lookup(message.word);
         if (result) {
           return { success: true, data: result };
         }
@@ -51,7 +52,7 @@ async function handleMessage(message, services) {
         }
 
         // Check if word exists in dictionary
-        const wordData = dictionary.lookup(message.word);
+        const wordData = await dictionary.lookup(message.word);
         if (!wordData) {
           return { success: false, error: 'Word not found in dictionary' };
         }
@@ -67,7 +68,7 @@ async function handleMessage(message, services) {
         const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
 
         try {
-          const wordEntry = list.addWord(message.word, message.metadata);
+          const wordEntry = await list.addWord(message.word, message.metadata);
           lists[listIndex] = list.toJSON();
           await storage.set('vocab_lists', lists);
 
@@ -80,6 +81,52 @@ async function handleMessage(message, services) {
       case MessageTypes.GET_LISTS: {
         const lists = await storage.get('vocab_lists') || [];
         return { success: true, data: lists };
+      }
+
+      case MessageTypes.GET_LIST_WORDS: {
+        if (!message.listId) {
+          return { success: false, error: 'ListId is required' };
+        }
+
+        const lists = await storage.get('vocab_lists') || [];
+        const listData = lists.find(l => l.id === message.listId);
+
+        if (!listData) {
+          return { success: false, error: 'List not found' };
+        }
+
+        // Create VocabularyList instance
+        const list = VocabularyList.fromJSON(listData, dictionary);
+        
+        // Get all words
+        let words = await list.getWords();
+
+        // Apply filtering first
+        if (message.filterBy && message.filterBy !== 'all') {
+          words = await list.filterBy('difficulty', message.filterBy);
+        }
+
+        // Apply sorting to the filtered results by creating a temporary list
+        if (message.sortBy && words.length > 0) {
+          const sortOrder = message.sortOrder || 'asc';
+          
+          // Create a temporary list with only the filtered words
+          const tempList = new VocabularyList('temp', dictionary);
+          words.forEach(word => {
+            tempList.words[word.word] = word;
+          });
+          
+          // Sort using the temporary list
+          words = await tempList.sortBy(message.sortBy, sortOrder);
+        }
+
+        // Enhance words with lookup count data for UI display
+        const enhancedWords = words.map(word => ({
+          ...word,
+          lookupCount: dictionary.getLookupCount(word.word)
+        }));
+
+        return { success: true, data: enhancedWords };
       }
 
       case MessageTypes.CREATE_LIST: {
@@ -135,7 +182,7 @@ async function handleMessage(message, services) {
 
         for (const listData of lists) {
           const list = VocabularyList.fromJSON(listData, dictionary);
-          const words = list.getWords();
+          const words = await list.getWords();
 
           for (const word of words) {
             allWords.push({

@@ -4,7 +4,7 @@ const { MessageTypes, handleMessage } = require('./message-handler');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
-const dictionary = new DictionaryService(dictionaryData);
+const dictionary = new DictionaryService(dictionaryData, StorageManager);
 const storage = StorageManager;
 
 // Service instances to pass to message handler
@@ -14,10 +14,21 @@ const services = {
 };
 
 /**
+ * Initialize services
+ */
+async function initializeServices() {
+  await dictionary.loadLookupStatistics();
+  console.log('Dictionary lookup statistics loaded');
+}
+
+/**
  * Handle installation event
  */
 browser.runtime.onInstalled.addListener(async () => {
   console.log('VocabDict extension installed');
+
+  // Initialize services
+  await initializeServices();
 
   // Initialize default vocabulary list if none exists
   const lists = await storage.get('vocab_lists');
@@ -110,6 +121,9 @@ browser.runtime.onConnect.addListener((port) => {
     console.log('Port disconnected:', port.name);
   });
 });
+
+// Initialize services on startup
+initializeServices().catch(console.error);
 
 // Export for testing
 module.exports = {
