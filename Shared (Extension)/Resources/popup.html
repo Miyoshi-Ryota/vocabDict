@@ -116,7 +116,10 @@
                         <select id="sort-select" class="control-select">
                             <option value="recent">Most Recent</option>
                             <option value="alphabetical">Alphabetical</option>
-                            <option value="word-count">Word Count</option>
+                            <option value="dateAdded">Date Added</option>
+                            <option value="lastReviewed">Last Reviewed</option>
+                            <option value="difficulty">Difficulty</option>
+                            <option value="lookupCount">Lookup Count</option>
                         </select>
                     </div>
                     
@@ -128,6 +131,15 @@
                             <option value="medium">Medium</option>
                             <option value="hard">Hard</option>
                         </select>
+                    </div>
+                </div>
+                
+                <!-- Status and feedback section -->
+                <div class="list-status" id="list-status" style="display: none;">
+                    <div class="status-info">
+                        <span class="sort-indicator" id="sort-indicator"></span>
+                        <span class="filter-indicator" id="filter-indicator"></span>
+                        <span class="result-count" id="result-count"></span>
                     </div>
                 </div>
                 

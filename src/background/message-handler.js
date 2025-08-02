@@ -120,7 +120,13 @@ async function handleMessage(message, services) {
           words = await tempList.sortBy(message.sortBy, sortOrder);
         }
 
-        return { success: true, data: words };
+        // Enhance words with lookup count data for UI display
+        const enhancedWords = words.map(word => ({
+          ...word,
+          lookupCount: dictionary.getLookupCount(word.word)
+        }));
+
+        return { success: true, data: enhancedWords };
       }
 
       case MessageTypes.CREATE_LIST: {

@@ -10,8 +10,8 @@ describe('Background Message Handler', () => {
 
   beforeEach(async () => {
     // Use real services
-    dictionary = new DictionaryService(dictionaryData);
     storage = StorageManager;
+    dictionary = new DictionaryService(dictionaryData, storage);
 
     // Clear storage before each test
     await browser.storage.local.clear();
@@ -160,6 +160,101 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual([]);
+    });
+  });
+
+  describe('GET_LIST_WORDS message', () => {
+    test('should return words with lookup count data when sorting by lookupCount', async () => {
+      const lists = await storage.get('vocab_lists');
+      const listId = lists[0].id;
+
+      // Add some words
+      await handleMessage({
+        type: MessageTypes.ADD_TO_LIST,
+        word: 'hello',
+        listId
+      }, { dictionary, storage });
+
+      await handleMessage({
+        type: MessageTypes.ADD_TO_LIST,
+        word: 'eloquent',
+        listId
+      }, { dictionary, storage });
+
+      // Clear any existing lookup statistics first
+      await storage.set('dictionary_lookup_stats', {});
+      await dictionary.loadLookupStatistics();
+
+      // Simulate some lookups to create statistics
+      await dictionary.lookup('hello'); // This should increment count
+      await dictionary.lookup('hello'); // Count: 2
+      await dictionary.lookup('eloquent'); // Count: 1
+
+      const result = await handleMessage({
+        type: MessageTypes.GET_LIST_WORDS,
+        listId,
+        sortBy: 'lookupCount',
+        sortOrder: 'asc'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(2);
+      
+      // Should include lookup count data
+      expect(result.data[0]).toHaveProperty('lookupCount');
+      expect(result.data[1]).toHaveProperty('lookupCount');
+      
+      // Should be sorted by lookup count (ascending)
+      expect(result.data[0].word).toBe('eloquent'); // 1 lookup
+      expect(result.data[0].lookupCount).toBe(1);
+      expect(result.data[1].word).toBe('hello'); // 2 lookups  
+      expect(result.data[1].lookupCount).toBe(2);
+    });
+
+    test('should return words with enhanced status information', async () => {
+      const lists = await storage.get('vocab_lists');
+      const listId = lists[0].id;
+
+      await handleMessage({
+        type: MessageTypes.ADD_TO_LIST,
+        word: 'hello',
+        listId
+      }, { dictionary, storage });
+
+      const result = await handleMessage({
+        type: MessageTypes.GET_LIST_WORDS,
+        listId
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+      
+      const word = result.data[0];
+      // Should include all necessary data for UI display
+      expect(word).toHaveProperty('word');
+      expect(word).toHaveProperty('dateAdded');
+      expect(word).toHaveProperty('difficulty');
+      expect(word).toHaveProperty('lastReviewed');
+      expect(word).toHaveProperty('lookupCount');
+    });
+
+    test('should handle missing listId parameter', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.GET_LIST_WORDS
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('ListId is required');
+    });
+
+    test('should handle non-existent list', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.GET_LIST_WORDS,
+        listId: 'non-existent'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('List not found');
     });
   });
 

@@ -24,7 +24,7 @@ class VocabularyList {
     const normalizedWord = wordText.trim().toLowerCase();
 
     // Check if word exists in dictionary
-    const dictionaryEntry = await this.dictionary.lookup(wordText);
+    const dictionaryEntry = this.dictionary.getDictionaryData(wordText);
     if (!dictionaryEntry) {
       throw new Error('Word not found in dictionary');
     }
@@ -103,7 +103,7 @@ class VocabularyList {
     }
 
     // Get dictionary data
-    const dictionaryData = await this.dictionary.lookup(wordText);
+    const dictionaryData = this.dictionary.getDictionaryData(wordText);
 
     // Merge dictionary data with user data
     return {
@@ -119,7 +119,7 @@ class VocabularyList {
   async getWords() {
     const results = [];
     for (const userWordData of Object.values(this.words)) {
-      const dictionaryData = await this.dictionary.lookup(userWordData.word);
+      const dictionaryData = this.dictionary.getDictionaryData(userWordData.word);
       results.push({
         ...dictionaryData,
         ...userWordData

@@ -444,6 +444,9 @@ const ListsTab = {
 
       const words = response.data || [];
 
+      // Show status section
+      this.updateStatusSection(words.length);
+
       if (words.length === 0) {
         container.innerHTML = '<p class="text-center">No words in this list</p>';
         return;
@@ -451,27 +454,95 @@ const ListsTab = {
 
       container.innerHTML = `
         <h3 class="section-title">Words in "${list.name}"</h3>
-        ${words.map(word => `
-          <div class="word-list-item">
-            <div class="difficulty-indicator difficulty-${word.difficulty || 'medium'}"></div>
-            <div class="word-list-text">
-              <div class="word-list-word">${word.word}</div>
-              <div class="word-list-status">
-                ${word.lastReviewed
-                  ? `Last reviewed: ${this.formatDate(word.lastReviewed)}`
-                  : 'Not reviewed yet'}
-              </div>
-            </div>
-            <div class="word-actions">
-              <button class="word-action-btn" title="Edit notes">📝</button>
-            </div>
-          </div>
-        `).join('')}
+        ${words.map(word => this.renderWordItem(word)).join('')}
       `;
     } catch (error) {
       console.error('Error displaying words:', error);
       container.innerHTML = '<p class="text-center">Error loading words</p>';
     }
+  },
+
+  updateStatusSection(wordCount) {
+    const listStatus = document.getElementById('list-status');
+    const sortIndicator = document.getElementById('sort-indicator');
+    const filterIndicator = document.getElementById('filter-indicator');
+    const resultCount = document.getElementById('result-count');
+
+    // Show status section
+    listStatus.style.display = 'block';
+
+    // Update sort indicator
+    const sortLabels = {
+      'recent': 'Most Recent (newest first)',
+      'alphabetical': 'Alphabetical (A-Z)',
+      'dateAdded': 'Date Added (newest first)',
+      'lastReviewed': 'Last Reviewed (newest first)',
+      'difficulty': 'Difficulty (easy to hard)',
+      'lookupCount': 'Lookup Count (least to most)'
+    };
+    sortIndicator.textContent = `Sorted by: ${sortLabels[this.currentSort] || 'Most Recent'}`;
+
+    // Update filter indicator
+    if (this.currentFilter && this.currentFilter !== 'all') {
+      const filterLabels = {
+        'easy': 'Easy difficulty only',
+        'medium': 'Medium difficulty only', 
+        'hard': 'Hard difficulty only'
+      };
+      filterIndicator.textContent = `Filter: ${filterLabels[this.currentFilter]}`;
+      filterIndicator.style.display = 'inline';
+    } else {
+      filterIndicator.style.display = 'none';
+    }
+
+    // Update result count
+    resultCount.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+  },
+
+  renderWordItem(word) {
+    const sortBy = this.currentSort === 'recent' ? 'dateAdded' : this.currentSort;
+    
+    // Base word item structure
+    let wordItem = `
+      <div class="word-list-item">
+        <div class="difficulty-indicator difficulty-${word.difficulty || 'medium'}"></div>
+        <div class="word-list-text">
+          <div class="word-list-word">${word.word}</div>
+          <div class="word-list-status">
+    `;
+
+    // Add sort-specific information
+    if (sortBy === 'lookupCount') {
+      const count = word.lookupCount || 0;
+      wordItem += `
+        <span class="lookup-count">${count} lookup${count !== 1 ? 's' : ''}</span>
+      `;
+    } else if (sortBy === 'dateAdded') {
+      wordItem += `
+        <span class="date-added">Added: ${this.formatDate(word.dateAdded)}</span>
+      `;
+    } else if (sortBy === 'difficulty') {
+      const difficultyMap = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+      wordItem += `
+        <span class="difficulty-badge">${difficultyMap[word.difficulty] || 'Medium'}</span>
+      `;
+    } else {
+      // Default status
+      wordItem += word.lastReviewed
+        ? `Last reviewed: ${this.formatDate(word.lastReviewed)}`
+        : 'Not reviewed yet';
+    }
+
+    wordItem += `
+          </div>
+        </div>
+        <div class="word-actions">
+          <button class="word-action-btn" title="Edit notes">📝</button>
+        </div>
+      </div>
+    `;
+
+    return wordItem;
   },
 
   setupListControls() {

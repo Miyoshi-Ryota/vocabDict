@@ -85,6 +85,23 @@ class DictionaryService {
   }
 
   /**
+   * Get dictionary data for a word without incrementing lookup statistics
+   * Used internally for data retrieval without tracking
+   * @param {string} word - The word to look up
+   * @returns {Object|null} Word data or null if not found
+   */
+  getDictionaryData(word) {
+    if (!word || typeof word !== 'string') {
+      return null;
+    }
+    const normalizedWord = word.trim().toLowerCase();
+    if (!normalizedWord) {
+      return null;
+    }
+    return this.data[normalizedWord] || null;
+  }
+
+  /**
    * Get lookup count for a word
    * @param {string} word - The word to get count for
    * @returns {number} The lookup count (0 if never looked up)

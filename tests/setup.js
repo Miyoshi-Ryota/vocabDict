@@ -7,7 +7,7 @@ const DictionaryService = require('../src/services/dictionary-service');
 const StorageManager = require('../src/services/storage');
 const dictionaryData = require('../src/data/dictionary.json');
 
-const dictionary = new DictionaryService(dictionaryData);
+const dictionary = new DictionaryService(dictionaryData, StorageManager);
 
 // Mock browser extension APIs for testing
 global.browser = {
