@@ -27,7 +27,7 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Word parameter is required' };
         }
 
-        const result = dictionary.lookup(message.word);
+        const result = await dictionary.lookup(message.word);
         if (result) {
           return { success: true, data: result };
         }
@@ -51,7 +51,7 @@ async function handleMessage(message, services) {
         }
 
         // Check if word exists in dictionary
-        const wordData = dictionary.lookup(message.word);
+        const wordData = await dictionary.lookup(message.word);
         if (!wordData) {
           return { success: false, error: 'Word not found in dictionary' };
         }
@@ -67,7 +67,7 @@ async function handleMessage(message, services) {
         const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
 
         try {
-          const wordEntry = list.addWord(message.word, message.metadata);
+          const wordEntry = await list.addWord(message.word, message.metadata);
           lists[listIndex] = list.toJSON();
           await storage.set('vocab_lists', lists);
 
@@ -135,7 +135,7 @@ async function handleMessage(message, services) {
 
         for (const listData of lists) {
           const list = VocabularyList.fromJSON(listData, dictionary);
-          const words = list.getWords();
+          const words = await list.getWords();
 
           for (const word of words) {
             allWords.push({
