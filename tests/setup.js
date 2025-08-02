@@ -97,4 +97,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   // Clear storage
   Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
+  // Reset DictionaryService lookup statistics to prevent accumulation between tests
+  dictionary.lookupStatistics.clear();
 });

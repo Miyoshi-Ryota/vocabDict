@@ -602,6 +602,7 @@ describe('Popup Integration Tests', () => {
       }
     });
 
+
     test('should display lookup counts when sorting by lookup count', async () => {
       // Switch to lists tab and select list
       const listsTab = document.querySelector('[data-tab="lists"]');
