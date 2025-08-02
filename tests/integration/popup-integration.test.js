@@ -35,12 +35,6 @@ describe('Popup Integration Tests', () => {
     document.dispatchEvent(event);
   });
 
-  afterEach(() => {
-    document.body.innerHTML = '';
-    document.head.innerHTML = '';
-    // Clear module cache for popup.js so it can be reloaded fresh
-    delete require.cache[require.resolve('../../src/popup/popup.js')];
-  });
 
   describe('Search functionality', () => {
     test('should search for a word and display results', async () => {
@@ -344,20 +338,34 @@ describe('Popup Integration Tests', () => {
       });
     });
 
-    afterEach(() => {
-      // Reset sort and filter settings to default to prevent state pollution
-      const sortSelect = document.getElementById('sort-select');
+    afterEach(async () => {
+      // Reset filter and sort to defaults to prevent test interference
       const filterSelect = document.getElementById('filter-select');
+      const sortSelect = document.getElementById('sort-select');
+      
+      if (filterSelect) {
+        filterSelect.value = 'all';
+        filterSelect.dispatchEvent(new Event('change'));
+        
+        // Wait for filter to be applied
+        await waitFor(() => {
+          const wordItems = document.querySelectorAll('.word-list-item');
+          return wordItems.length === 4; // All words should be visible
+        });
+      }
       
       if (sortSelect) {
         sortSelect.value = 'recent';
         sortSelect.dispatchEvent(new Event('change'));
-      }
-      if (filterSelect) {
-        filterSelect.value = 'all';
-        filterSelect.dispatchEvent(new Event('change'));
+        
+        // Wait for sort to be applied
+        await waitFor(() => {
+          const firstWord = document.querySelector('.word-list-word');
+          return firstWord && firstWord.textContent === 'serendipity'; // Most recent word first
+        });
       }
     });
+
 
     test('should display list and select it', async () => {
       // Switch to lists tab
@@ -828,6 +836,48 @@ describe('Popup Integration Tests', () => {
       const listStatus = document.getElementById('list-status');
       expect(listStatus).toBeTruthy();
       expect(listStatus.style.display).not.toBe('none');
+    });
+
+    test('should correctly apply filter changes when list is already selected', async () => {
+      // This test reproduces a real user scenario where filter changes might not apply
+      
+      // Switch to lists tab and select list
+      const listsTab = document.querySelector('[data-tab="lists"]');
+      listsTab.click();
+
+      await waitFor(() => {
+        const listItems = document.querySelectorAll('.list-item');
+        return listItems.length > 0;
+      });
+
+      const listItem = document.querySelector('.list-item');
+      listItem.click();
+
+      await waitFor(() => {
+        const wordItems = document.querySelectorAll('.word-list-item');
+        return wordItems.length === 4;
+      });
+
+      // Apply easy filter
+      const filterSelect = document.getElementById('filter-select');
+      filterSelect.value = 'easy';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify filter was applied
+      let wordItems = document.querySelectorAll('.word-list-item');
+      expect(wordItems.length).toBe(2);
+
+      // Now change filter back to all
+      filterSelect.value = 'all';
+      filterSelect.dispatchEvent(new Event('change'));
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify all words are shown again
+      wordItems = document.querySelectorAll('.word-list-item');
+      expect(wordItems.length).toBe(4);
     });
   });
 
