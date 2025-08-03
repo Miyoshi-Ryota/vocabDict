@@ -1131,35 +1131,7 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
 }
 
-.session-header {
-  margin-bottom: var(--spacing-base);
-  flex-shrink: 0;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: var(--bg-primary);
-  border-radius: var(--radius-base);
-  overflow: hidden;
-  margin-bottom: var(--spacing-base);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  border-radius: var(--radius-base);
-  transition: width var(--transition-base);
-  min-width: 8px;
-}
-
-.progress-text {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-align: center;
-}
+/* Progress styles removed - replaced with minimal progress display */
 
 /* Flashcard Container */
 .flashcard-container {
@@ -1240,6 +1212,10 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   top: var(--spacing-base);
   left: var(--spacing-base);
+  right: var(--spacing-base);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .word-number {
@@ -1254,6 +1230,16 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.95rem;
   font-weight: 700;
   box-shadow: var(--shadow-sm);
+}
+
+.progress-minimal {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .word-display {

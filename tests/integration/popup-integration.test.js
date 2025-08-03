@@ -1059,8 +1059,8 @@ describe('Popup Integration Tests', () => {
       expect(['hello', 'eloquent']).toContain(frontContent.textContent);
 
       // Check progress indicator
-      const progressText = document.querySelector('.progress-text');
-      expect(progressText.textContent).toBe('1 of 2');
+      const progressText = document.querySelector('.progress-minimal');
+      expect(progressText.textContent).toBe('1/2');
     });
 
     test('should flip card on click and show definition', async () => {
@@ -1136,8 +1136,8 @@ describe('Popup Integration Tests', () => {
       expect(secondWord).not.toBe(firstWord);
 
       // Check progress updated
-      const progressText = document.querySelector('.progress-text');
-      expect(progressText.textContent).toBe('2 of 2');
+      const progressText = document.querySelector('.progress-minimal');
+      expect(progressText.textContent).toBe('2/2');
     });
 
     test('should complete session and show summary', async () => {
@@ -1157,8 +1157,8 @@ describe('Popup Integration Tests', () => {
 
       // Complete second word
       await waitFor(() => {
-        const progressText = document.querySelector('.progress-text');
-        return progressText && progressText.textContent === '2 of 2';
+        const progressText = document.querySelector('.progress-minimal');
+        return progressText && progressText.textContent === '2/2';
       });
 
       document.querySelector('#flashcard').click();

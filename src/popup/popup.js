@@ -865,7 +865,6 @@ const LearnTab = {
       };
 
       this.displayCurrentWord();
-      this.updateSessionProgress();
     } catch (error) {
       console.error('Start review session error:', error);
       NotificationManager.show('Failed to start review session', 'error');
@@ -883,19 +882,13 @@ const LearnTab = {
 
     container.innerHTML = `
       <div class="review-session">
-        <div class="session-header">
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${(this.currentWordIndex / this.sessionWords.length) * 100}%"></div>
-          </div>
-          <div class="progress-text">${this.currentWordIndex + 1} of ${this.sessionWords.length}</div>
-        </div>
-        
         <div class="flashcard-container">
           <div id="flashcard" class="flashcard ${this.isFlipped ? 'flipped' : ''}" data-word="${word.word}">
             <div class="flashcard-front">
               <div class="card-content">
                 <div class="flashcard-header">
                   <div class="word-number">${this.currentWordIndex + 1}</div>
+                  <div class="progress-minimal">${this.currentWordIndex + 1}/${this.sessionWords.length}</div>
                 </div>
                 <h2 class="word-display">${word.word}</h2>
                 ${word.pronunciation ? `<div class="front-pronunciation">${word.pronunciation}</div>` : ''}
@@ -1017,20 +1010,12 @@ const LearnTab = {
       // Move to next word
       this.currentWordIndex++;
       this.displayCurrentWord();
-      this.updateSessionProgress();
     } catch (error) {
       console.error('Process review error:', error);
       NotificationManager.show('Failed to save review result', 'error');
     }
   },
 
-  updateSessionProgress() {
-    const progressFill = document.querySelector('.progress-fill');
-    if (progressFill && this.sessionWords.length > 0) {
-      const progress = (this.currentWordIndex / this.sessionWords.length) * 100;
-      progressFill.style.width = `${progress}%`;
-    }
-  },
 
   endReviewSession() {
     if (!this.currentSession) return;
