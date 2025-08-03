@@ -7,10 +7,40 @@ const inMemoryStorage = {};
 global.browser = {
   storage: {
     local: {
-      get: jest.fn(),
-      set: jest.fn(),
-      remove: jest.fn(),
-      clear: jest.fn()
+      get: jest.fn((keys) => {
+        if (typeof keys === 'string') {
+          return Promise.resolve({ [keys]: inMemoryStorage[keys] });
+        }
+        if (Array.isArray(keys)) {
+          const result = {};
+          keys.forEach(key => {
+            if (key in inMemoryStorage) {
+              result[key] = inMemoryStorage[key];
+            }
+          });
+          return Promise.resolve(result);
+        }
+        if (keys === null || keys === undefined) {
+          return Promise.resolve({ ...inMemoryStorage });
+        }
+        return Promise.resolve({});
+      }),
+      set: jest.fn((items) => {
+        Object.assign(inMemoryStorage, items);
+        return Promise.resolve();
+      }),
+      remove: jest.fn((keys) => {
+        if (typeof keys === 'string') {
+          delete inMemoryStorage[keys];
+        } else if (Array.isArray(keys)) {
+          keys.forEach(key => delete inMemoryStorage[key]);
+        }
+        return Promise.resolve();
+      }),
+      clear: jest.fn(() => {
+        Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
+        return Promise.resolve();
+      })
     }
   },
   runtime: {
