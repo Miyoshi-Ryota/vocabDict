@@ -10,7 +10,7 @@ const storage = StorageManager;
 // Context menu state management
 const contextMenuState = {
   pendingSearch: null,
-  
+
   setPendingSearch(word, result) {
     this.pendingSearch = {
       word,
@@ -18,13 +18,13 @@ const contextMenuState = {
       timestamp: Date.now()
     };
   },
-  
+
   getPendingSearch() {
     const data = this.pendingSearch;
     this.pendingSearch = null; // 取得と同時にクリア
     return data;
   },
-  
+
   clear() {
     this.pendingSearch = null;
   }

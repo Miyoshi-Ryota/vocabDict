@@ -1272,7 +1272,7 @@ describe('Popup Integration Tests', () => {
       // Wait for the popup to initialize and display results
       const searchResults = document.querySelector('.search-results');
       const wordCard = await waitForElement('.word-card', searchResults);
-      
+
       expect(wordCard).toBeTruthy();
 
       // Verify the word from context menu is displayed

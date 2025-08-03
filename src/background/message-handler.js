@@ -351,7 +351,7 @@ async function handleMessage(message, services) {
         if (!contextMenuState) {
           return { success: false, error: 'Context menu state not available' };
         }
-        
+
         const pendingData = contextMenuState.getPendingSearch();
         return { success: true, data: pendingData };
       }
