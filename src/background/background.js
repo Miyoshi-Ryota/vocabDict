@@ -7,10 +7,34 @@ const dictionaryData = require('../data/dictionary.json');
 const dictionary = new DictionaryService(dictionaryData, StorageManager);
 const storage = StorageManager;
 
+// Context menu state management
+const contextMenuState = {
+  pendingSearch: null,
+  
+  setPendingSearch(word, result) {
+    this.pendingSearch = {
+      word,
+      result,
+      timestamp: Date.now()
+    };
+  },
+  
+  getPendingSearch() {
+    const data = this.pendingSearch;
+    this.pendingSearch = null; // 取得と同時にクリア
+    return data;
+  },
+  
+  clear() {
+    this.pendingSearch = null;
+  }
+};
+
 // Service instances to pass to message handler
 const services = {
   dictionary,
-  storage
+  storage,
+  contextMenuState
 };
 
 /**
@@ -53,32 +77,30 @@ browser.runtime.onInstalled.addListener(async () => {
 /**
  * Handle context menu clicks
  */
-if (browser.contextMenus && browser.contextMenus.onClicked) {
-  browser.contextMenus.onClicked.addListener(async (info, _tab) => {
-    if (info.menuItemId === 'lookup-vocabdict' && info.selectionText) {
-      console.log('Context menu clicked:', info.selectionText);
+async function handleContextMenuClick(info, _tab) {
+  if (info.menuItemId === 'lookup-vocabdict' && info.selectionText) {
+    console.log('Context menu clicked:', info.selectionText);
 
-      // Look up the word
-      const response = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
-        word: info.selectionText
-      }, services);
+    // Look up the word
+    const response = await handleMessage({
+      type: MessageTypes.LOOKUP_WORD,
+      word: info.selectionText
+    }, services);
 
-      // Store the lookup result in cache for popup to display
-      if (response.success && response.data) {
-        await storage.set('last_lookup', {
-          word: info.selectionText,
-          result: response.data,
-          timestamp: new Date().toISOString()
-        });
+    // Store the lookup result in memory for popup to display
+    if (response.success && response.data) {
+      contextMenuState.setPendingSearch(info.selectionText, response.data);
 
-        // Open the extension popup to show the result
-        if (browser.action && browser.action.openPopup) {
-          browser.action.openPopup();
-        }
+      // Open the extension popup to show the result
+      if (browser.action && browser.action.openPopup) {
+        browser.action.openPopup();
       }
     }
-  });
+  }
+}
+
+if (browser.contextMenus && browser.contextMenus.onClicked) {
+  browser.contextMenus.onClicked.addListener(handleContextMenuClick);
 }
 
 /**
@@ -129,5 +151,7 @@ initializeServices().catch(console.error);
 module.exports = {
   services,
   dictionary,
-  storage
+  storage,
+  handleContextMenuClick,
+  contextMenuState
 };

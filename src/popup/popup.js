@@ -116,6 +116,27 @@ const SearchTab = {
   init() {
     this.setupSearchInput();
     this.loadRecentSearches();
+    this.checkPendingContextSearch();
+  },
+
+  async checkPendingContextSearch() {
+    try {
+      const response = await browser.runtime.sendMessage({
+        type: 'get_pending_context_search'
+      });
+      
+      if (response.success && response.data) {
+        const { word, result } = response.data;
+        this.displaySearchResult(result);
+        
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+          searchInput.value = word;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check pending context search:', error);
+    }
   },
 
   setupSearchInput() {

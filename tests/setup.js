@@ -1,13 +1,51 @@
 // Create in-memory storage implementation
 const inMemoryStorage = {};
 
-// Load message handler and dependencies
-const { handleMessage } = require('../src/background/message-handler');
+// IMPORTANT: Initialize complete browser mock early before loading any modules
+// background.js expects browser API to be available immediately when imported
+// This minimal mock prevents errors during module loading
+global.browser = {
+  storage: {
+    local: {
+      get: jest.fn(),
+      set: jest.fn(),
+      remove: jest.fn(),
+      clear: jest.fn()
+    }
+  },
+  runtime: {
+    sendMessage: jest.fn(),
+    onMessage: {
+      addListener: jest.fn()
+    },
+    onInstalled: {
+      addListener: jest.fn()
+    },
+    onConnect: {
+      addListener: jest.fn()
+    }
+  },
+  contextMenus: {
+    create: jest.fn(),
+    onClicked: {
+      addListener: jest.fn()
+    }
+  },
+  action: {
+    openPopup: jest.fn()
+  }
+};
+
+// Load dependencies
 const DictionaryService = require('../src/services/dictionary-service');
 const StorageManager = require('../src/services/storage');
 const dictionaryData = require('../src/data/dictionary.json');
-
 const dictionary = new DictionaryService(dictionaryData, StorageManager);
+
+// Load message handler and background modules
+// These modules can now safely use browser API during initialization
+const { handleMessage } = require('../src/background/message-handler');
+const { handleContextMenuClick, contextMenuState } = require('../src/background/background');
 
 // Polyfill browser APIs that jsdom doesn't provide
 Object.defineProperty(window, 'matchMedia', {
@@ -24,7 +62,8 @@ Object.defineProperty(window, 'matchMedia', {
   }))
 });
 
-// Function to setup browser mock
+// Function to setup browser mock with full functionality
+// This replaces the minimal mock with complete implementations for testing
 function setupBrowserMock() {
   global.browser = {
     storage: {
@@ -70,7 +109,8 @@ function setupBrowserMock() {
         // Use real message handler with StorageManager
         const services = {
           dictionary,
-          storage: StorageManager
+          storage: StorageManager,
+          contextMenuState
         };
 
         return handleMessage(message, services);
@@ -86,10 +126,20 @@ function setupBrowserMock() {
       create: jest.fn(),
       onClicked: {
         addListener: jest.fn()
+      },
+      simulateClick: async (info) => {
+        await handleContextMenuClick(info, null);
       }
     },
     action: {
-      openPopup: jest.fn()
+      openPopup: jest.fn(() => {
+        // Simulate popup opening by triggering DOMContentLoaded
+        // This mimics what happens when the browser opens the popup window
+        setTimeout(() => {
+          const event = new Event('DOMContentLoaded');
+          document.dispatchEvent(event);
+        }, 0);
+      })
     }
   };
 }
