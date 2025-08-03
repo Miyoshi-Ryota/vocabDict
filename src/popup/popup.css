@@ -487,10 +487,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .word-part-of-speech {
-  font-size: 14px;
-  font-style: italic;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(0, 180, 216, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .word-definition {
