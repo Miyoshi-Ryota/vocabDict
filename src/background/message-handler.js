@@ -97,7 +97,7 @@ async function handleMessage(message, services) {
 
         // Create VocabularyList instance
         const list = VocabularyList.fromJSON(listData, dictionary);
-        
+
         // Get all words
         let words = await list.getWords();
 
@@ -109,13 +109,13 @@ async function handleMessage(message, services) {
         // Apply sorting to the filtered results by creating a temporary list
         if (message.sortBy && words.length > 0) {
           const sortOrder = message.sortOrder || 'asc';
-          
+
           // Create a temporary list with only the filtered words
           const tempList = new VocabularyList('temp', dictionary);
           words.forEach(word => {
             tempList.words[word.word] = word;
           });
-          
+
           // Sort using the temporary list
           words = await tempList.sortBy(message.sortBy, sortOrder);
         }
@@ -262,26 +262,26 @@ async function handleMessage(message, services) {
       case 'get_review_queue': {
         const lists = await storage.get('vocab_lists') || [];
         const SpacedRepetition = require('../services/spaced-repetition');
-        
+
         // Collect all words from all lists that need review
         let allWords = [];
-        
+
         for (const listData of lists) {
           const list = VocabularyList.fromJSON(listData, dictionary);
           const listWords = await list.getWords();
-          
+
           // Add list ID to each word for reference
           const wordsWithListId = listWords.map(word => ({
             ...word,
             listId: listData.id
           }));
-          
+
           allWords = allWords.concat(wordsWithListId);
         }
-        
+
         // Get words due for review using SpacedRepetition service
         const dueWords = SpacedRepetition.getReviewQueue(allWords);
-        
+
         // Enhance with dictionary data
         const enhancedWords = dueWords.map(word => {
           const dictEntry = dictionary.lookup(word.word);
@@ -290,47 +290,47 @@ async function handleMessage(message, services) {
             ...dictEntry // Merge in pronunciation, definitions, synonyms, etc.
           };
         }).filter(word => word.word); // Filter out words not found in dictionary
-        
+
         return { success: true, data: enhancedWords };
       }
 
       case 'process_review': {
         const { word, result, listId } = message;
         const SpacedRepetition = require('../services/spaced-repetition');
-        
+
         if (!word || !result) {
           return { success: false, error: 'Word and result are required' };
         }
-        
+
         const lists = await storage.get('vocab_lists') || [];
         const listIndex = lists.findIndex(l => l.id === listId);
-        
+
         if (listIndex === -1) {
           return { success: false, error: 'List not found' };
         }
-        
+
         const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
         const wordData = list.getWord(word);
-        
+
         if (!wordData) {
           return { success: false, error: 'Word not found in list' };
         }
-        
+
         // Calculate next review interval
         const currentInterval = SpacedRepetition.getCurrentInterval(wordData.lastReviewed);
         const nextInterval = SpacedRepetition.calculateNextReview(currentInterval, result);
-        
+
         // Update word data
         const now = new Date().toISOString();
         const updates = {
           lastReviewed: now,
           reviewHistory: [...(wordData.reviewHistory || []), {
             date: now,
-            result: result,
+            result,
             timeSpent: 0 // Could be enhanced to track actual time
           }]
         };
-        
+
         // Set next review date
         if (nextInterval !== null) {
           updates.nextReview = SpacedRepetition.getNextReviewDate(nextInterval).toISOString();
@@ -338,11 +338,11 @@ async function handleMessage(message, services) {
           // Mastered - remove from review queue
           updates.nextReview = null;
         }
-        
+
         list.updateWord(word, updates);
         lists[listIndex] = list.toJSON();
         await storage.set('vocab_lists', lists);
-        
+
         return { success: true, data: { nextInterval, nextReview: updates.nextReview } };
       }
 

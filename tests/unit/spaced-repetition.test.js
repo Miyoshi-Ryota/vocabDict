@@ -47,7 +47,7 @@ describe('SpacedRepetition Service', () => {
 
   describe('getReviewQueue', () => {
     const now = new Date('2025-08-02T12:00:00Z');
-    
+
     beforeEach(() => {
       jest.useFakeTimers();
       jest.setSystemTime(now);
@@ -79,7 +79,7 @@ describe('SpacedRepetition Service', () => {
       ];
 
       const result = SpacedRepetition.getReviewQueue(words);
-      
+
       expect(result).toHaveLength(2);
       expect(result.map(w => w.word)).toEqual(['test', 'hello']); // Sorted by due date
     });
@@ -101,7 +101,7 @@ describe('SpacedRepetition Service', () => {
       ];
 
       const result = SpacedRepetition.getReviewQueue(words);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].word).toBe('hello');
     });
@@ -113,7 +113,7 @@ describe('SpacedRepetition Service', () => {
       }));
 
       const result = SpacedRepetition.getReviewQueue(words, 10);
-      
+
       expect(result).toHaveLength(10);
       // Should get the 10 most overdue words
       expect(result[0].word).toBe('word49');
@@ -127,7 +127,7 @@ describe('SpacedRepetition Service', () => {
       }));
 
       const result = SpacedRepetition.getReviewQueue(words);
-      
+
       expect(result).toHaveLength(30);
     });
 
@@ -148,14 +148,14 @@ describe('SpacedRepetition Service', () => {
       ];
 
       const result = SpacedRepetition.getReviewQueue(words);
-      
+
       expect(result.map(w => w.word)).toEqual(['oldest', 'older', 'recent']);
     });
   });
 
   describe('getCurrentInterval', () => {
     const now = new Date('2025-08-02T12:00:00Z');
-    
+
     beforeEach(() => {
       jest.useFakeTimers();
       jest.setSystemTime(now);
@@ -199,14 +199,14 @@ describe('SpacedRepetition Service', () => {
 
     test('should handle future dates gracefully', () => {
       const tomorrow = new Date(now.getTime() + 24 * 3600000).toISOString();
-      
+
       expect(SpacedRepetition.getCurrentInterval(tomorrow)).toBe(1);
     });
   });
 
   describe('getNextReviewDate', () => {
     const now = new Date('2025-08-02T12:00:00Z');
-    
+
     beforeEach(() => {
       jest.useFakeTimers();
       jest.setSystemTime(now);
@@ -244,7 +244,7 @@ describe('SpacedRepetition Service', () => {
 
     test('should return Date object', () => {
       const result = SpacedRepetition.getNextReviewDate(1);
-      
+
       expect(result).toBeInstanceOf(Date);
       expect(typeof result.getTime()).toBe('number');
     });
@@ -252,7 +252,7 @@ describe('SpacedRepetition Service', () => {
 
   describe('Integration tests', () => {
     const now = new Date('2025-08-02T12:00:00Z');
-    
+
     beforeEach(() => {
       jest.useFakeTimers();
       jest.setSystemTime(now);
@@ -264,14 +264,14 @@ describe('SpacedRepetition Service', () => {
 
     test('should handle complete review workflow for new word', () => {
       // Simulate a new word review workflow
-      let currentInterval = SpacedRepetition.getCurrentInterval(null); // New word
+      const currentInterval = SpacedRepetition.getCurrentInterval(null); // New word
       expect(currentInterval).toBe(1);
 
       // First review - user knows the word
       let nextInterval = SpacedRepetition.calculateNextReview(currentInterval, 'known');
       expect(nextInterval).toBe(3);
 
-      let nextReviewDate = SpacedRepetition.getNextReviewDate(nextInterval);
+      const nextReviewDate = SpacedRepetition.getNextReviewDate(nextInterval);
       expect(nextReviewDate).toEqual(new Date('2025-08-05T12:00:00Z'));
 
       // Second review - user still knows it
@@ -308,7 +308,7 @@ describe('SpacedRepetition Service', () => {
       ];
 
       const reviewQueue = SpacedRepetition.getReviewQueue(words);
-      
+
       expect(reviewQueue).toHaveLength(2);
       expect(reviewQueue.map(w => w.word)).toEqual(['due_word', 'new_word']);
     });

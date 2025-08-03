@@ -9,7 +9,7 @@ describe('DictionaryService', () => {
   beforeEach(async () => {
     // Clear storage before each test
     await browser.storage.local.clear();
-    
+
     storageManager = StorageManager;
     dictionary = new DictionaryService(dictionaryData, storageManager);
     await dictionary.loadLookupStatistics();
@@ -282,16 +282,16 @@ describe('DictionaryService', () => {
 
     test('should track first and last lookup times', async () => {
       const beforeLookup = new Date().toISOString();
-      
+
       // Look up word
       await dictionary.lookup('hello');
-      
+
       const afterLookup = new Date().toISOString();
 
       // Check stored data
       const stored = await storageManager.get('dictionary_lookup_stats');
       const helloStats = stored.hello;
-      
+
       expect(helloStats.firstLookup).toBeDefined();
       expect(helloStats.lastLookup).toBeDefined();
       expect(helloStats.firstLookup).toEqual(helloStats.lastLookup); // Same for first lookup
@@ -308,7 +308,7 @@ describe('DictionaryService', () => {
       // Wait a bit and lookup again
       await new Promise(resolve => setTimeout(resolve, 10));
       await dictionary.lookup('hello');
-      
+
       const stored2 = await storageManager.get('dictionary_lookup_stats');
       const secondTime = stored2.hello.lastLookup;
 

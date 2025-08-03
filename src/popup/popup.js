@@ -418,22 +418,22 @@ const ListsTab = {
 
   async displayListWords(list) {
     const container = document.querySelector('.words-in-list');
-    
+
     try {
       // Get sorted and filtered words from background
       const sortBy = this.currentSort === 'recent' ? 'dateAdded' : this.currentSort;
       let sortOrder = 'asc';
-      
+
       // Use desc order for date-based sorting to show newest first
       if (sortBy === 'dateAdded' || sortBy === 'lastReviewed') {
         sortOrder = 'desc';
       }
-      
+
       const response = await browser.runtime.sendMessage({
         type: 'get_list_words',
         listId: list.id,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
+        sortBy,
+        sortOrder,
         filterBy: this.currentFilter
       });
 
@@ -473,21 +473,21 @@ const ListsTab = {
 
     // Update sort indicator
     const sortLabels = {
-      'recent': 'Most Recent (newest first)',
-      'alphabetical': 'Alphabetical (A-Z)',
-      'dateAdded': 'Date Added (newest first)',
-      'lastReviewed': 'Last Reviewed (newest first)',
-      'difficulty': 'Difficulty (easy to hard)',
-      'lookupCount': 'Lookup Count (least to most)'
+      recent: 'Most Recent (newest first)',
+      alphabetical: 'Alphabetical (A-Z)',
+      dateAdded: 'Date Added (newest first)',
+      lastReviewed: 'Last Reviewed (newest first)',
+      difficulty: 'Difficulty (easy to hard)',
+      lookupCount: 'Lookup Count (least to most)'
     };
     sortIndicator.textContent = `Sorted by: ${sortLabels[this.currentSort] || 'Most Recent'}`;
 
     // Update filter indicator
     if (this.currentFilter && this.currentFilter !== 'all') {
       const filterLabels = {
-        'easy': 'Easy difficulty only',
-        'medium': 'Medium difficulty only', 
-        'hard': 'Hard difficulty only'
+        easy: 'Easy difficulty only',
+        medium: 'Medium difficulty only',
+        hard: 'Hard difficulty only'
       };
       filterIndicator.textContent = `Filter: ${filterLabels[this.currentFilter]}`;
       filterIndicator.style.display = 'inline';
@@ -501,7 +501,7 @@ const ListsTab = {
 
   renderWordItem(word) {
     const sortBy = this.currentSort === 'recent' ? 'dateAdded' : this.currentSort;
-    
+
     // Base word item structure
     let wordItem = `
       <div class="word-list-item">
@@ -709,8 +709,8 @@ const LearnTab = {
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (!this.currentSession) return;
-      
-      switch(e.key) {
+
+      switch (e.key) {
         case ' ':
         case 'Enter':
           e.preventDefault();
@@ -761,7 +761,7 @@ const LearnTab = {
 
   displayReviewStatus(dueWordsCount) {
     const container = document.querySelector('.learn-container');
-    
+
     if (dueWordsCount === 0) {
       container.innerHTML = `
         <div class="no-reviews">
@@ -776,6 +776,12 @@ const LearnTab = {
 
     container.innerHTML = `
       <div class="review-start">
+        <div class="review-header">
+          <div class="review-icon">🎓</div>
+          <h2 class="review-title">Ready to Learn</h2>
+          <p class="review-subtitle">Let's review your vocabulary words</p>
+        </div>
+        
         <div class="review-stats">
           <div class="stat-item">
             <span class="stat-number">${dueWordsCount}</span>
@@ -783,16 +789,18 @@ const LearnTab = {
           </div>
         </div>
         
-        <button id="start-review-btn" class="btn-primary btn-large">
-          Start Review Session
+        <button id="start-review-btn" class="btn-primary btn-large start-session-btn">
+          <span class="btn-icon">🚀</span>
+          <span class="btn-text">Start Review Session</span>
         </button>
         
         <div class="review-tips">
-          <h4>Review Tips:</h4>
+          <h4>💡 Review Tips</h4>
           <ul>
             <li>Click the card or press <kbd>Space</kbd> to flip</li>
             <li>Use number keys <kbd>1-4</kbd> for quick actions</li>
-            <li>Be honest with your self-assessment</li>
+            <li>Be honest with your self-assessment for better learning</li>
+            <li>Regular practice leads to better retention</li>
           </ul>
         </div>
       </div>
@@ -846,7 +854,7 @@ const LearnTab = {
 
     const word = this.sessionWords[this.currentWordIndex];
     const container = document.querySelector('.learn-container');
-    
+
     container.innerHTML = `
       <div class="review-session">
         <div class="session-header">
@@ -857,33 +865,51 @@ const LearnTab = {
         </div>
         
         <div class="flashcard-container">
-          <div id="flashcard" class="flashcard ${this.isFlipped ? 'flipped' : ''}">
+          <div id="flashcard" class="flashcard ${this.isFlipped ? 'flipped' : ''}" data-word="${word.word}">
             <div class="flashcard-front">
               <div class="card-content">
+                <div class="word-header">
+                  <div class="word-number">${this.currentWordIndex + 1}</div>
+                </div>
                 <h2 class="word-display">${word.word}</h2>
-                <p class="flip-hint">Click to reveal definition</p>
+                <div class="flip-hint">
+                  <span class="hint-icon">👆</span>
+                  <span class="hint-text">Click to reveal definition</span>
+                </div>
               </div>
             </div>
             <div class="flashcard-back">
               <div class="card-content">
-                <h3 class="word-title">${word.word}</h3>
-                <div class="word-pronunciation">${word.pronunciation || ''}</div>
-                ${word.definitions ? word.definitions.map(def => `
-                  <div class="definition-item">
-                    <span class="part-of-speech">${def.partOfSpeech}</span>
-                    <div class="definition-text">${def.meaning}</div>
-                    ${def.examples && def.examples.length > 0 ? `
-                      <div class="examples">
-                        ${def.examples.slice(0, 2).map(ex => `<div class="example">"${ex}"</div>`).join('')}
-                      </div>
-                    ` : ''}
-                  </div>
-                `).join('') : ''}
-                ${word.synonyms && word.synonyms.length > 0 ? `
-                  <div class="synonyms">
+                <div class="definition-header">
+                  <h3 class="word-title">${word.word}</h3>
+                  ${word.pronunciation ? `<div class="word-pronunciation">${word.pronunciation}</div>` : ''}
+                </div>
+                
+                <div class="definitions-container">
+                  ${word.definitions && word.definitions.length > 0
+? word.definitions.map(def => `
+                    <div class="definition-item">
+                      <span class="part-of-speech">${def.partOfSpeech}</span>
+                      <div class="definition-text">${def.meaning}</div>
+                      ${def.examples && def.examples.length > 0
+? `
+                        <div class="examples">
+                          ${def.examples.slice(0, 2).map(ex => `<div class="example">"${ex}"</div>`).join('')}
+                        </div>
+                      `
+: ''}
+                    </div>
+                  `).join('')
+: '<div class="no-definition">No definition available</div>'}
+                </div>
+                
+                ${word.synonyms && word.synonyms.length > 0
+? `
+                  <div class="word-synonyms">
                     <strong>Synonyms:</strong> ${word.synonyms.slice(0, 3).join(', ')}
                   </div>
-                ` : ''}
+                `
+: ''}
               </div>
             </div>
           </div>
@@ -921,16 +947,16 @@ const LearnTab = {
 
   flipCard() {
     if (!this.currentSession) return;
-    
+
     const flashcard = document.getElementById('flashcard');
     const actions = document.querySelector('.review-actions');
-    
+
     this.isFlipped = !this.isFlipped;
-    
+
     if (flashcard) {
       flashcard.classList.toggle('flipped', this.isFlipped);
     }
-    
+
     if (actions) {
       actions.classList.toggle('visible', this.isFlipped);
       actions.classList.toggle('hidden', !this.isFlipped);
@@ -943,7 +969,7 @@ const LearnTab = {
     const word = this.sessionWords[this.currentWordIndex];
     const reviewResult = {
       word: word.word,
-      action: action,
+      action,
       timestamp: new Date()
     };
 
@@ -965,7 +991,6 @@ const LearnTab = {
       this.currentWordIndex++;
       this.displayCurrentWord();
       this.updateSessionProgress();
-
     } catch (error) {
       console.error('Process review error:', error);
       NotificationManager.show('Failed to save review result', 'error');

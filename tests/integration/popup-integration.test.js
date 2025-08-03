@@ -929,7 +929,7 @@ describe('Popup Integration Tests', () => {
         type: 'create_list',
         name: 'Learning Test List'
       });
-      
+
       expect(createListResponse.success).toBe(true);
       const listId = createListResponse.data.id;
 
@@ -937,33 +937,33 @@ describe('Popup Integration Tests', () => {
       await browser.runtime.sendMessage({
         type: 'add_to_list',
         word: 'hello',
-        listId: listId
+        listId
       });
 
       await browser.runtime.sendMessage({
         type: 'add_to_list',
         word: 'eloquent',
-        listId: listId
+        listId
       });
 
       await browser.runtime.sendMessage({
         type: 'add_to_list',
         word: 'serendipity',
-        listId: listId
+        listId
       });
 
       // Now manually update the words to have review dates
       // This is the only direct storage manipulation we need
       const result = await browser.storage.local.get('vocab_lists');
       const list = result.vocab_lists.find(l => l.id === listId);
-      
+
       // Set review dates for testing
       list.words.hello.nextReview = new Date(Date.now() - 3600000).toISOString(); // 1 hour ago - due
       list.words.hello.lastReviewed = new Date(Date.now() - 24 * 3600000).toISOString();
-      
+
       list.words.eloquent.nextReview = new Date(Date.now() - 7200000).toISOString(); // 2 hours ago - due
       list.words.eloquent.lastReviewed = new Date(Date.now() - 48 * 3600000).toISOString();
-      
+
       list.words.serendipity.nextReview = new Date(Date.now() + 24 * 3600000).toISOString(); // Tomorrow - not due
       list.words.serendipity.lastReviewed = new Date(Date.now() - 72 * 3600000).toISOString();
 
@@ -1067,13 +1067,13 @@ describe('Popup Integration Tests', () => {
       // Start review session
       const learnTab = document.querySelector('[data-tab="learn"]');
       learnTab.click();
-      
+
       await waitFor(() => document.querySelector('#start-review-btn'));
       document.querySelector('#start-review-btn').click();
 
       await waitFor(() => document.querySelector('#flashcard'));
       const flashcard = document.querySelector('#flashcard');
-      
+
       // Click to flip
       flashcard.click();
 
@@ -1094,7 +1094,7 @@ describe('Popup Integration Tests', () => {
       const backContent = flashcard.querySelector('.flashcard-back');
       const wordTitle = backContent.querySelector('.word-title');
       expect(['hello', 'eloquent']).toContain(wordTitle.textContent);
-      
+
       // Check pronunciation is shown
       const pronunciation = backContent.querySelector('.word-pronunciation');
       expect(pronunciation).toBeTruthy();
@@ -1109,12 +1109,12 @@ describe('Popup Integration Tests', () => {
       // Start review
       const learnTab = document.querySelector('[data-tab="learn"]');
       learnTab.click();
-      
+
       await waitFor(() => document.querySelector('#start-review-btn'));
       document.querySelector('#start-review-btn').click();
 
       await waitFor(() => document.querySelector('#flashcard'));
-      
+
       // Get first word
       const firstWord = document.querySelector('.word-display').textContent;
 
@@ -1144,14 +1144,14 @@ describe('Popup Integration Tests', () => {
       // Start review
       const learnTab = document.querySelector('[data-tab="learn"]');
       learnTab.click();
-      
+
       await waitFor(() => document.querySelector('#start-review-btn'));
       document.querySelector('#start-review-btn').click();
 
       // Complete first word
       await waitFor(() => document.querySelector('#flashcard'));
       document.querySelector('#flashcard').click();
-      
+
       await waitFor(() => document.querySelector('#known-btn'));
       document.querySelector('#known-btn').click();
 
@@ -1160,7 +1160,7 @@ describe('Popup Integration Tests', () => {
         const progressText = document.querySelector('.progress-text');
         return progressText && progressText.textContent === '2 of 2';
       });
-      
+
       document.querySelector('#flashcard').click();
       document.querySelector('#unknown-btn').click();
 
@@ -1188,7 +1188,7 @@ describe('Popup Integration Tests', () => {
       // Start review
       const learnTab = document.querySelector('[data-tab="learn"]');
       learnTab.click();
-      
+
       await waitFor(() => document.querySelector('#start-review-btn'));
       document.querySelector('#start-review-btn').click();
 
@@ -1210,10 +1210,10 @@ describe('Popup Integration Tests', () => {
       });
 
       // Test keyboard shortcut '1' for 'known' action
-      const key1Event = new KeyboardEvent('keydown', { 
+      const key1Event = new KeyboardEvent('keydown', {
         key: '1',
         bubbles: true,
-        cancelable: true 
+        cancelable: true
       });
       document.dispatchEvent(key1Event);
 
@@ -1221,7 +1221,7 @@ describe('Popup Integration Tests', () => {
       await waitFor(() => {
         const progressText = document.querySelector('.progress-text');
         const sessionComplete = document.querySelector('.session-complete');
-        
+
         // Either should show progress to second word or complete the session
         return (progressText && progressText.textContent.trim() === '2 of 2') ||
                (sessionComplete !== null);
@@ -1232,12 +1232,12 @@ describe('Popup Integration Tests', () => {
       // Start review
       const learnTab = document.querySelector('[data-tab="learn"]');
       learnTab.click();
-      
+
       await waitFor(() => document.querySelector('#start-review-btn'));
       document.querySelector('#start-review-btn').click();
 
       await waitFor(() => document.querySelector('#flashcard'));
-      
+
       // Get the word being reviewed
       const wordDisplay = document.querySelector('.word-display').textContent;
 
@@ -1253,7 +1253,7 @@ describe('Popup Integration Tests', () => {
       const result = await browser.storage.local.get('vocab_lists');
       const list = result.vocab_lists[0];
       const reviewedWord = list.words[wordDisplay];
-      
+
       // nextReview should be updated to a future date
       expect(new Date(reviewedWord.nextReview)).toBeInstanceOf(Date);
       expect(new Date(reviewedWord.nextReview).getTime()).toBeGreaterThan(Date.now());

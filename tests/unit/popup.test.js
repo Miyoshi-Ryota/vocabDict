@@ -444,18 +444,18 @@ describe('Popup UI Tests', () => {
       // but we can test the container exists for future flashcard content
       const container = document.querySelector('.learn-container');
       expect(container).toBeTruthy();
-      
+
       // When implemented, flashcard should have these IDs available
       // This documents the expected structure for implementation
       const expectedElements = [
         '#start-review-btn',
-        '#flashcard', 
+        '#flashcard',
         '#known-btn',
-        '#unknown-btn', 
+        '#unknown-btn',
         '#skip-btn',
         '#mastered-btn'
       ];
-      
+
       // For now, we just verify the container exists
       // After implementation, these elements should be findable within container
       expectedElements.forEach(selector => {
