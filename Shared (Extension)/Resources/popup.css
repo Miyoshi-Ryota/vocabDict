@@ -540,7 +540,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Lists Tab */
 .lists-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: var(--spacing-base);
 }

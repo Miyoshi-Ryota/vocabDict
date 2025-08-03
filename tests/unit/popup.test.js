@@ -134,12 +134,9 @@ describe('Popup UI Tests', () => {
   describe('Lists Tab Structure', () => {
     test('should have lists header with new list button', () => {
       const header = document.querySelector('.lists-header');
-      const title = header.querySelector('.section-title');
       const newButton = header.querySelector('#new-list-button');
 
       expect(header).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(title.textContent).toBe('My Lists');
       expect(newButton).toBeTruthy();
       expect(newButton.classList.contains('btn-primary')).toBe(true);
       expect(newButton.classList.contains('btn-small')).toBe(true);
