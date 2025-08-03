@@ -9,7 +9,8 @@ const MessageTypes = {
   CREATE_LIST: 'create_list',
   UPDATE_WORD: 'update_word',
   GET_REVIEW_QUEUE: 'get_review_queue',
-  SUBMIT_REVIEW: 'submit_review'
+  SUBMIT_REVIEW: 'submit_review',
+  GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search'
 };
 
 /**
@@ -19,7 +20,7 @@ const MessageTypes = {
  * @returns {Promise<Object>} Response object
  */
 async function handleMessage(message, services) {
-  const { dictionary, storage } = services;
+  const { dictionary, storage, contextMenuState } = services;
 
   try {
     switch (message.type) {
@@ -344,6 +345,15 @@ async function handleMessage(message, services) {
         await storage.set('vocab_lists', lists);
 
         return { success: true, data: { nextInterval, nextReview: updates.nextReview } };
+      }
+
+      case MessageTypes.GET_PENDING_CONTEXT_SEARCH: {
+        if (!contextMenuState) {
+          return { success: false, error: 'Context menu state not available' };
+        }
+
+        const pendingData = contextMenuState.getPendingSearch();
+        return { success: true, data: pendingData };
       }
 
       default:

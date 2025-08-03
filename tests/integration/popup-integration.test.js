@@ -1259,4 +1259,33 @@ describe('Popup Integration Tests', () => {
       expect(new Date(reviewedWord.nextReview).getTime()).toBeGreaterThan(Date.now());
     });
   });
+
+  describe('Context Menu Integration', () => {
+    test('should display lookup results when popup opens after context menu action', async () => {
+      // Simulate user right-clicking on "serendipity" and selecting "Look up in VocabDict"
+      await browser.contextMenus.simulateClick({
+        menuItemId: 'lookup-vocabdict',
+        selectionText: 'serendipity'
+      });
+
+      // browser.action.openPopup will trigger DOMContentLoaded automatically
+      // Wait for the popup to initialize and display results
+      const searchResults = document.querySelector('.search-results');
+      const wordCard = await waitForElement('.word-card', searchResults);
+
+      expect(wordCard).toBeTruthy();
+
+      // Verify the word from context menu is displayed
+      const wordTitle = wordCard.querySelector('.word-title');
+      expect(wordTitle.textContent).toBe('serendipity');
+
+      // Verify the search input shows the context menu word
+      const searchInput = document.querySelector('.search-input');
+      expect(searchInput.value).toBe('serendipity');
+
+      // Verify recent searches are hidden when showing results
+      const recentSearches = document.querySelector('.recent-searches');
+      expect(recentSearches.style.display).toBe('none');
+    });
+  });
 });

@@ -1,13 +1,97 @@
 // Create in-memory storage implementation
 const inMemoryStorage = {};
 
-// Load message handler and dependencies
-const { handleMessage } = require('../src/background/message-handler');
+// Helper functions to create storage mock implementations
+function createStorageMock() {
+  return {
+    get: jest.fn((keys) => {
+      if (typeof keys === 'string') {
+        return Promise.resolve({ [keys]: inMemoryStorage[keys] });
+      }
+      if (Array.isArray(keys)) {
+        const result = {};
+        keys.forEach(key => {
+          if (key in inMemoryStorage) {
+            result[key] = inMemoryStorage[key];
+          }
+        });
+        return Promise.resolve(result);
+      }
+      if (keys === null || keys === undefined) {
+        return Promise.resolve({ ...inMemoryStorage });
+      }
+      return Promise.resolve({});
+    }),
+    set: jest.fn((items) => {
+      Object.assign(inMemoryStorage, items);
+      return Promise.resolve();
+    }),
+    remove: jest.fn((keys) => {
+      if (typeof keys === 'string') {
+        delete inMemoryStorage[keys];
+      } else if (Array.isArray(keys)) {
+        keys.forEach(key => delete inMemoryStorage[key]);
+      }
+      return Promise.resolve();
+    }),
+    clear: jest.fn(() => {
+      Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
+      return Promise.resolve();
+    })
+  };
+}
+
+function createBasicRuntimeMock() {
+  return {
+    sendMessage: jest.fn(),
+    onMessage: {
+      addListener: jest.fn()
+    },
+    onInstalled: {
+      addListener: jest.fn()
+    },
+    onConnect: {
+      addListener: jest.fn()
+    }
+  };
+}
+
+function createContextMenusMock() {
+  return {
+    create: jest.fn(),
+    onClicked: {
+      addListener: jest.fn()
+    }
+  };
+}
+
+function createActionMock() {
+  return {
+    openPopup: jest.fn()
+  };
+}
+
+// IMPORTANT: Initialize complete browser mock early before loading any modules
+// background.js expects browser API to be available immediately when imported
+global.browser = {
+  storage: {
+    local: createStorageMock()
+  },
+  runtime: createBasicRuntimeMock(),
+  contextMenus: createContextMenusMock(),
+  action: createActionMock()
+};
+
+// Load dependencies
 const DictionaryService = require('../src/services/dictionary-service');
 const StorageManager = require('../src/services/storage');
 const dictionaryData = require('../src/data/dictionary.json');
-
 const dictionary = new DictionaryService(dictionaryData, StorageManager);
+
+// Load message handler and background modules
+// These modules can now safely use browser API during initialization
+const { handleMessage } = require('../src/background/message-handler');
+const { handleContextMenuClick, contextMenuState } = require('../src/background/background');
 
 // Polyfill browser APIs that jsdom doesn't provide
 Object.defineProperty(window, 'matchMedia', {
@@ -24,72 +108,40 @@ Object.defineProperty(window, 'matchMedia', {
   }))
 });
 
-// Function to setup browser mock
+// Function to setup browser mock with full functionality for testing
 function setupBrowserMock() {
   global.browser = {
     storage: {
-      local: {
-        get: jest.fn((keys) => {
-          if (typeof keys === 'string') {
-            return Promise.resolve({ [keys]: inMemoryStorage[keys] });
-          }
-          if (Array.isArray(keys)) {
-            const result = {};
-            keys.forEach(key => {
-              if (key in inMemoryStorage) {
-                result[key] = inMemoryStorage[key];
-              }
-            });
-            return Promise.resolve(result);
-          }
-          if (keys === null || keys === undefined) {
-            return Promise.resolve({ ...inMemoryStorage });
-          }
-          return Promise.resolve({});
-        }),
-        set: jest.fn((items) => {
-          Object.assign(inMemoryStorage, items);
-          return Promise.resolve();
-        }),
-        remove: jest.fn((keys) => {
-          if (typeof keys === 'string') {
-            delete inMemoryStorage[keys];
-          } else if (Array.isArray(keys)) {
-            keys.forEach(key => delete inMemoryStorage[key]);
-          }
-          return Promise.resolve();
-        }),
-        clear: jest.fn(() => {
-          Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
-          return Promise.resolve();
-        })
-      }
+      local: createStorageMock()
     },
     runtime: {
+      ...createBasicRuntimeMock(),
       sendMessage: jest.fn((message) => {
         // Use real message handler with StorageManager
         const services = {
           dictionary,
-          storage: StorageManager
+          storage: StorageManager,
+          contextMenuState
         };
 
         return handleMessage(message, services);
-      }),
-      onMessage: {
-        addListener: jest.fn()
-      },
-      onInstalled: {
-        addListener: jest.fn()
-      }
+      })
     },
     contextMenus: {
-      create: jest.fn(),
-      onClicked: {
-        addListener: jest.fn()
+      ...createContextMenusMock(),
+      simulateClick: async (info) => {
+        await handleContextMenuClick(info, null);
       }
     },
     action: {
-      openPopup: jest.fn()
+      openPopup: jest.fn(() => {
+        // Simulate popup opening by triggering DOMContentLoaded
+        // This mimics what happens when the browser opens the popup window
+        setTimeout(() => {
+          const event = new Event('DOMContentLoaded');
+          document.dispatchEvent(event);
+        }, 0);
+      })
     }
   };
 }
