@@ -175,18 +175,18 @@ const SearchTab = {
   displaySearchResult(wordData) {
     const resultsContainer = document.querySelector('.search-results');
     const recentSearches = document.querySelector('.recent-searches');
-    
+
     // Hide recent searches when showing search results
     if (recentSearches) {
       recentSearches.style.display = 'none';
     }
-    
+
     resultsContainer.innerHTML = `
       <div class="word-card">
         <div class="word-header">
-          <div>
-            <span class="word-title">${wordData.word}</span>
-            <span class="word-pronunciation">${wordData.pronunciation}</span>
+          <div class="word-info">
+            <div class="word-title">${wordData.word}</div>
+            <div class="word-pronunciation">${wordData.pronunciation}</div>
           </div>
           <button class="add-to-list-btn" title="Add to list">📚</button>
         </div>
@@ -231,12 +231,12 @@ const SearchTab = {
   displayNoResults(query, suggestions = []) {
     const resultsContainer = document.querySelector('.search-results');
     const recentSearches = document.querySelector('.recent-searches');
-    
+
     // Hide recent searches when showing search results
     if (recentSearches) {
       recentSearches.style.display = 'none';
     }
-    
+
     resultsContainer.innerHTML = `
       <div class="no-results">
         <p>No results found for "<strong>${query}</strong>"</p>
@@ -267,12 +267,12 @@ const SearchTab = {
   displayError(error) {
     const resultsContainer = document.querySelector('.search-results');
     const recentSearches = document.querySelector('.recent-searches');
-    
+
     // Hide recent searches when showing error
     if (recentSearches) {
       recentSearches.style.display = 'none';
     }
-    
+
     resultsContainer.innerHTML = `
       <div class="error-message">
         <p>Error: ${error}</p>
@@ -283,9 +283,9 @@ const SearchTab = {
   clearSearchResults() {
     const resultsContainer = document.querySelector('.search-results');
     const recentSearches = document.querySelector('.recent-searches');
-    
+
     resultsContainer.innerHTML = '';
-    
+
     // Show recent searches when clearing results
     if (recentSearches) {
       recentSearches.style.display = 'block';
@@ -896,7 +896,7 @@ const LearnTab = {
           <div id="flashcard" class="flashcard ${this.isFlipped ? 'flipped' : ''}" data-word="${word.word}">
             <div class="flashcard-front">
               <div class="card-content">
-                <div class="word-header">
+                <div class="flashcard-header">
                   <div class="word-number">${this.currentWordIndex + 1}</div>
                 </div>
                 <h2 class="word-display">${word.word}</h2>
@@ -909,8 +909,8 @@ const LearnTab = {
             <div class="flashcard-back">
               <div class="card-content">
                 <div class="definition-header">
-                  <h3 class="word-title">${word.word}</h3>
-                  ${word.pronunciation ? `<div class="word-pronunciation">${word.pronunciation}</div>` : ''}
+                  <h3 class="flashcard-word-title">${word.word}</h3>
+                  ${word.pronunciation ? `<div class="flashcard-pronunciation">${word.pronunciation}</div>` : ''}
                 </div>
                 
                 <div class="definitions-container">

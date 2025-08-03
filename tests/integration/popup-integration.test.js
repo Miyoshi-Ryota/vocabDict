@@ -1092,11 +1092,11 @@ describe('Popup Integration Tests', () => {
 
       // Check back of card shows definition from dictionary
       const backContent = flashcard.querySelector('.flashcard-back');
-      const wordTitle = backContent.querySelector('.word-title');
+      const wordTitle = backContent.querySelector('.flashcard-word-title');
       expect(['hello', 'eloquent']).toContain(wordTitle.textContent);
 
       // Check pronunciation is shown
-      const pronunciation = backContent.querySelector('.word-pronunciation');
+      const pronunciation = backContent.querySelector('.flashcard-pronunciation');
       expect(pronunciation).toBeTruthy();
       if (wordTitle.textContent === 'hello') {
         expect(pronunciation.textContent).toContain('/həˈloʊ/');

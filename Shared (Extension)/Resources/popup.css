@@ -432,19 +432,36 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: var(--spacing-md);
+  position: relative;
+  z-index: 1;
+}
+
+.word-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 0; /* Prevents flex item from overflowing */
 }
 
 .word-title {
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.2;
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .word-pronunciation {
   font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
   font-size: 14px;
   color: var(--text-secondary);
-  margin-left: var(--spacing-sm);
+  margin: 0;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .add-to-list-btn {
@@ -1208,7 +1225,7 @@ h1, h2, h3, h4, h5, h6 {
   max-height: 100%;
 }
 
-.word-header {
+.flashcard-header {
   position: absolute;
   top: var(--spacing-base);
   left: var(--spacing-base);
@@ -1299,7 +1316,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-.word-title {
+.flashcard-word-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -1307,7 +1324,7 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
 }
 
-.word-pronunciation {
+.flashcard-pronunciation {
   font-size: 1rem;
   color: var(--text-secondary);
   font-style: italic;
