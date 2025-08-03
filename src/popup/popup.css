@@ -277,13 +277,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Search Tab */
-.search-section {
-  margin-bottom: var(--spacing-lg);
+.search-container {
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .search-input-wrapper {
   position: relative;
   margin-bottom: var(--spacing-base);
+  flex-shrink: 0;
 }
 
 .search-icon {
@@ -319,7 +323,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Recent Searches */
 .recent-searches {
-  margin-top: var(--spacing-lg);
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  padding-top: var(--spacing-base);
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .recent-searches-list {
@@ -346,7 +354,61 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Search Results */
 .search-results {
-  margin-top: var(--spacing-lg);
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: var(--spacing-base);
+  min-height: 0; /* Important for flex child with overflow */
+}
+
+.no-results {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.no-results p {
+  margin-bottom: var(--spacing-base);
+}
+
+.no-results .small-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions-list li {
+  display: inline-block;
+  margin: var(--spacing-xs);
+}
+
+.suggestions-list a {
+  color: var(--primary);
+  text-decoration: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
+}
+
+.suggestions-list a:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.error-message {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-base);
+  margin: var(--spacing-base);
 }
 
 /* Word Card */

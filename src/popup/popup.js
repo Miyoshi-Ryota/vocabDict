@@ -174,6 +174,13 @@ const SearchTab = {
 
   displaySearchResult(wordData) {
     const resultsContainer = document.querySelector('.search-results');
+    const recentSearches = document.querySelector('.recent-searches');
+    
+    // Hide recent searches when showing search results
+    if (recentSearches) {
+      recentSearches.style.display = 'none';
+    }
+    
     resultsContainer.innerHTML = `
       <div class="word-card">
         <div class="word-header">
@@ -223,6 +230,13 @@ const SearchTab = {
 
   displayNoResults(query, suggestions = []) {
     const resultsContainer = document.querySelector('.search-results');
+    const recentSearches = document.querySelector('.recent-searches');
+    
+    // Hide recent searches when showing search results
+    if (recentSearches) {
+      recentSearches.style.display = 'none';
+    }
+    
     resultsContainer.innerHTML = `
       <div class="no-results">
         <p>No results found for "<strong>${query}</strong>"</p>
@@ -252,6 +266,13 @@ const SearchTab = {
 
   displayError(error) {
     const resultsContainer = document.querySelector('.search-results');
+    const recentSearches = document.querySelector('.recent-searches');
+    
+    // Hide recent searches when showing error
+    if (recentSearches) {
+      recentSearches.style.display = 'none';
+    }
+    
     resultsContainer.innerHTML = `
       <div class="error-message">
         <p>Error: ${error}</p>
@@ -261,7 +282,14 @@ const SearchTab = {
 
   clearSearchResults() {
     const resultsContainer = document.querySelector('.search-results');
+    const recentSearches = document.querySelector('.recent-searches');
+    
     resultsContainer.innerHTML = '';
+    
+    // Show recent searches when clearing results
+    if (recentSearches) {
+      recentSearches.style.display = 'block';
+    }
   },
 
   async addToList(wordData) {
