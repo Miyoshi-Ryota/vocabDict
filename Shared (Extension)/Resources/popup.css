@@ -354,7 +354,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Search Results */
 .search-results {
-  flex: 1;
+  flex: 0 0 auto;
   overflow-y: auto;
   margin-bottom: var(--spacing-base);
   min-height: 0; /* Important for flex child with overflow */
