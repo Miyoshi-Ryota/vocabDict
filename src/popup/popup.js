@@ -1016,7 +1016,6 @@ const LearnTab = {
     }
   },
 
-
   endReviewSession() {
     if (!this.currentSession) return;
 
