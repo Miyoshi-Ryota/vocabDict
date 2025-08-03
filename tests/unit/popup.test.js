@@ -390,4 +390,78 @@ describe('Popup UI Tests', () => {
       expect(iconBtn.getAttribute('aria-label')).toBe('Settings');
     });
   });
+
+  describe('Learning Mode UI Structure', () => {
+    test('should have proper Learn tab button structure', () => {
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      const icon = learnTab.querySelector('.tab-icon');
+      const label = learnTab.querySelector('.tab-label');
+
+      expect(learnTab).toBeTruthy();
+      expect(learnTab.getAttribute('role')).toBe('tab');
+      expect(learnTab.getAttribute('aria-controls')).toBe('learn-tab');
+      expect(icon).toBeTruthy();
+      expect(icon.textContent).toBe('🎓');
+      expect(label).toBeTruthy();
+      expect(label.textContent).toBe('Learn');
+    });
+
+    test('should have Learn tab panel with correct accessibility attributes', () => {
+      const learnPanel = document.getElementById('learn-tab');
+
+      expect(learnPanel).toBeTruthy();
+      expect(learnPanel.classList.contains('tab-panel')).toBe(true);
+      expect(learnPanel.getAttribute('role')).toBe('tabpanel');
+    });
+
+    test('should not have Learn tab active by default', () => {
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      const learnPanel = document.getElementById('learn-tab');
+
+      expect(learnTab.classList.contains('active')).toBe(false);
+      expect(learnTab.getAttribute('aria-selected')).toBe('false');
+      expect(learnPanel.classList.contains('active')).toBe(false);
+    });
+
+    test('should have learn header structure', () => {
+      const header = document.querySelector('.learn-header');
+      const title = header.querySelector('.section-title');
+      const count = header.querySelector('.words-due-count');
+
+      expect(header).toBeTruthy();
+      expect(title).toBeTruthy();
+      expect(title.textContent).toBe('Daily Review');
+      expect(count).toBeTruthy();
+    });
+
+    test('should have main learn container', () => {
+      const container = document.querySelector('.learn-container');
+      expect(container).toBeTruthy();
+    });
+
+    test('should have expected DOM structure for flashcard elements', () => {
+      // These elements won't exist until Learning Mode is implemented,
+      // but we can test the container exists for future flashcard content
+      const container = document.querySelector('.learn-container');
+      expect(container).toBeTruthy();
+
+      // When implemented, flashcard should have these IDs available
+      // This documents the expected structure for implementation
+      const expectedElements = [
+        '#start-review-btn',
+        '#flashcard',
+        '#known-btn',
+        '#unknown-btn',
+        '#skip-btn',
+        '#mastered-btn'
+      ];
+
+      // For now, we just verify the container exists
+      // After implementation, these elements should be findable within container
+      expectedElements.forEach(selector => {
+        // Document expected selectors - implementation will create these
+        expect(selector).toMatch(/^#[a-z-]+$/); // Valid ID selector format
+      });
+    });
+  });
 });

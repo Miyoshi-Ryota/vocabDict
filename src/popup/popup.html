@@ -62,7 +62,7 @@
         <main class="tab-content">
             <!-- Search Tab -->
             <div id="search-tab" class="tab-panel active" role="tabpanel">
-                <div class="search-section">
+                <div class="search-container">
                     <div class="search-input-wrapper">
                         <span class="search-icon">🔍</span>
                         <input type="search" 
@@ -72,16 +72,16 @@
                                autocomplete="off">
                     </div>
                     
+                    <div class="search-results" aria-live="polite" aria-label="Search results">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    
                     <div class="recent-searches">
                         <h3 class="section-title">Recent Searches</h3>
                         <ul class="recent-searches-list" aria-label="Recent searches">
                             <!-- Populated by JavaScript -->
                         </ul>
                     </div>
-                </div>
-                
-                <div class="search-results" aria-live="polite" aria-label="Search results">
-                    <!-- Populated by JavaScript -->
                 </div>
             </div>
             

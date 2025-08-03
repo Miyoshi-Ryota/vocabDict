@@ -11,7 +11,7 @@ describe('VocabularyList', () => {
   beforeEach(async () => {
     // Clear storage before each test
     await browser.storage.local.clear();
-    
+
     storageManager = StorageManager;
     dictionary = new DictionaryService(dictionaryData, storageManager);
     await dictionary.loadLookupStatistics();
@@ -250,7 +250,7 @@ describe('VocabularyList', () => {
     test('should sort by lookup count', async () => {
       // Set up lookup counts in dictionary
       await dictionary.lookup('zealous'); // 1 lookup
-      await dictionary.lookup('aesthetic'); // 1 lookup  
+      await dictionary.lookup('aesthetic'); // 1 lookup
       await dictionary.lookup('aesthetic'); // 2 lookups
       await dictionary.lookup('aesthetic'); // 3 lookups
       await dictionary.lookup('brevity'); // 1 lookup
@@ -258,7 +258,7 @@ describe('VocabularyList', () => {
 
       const sorted = await list.sortBy('lookupCount', 'desc');
       expect(sorted[0].word).toBe('aesthetic'); // 3 lookups
-      expect(sorted[1].word).toBe('brevity'); // 2 lookups  
+      expect(sorted[1].word).toBe('brevity'); // 2 lookups
       expect(sorted[2].word).toBe('zealous'); // 1 lookup
     });
   });

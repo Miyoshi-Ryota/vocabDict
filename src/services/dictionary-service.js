@@ -5,7 +5,7 @@ class DictionaryService {
     Object.keys(dictionaryData).forEach(key => {
       this.data[key.toLowerCase()] = dictionaryData[key];
     });
-    
+
     this.storageManager = storageManager;
     this.lookupStatistics = new Map();
   }
@@ -15,7 +15,7 @@ class DictionaryService {
    */
   async loadLookupStatistics() {
     if (!this.storageManager) return;
-    
+
     try {
       const stats = await this.storageManager.get('dictionary_lookup_stats');
       if (stats) {
@@ -42,12 +42,12 @@ class DictionaryService {
     }
 
     const result = this.data[normalizedWord] || null;
-    
+
     // Increment lookup count if word was found
     if (result) {
       await this.incrementLookupCount(normalizedWord);
     }
-    
+
     return result;
   }
 
@@ -57,26 +57,26 @@ class DictionaryService {
    */
   async incrementLookupCount(normalizedWord) {
     if (!this.storageManager) return;
-    
-    const current = this.lookupStatistics.get(normalizedWord) || { 
-      count: 0, 
-      firstLookup: null, 
-      lastLookup: null 
+
+    const current = this.lookupStatistics.get(normalizedWord) || {
+      count: 0,
+      firstLookup: null,
+      lastLookup: null
     };
-    
+
     const now = new Date().toISOString();
-    
+
     current.count++;
     current.lastLookup = now;
     if (!current.firstLookup) {
       current.firstLookup = now;
     }
-    
+
     this.lookupStatistics.set(normalizedWord, current);
-    
+
     // Persist to storage
     try {
-      await this.storageManager.set('dictionary_lookup_stats', 
+      await this.storageManager.set('dictionary_lookup_stats',
         Object.fromEntries(this.lookupStatistics)
       );
     } catch (error) {
@@ -110,7 +110,7 @@ class DictionaryService {
     if (!word || typeof word !== 'string') {
       return 0;
     }
-    
+
     const normalizedWord = word.trim().toLowerCase();
     const stats = this.lookupStatistics.get(normalizedWord);
     return stats ? stats.count : 0;

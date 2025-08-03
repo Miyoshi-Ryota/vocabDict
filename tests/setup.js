@@ -9,7 +9,6 @@ const dictionaryData = require('../src/data/dictionary.json');
 
 const dictionary = new DictionaryService(dictionaryData, StorageManager);
 
-
 // Polyfill browser APIs that jsdom doesn't provide
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -99,7 +98,7 @@ function setupBrowserMock() {
 beforeEach(() => {
   // Reset DictionaryService lookup statistics to prevent accumulation between tests
   dictionary.lookupStatistics.clear();
-  
+
   // Always re-setup browser mock for complete isolation
   setupBrowserMock();
 });
@@ -110,10 +109,10 @@ afterEach(() => {
   if (typeof document !== 'undefined') {
     document.getElementsByTagName('html')[0].innerHTML = '';
   }
-  
+
   // Reset all Jest modules for complete isolation
   jest.resetModules();
-  
+
   // Clear storage and dictionary lookup statistics
   Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
   dictionary.lookupStatistics.clear();

@@ -199,15 +199,15 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
-      
+
       // Should include lookup count data
       expect(result.data[0]).toHaveProperty('lookupCount');
       expect(result.data[1]).toHaveProperty('lookupCount');
-      
+
       // Should be sorted by lookup count (ascending)
       expect(result.data[0].word).toBe('eloquent'); // 1 lookup
       expect(result.data[0].lookupCount).toBe(1);
-      expect(result.data[1].word).toBe('hello'); // 2 lookups  
+      expect(result.data[1].word).toBe('hello'); // 2 lookups
       expect(result.data[1].lookupCount).toBe(2);
     });
 
@@ -228,7 +228,7 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
-      
+
       const word = result.data[0];
       // Should include all necessary data for UI display
       expect(word).toHaveProperty('word');
