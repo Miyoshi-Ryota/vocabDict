@@ -920,4 +920,343 @@ describe('Popup Integration Tests', () => {
       });
     });
   });
+
+  describe('Learning Mode', () => {
+    beforeEach(async () => {
+      // Setup test data using existing functionality
+      // First create a list
+      const createListResponse = await browser.runtime.sendMessage({
+        type: 'create_list',
+        name: 'Learning Test List'
+      });
+      
+      expect(createListResponse.success).toBe(true);
+      const listId = createListResponse.data.id;
+
+      // Add words that exist in dictionary
+      await browser.runtime.sendMessage({
+        type: 'add_to_list',
+        word: 'hello',
+        listId: listId
+      });
+
+      await browser.runtime.sendMessage({
+        type: 'add_to_list',
+        word: 'eloquent',
+        listId: listId
+      });
+
+      await browser.runtime.sendMessage({
+        type: 'add_to_list',
+        word: 'serendipity',
+        listId: listId
+      });
+
+      // Now manually update the words to have review dates
+      // This is the only direct storage manipulation we need
+      const result = await browser.storage.local.get('vocab_lists');
+      const list = result.vocab_lists.find(l => l.id === listId);
+      
+      // Set review dates for testing
+      list.words.hello.nextReview = new Date(Date.now() - 3600000).toISOString(); // 1 hour ago - due
+      list.words.hello.lastReviewed = new Date(Date.now() - 24 * 3600000).toISOString();
+      
+      list.words.eloquent.nextReview = new Date(Date.now() - 7200000).toISOString(); // 2 hours ago - due
+      list.words.eloquent.lastReviewed = new Date(Date.now() - 48 * 3600000).toISOString();
+      
+      list.words.serendipity.nextReview = new Date(Date.now() + 24 * 3600000).toISOString(); // Tomorrow - not due
+      list.words.serendipity.lastReviewed = new Date(Date.now() - 72 * 3600000).toISOString();
+
+      await browser.storage.local.set({ vocab_lists: result.vocab_lists });
+    });
+
+    test('should display review queue status on Learn tab', async () => {
+      // Switch to learn tab
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+
+      // Wait for review queue to load
+      await waitFor(() => {
+        const dueCount = document.querySelector('.words-due-count');
+        return dueCount && dueCount.textContent === '2 words due';
+      });
+
+      // Check start review button is displayed
+      const startBtn = document.querySelector('#start-review-btn');
+      expect(startBtn).toBeTruthy();
+      expect(startBtn.textContent).toContain('Start Review Session');
+
+      // Check review stats
+      const container = document.querySelector('.learn-container');
+      expect(container.textContent).toContain('2');
+      expect(container.textContent).toContain('Words Due');
+    });
+
+    test('should display "All caught up" when no words due', async () => {
+      // Clear existing data and set words with future review dates
+      await browser.storage.local.set({
+        vocab_lists: [{
+          id: 'test-list-1',
+          name: 'Test List',
+          created: new Date().toISOString(),
+          words: {
+            serendipity: {
+              word: 'serendipity',
+              dateAdded: new Date().toISOString(),
+              nextReview: new Date(Date.now() + 24 * 3600000).toISOString(), // Tomorrow
+              difficulty: 'hard'
+            },
+            aesthetic: {
+              word: 'aesthetic',
+              dateAdded: new Date().toISOString(),
+              nextReview: new Date(Date.now() + 48 * 3600000).toISOString(), // 2 days from now
+              difficulty: 'medium'
+            }
+          }
+        }]
+      });
+
+      // Switch to learn tab
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+
+      // Wait for empty state to display
+      await waitFor(() => {
+        const container = document.querySelector('.learn-container');
+        return container && container.textContent.includes('All caught up!');
+      });
+
+      const dueCount = document.querySelector('.words-due-count');
+      expect(dueCount.textContent).toBe('No words due');
+    });
+
+    test('should start review session and display flashcard', async () => {
+      // Switch to learn tab
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+
+      // Wait for and click start button
+      await waitFor(() => {
+        const startBtn = document.querySelector('#start-review-btn');
+        return startBtn !== null;
+      });
+
+      const startBtn = document.querySelector('#start-review-btn');
+      startBtn.click();
+
+      // Wait for flashcard to appear
+      await waitFor(() => {
+        const flashcard = document.querySelector('#flashcard');
+        return flashcard !== null;
+      });
+
+      const flashcard = document.querySelector('#flashcard');
+      expect(flashcard).toBeTruthy();
+      expect(flashcard.classList.contains('flipped')).toBe(false);
+
+      // Check front of card shows word (should be one of the due words)
+      const frontContent = flashcard.querySelector('.flashcard-front .word-display');
+      expect(['hello', 'eloquent']).toContain(frontContent.textContent);
+
+      // Check progress indicator
+      const progressText = document.querySelector('.progress-text');
+      expect(progressText.textContent).toBe('1 of 2');
+    });
+
+    test('should flip card on click and show definition', async () => {
+      // Start review session
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+      
+      await waitFor(() => document.querySelector('#start-review-btn'));
+      document.querySelector('#start-review-btn').click();
+
+      await waitFor(() => document.querySelector('#flashcard'));
+      const flashcard = document.querySelector('#flashcard');
+      
+      // Click to flip
+      flashcard.click();
+
+      // Check card is flipped
+      expect(flashcard.classList.contains('flipped')).toBe(true);
+
+      // Check review actions are visible
+      const reviewActions = document.querySelector('.review-actions');
+      expect(reviewActions.classList.contains('visible')).toBe(true);
+
+      // Check action buttons exist
+      expect(document.getElementById('known-btn')).toBeTruthy();
+      expect(document.getElementById('unknown-btn')).toBeTruthy();
+      expect(document.getElementById('skip-btn')).toBeTruthy();
+      expect(document.getElementById('mastered-btn')).toBeTruthy();
+
+      // Check back of card shows definition from dictionary
+      const backContent = flashcard.querySelector('.flashcard-back');
+      const wordTitle = backContent.querySelector('.word-title');
+      expect(['hello', 'eloquent']).toContain(wordTitle.textContent);
+      
+      // Check pronunciation is shown
+      const pronunciation = backContent.querySelector('.word-pronunciation');
+      expect(pronunciation).toBeTruthy();
+      if (wordTitle.textContent === 'hello') {
+        expect(pronunciation.textContent).toContain('/həˈloʊ/');
+      } else if (wordTitle.textContent === 'eloquent') {
+        expect(pronunciation.textContent).toContain('/ˈɛləkwənt/');
+      }
+    });
+
+    test('should handle review actions and progress to next word', async () => {
+      // Start review
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+      
+      await waitFor(() => document.querySelector('#start-review-btn'));
+      document.querySelector('#start-review-btn').click();
+
+      await waitFor(() => document.querySelector('#flashcard'));
+      
+      // Get first word
+      const firstWord = document.querySelector('.word-display').textContent;
+
+      // Flip first card
+      document.querySelector('#flashcard').click();
+
+      // Click "known" button
+      await waitFor(() => document.querySelector('#known-btn'));
+      document.querySelector('#known-btn').click();
+
+      // Should display second word
+      await waitFor(() => {
+        const wordDisplay = document.querySelector('.word-display');
+        return wordDisplay && wordDisplay.textContent !== firstWord;
+      });
+
+      const secondWord = document.querySelector('.word-display').textContent;
+      expect(['hello', 'eloquent']).toContain(secondWord);
+      expect(secondWord).not.toBe(firstWord);
+
+      // Check progress updated
+      const progressText = document.querySelector('.progress-text');
+      expect(progressText.textContent).toBe('2 of 2');
+    });
+
+    test('should complete session and show summary', async () => {
+      // Start review
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+      
+      await waitFor(() => document.querySelector('#start-review-btn'));
+      document.querySelector('#start-review-btn').click();
+
+      // Complete first word
+      await waitFor(() => document.querySelector('#flashcard'));
+      document.querySelector('#flashcard').click();
+      
+      await waitFor(() => document.querySelector('#known-btn'));
+      document.querySelector('#known-btn').click();
+
+      // Complete second word
+      await waitFor(() => {
+        const progressText = document.querySelector('.progress-text');
+        return progressText && progressText.textContent === '2 of 2';
+      });
+      
+      document.querySelector('#flashcard').click();
+      document.querySelector('#unknown-btn').click();
+
+      // Wait for session complete screen
+      await waitFor(() => {
+        const container = document.querySelector('.learn-container');
+        return container && container.textContent.includes('Session Complete!');
+      });
+
+      // Check summary stats
+      const container = document.querySelector('.learn-container');
+      expect(container.textContent).toContain('Words Reviewed:');
+      expect(container.textContent).toContain('2');
+      expect(container.textContent).toContain('Known:');
+      expect(container.textContent).toContain('1');
+      expect(container.textContent).toContain('Learning:');
+      expect(container.textContent).toContain('1');
+
+      // Check completion buttons
+      expect(document.getElementById('review-more-btn')).toBeTruthy();
+      expect(document.getElementById('finish-session-btn')).toBeTruthy();
+    });
+
+    test('should handle keyboard shortcuts for review actions', async () => {
+      // Start review
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+      
+      await waitFor(() => document.querySelector('#start-review-btn'));
+      document.querySelector('#start-review-btn').click();
+
+      await waitFor(() => document.querySelector('#flashcard'));
+
+      // Test space key to flip
+      const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
+      document.dispatchEvent(spaceEvent);
+
+      await waitFor(() => {
+        const flashcard = document.getElementById('flashcard');
+        return flashcard && flashcard.classList.contains('flipped');
+      });
+
+      // Wait for actions to be visible
+      await waitFor(() => {
+        const actions = document.querySelector('.review-actions');
+        return actions && actions.classList.contains('visible');
+      });
+
+      // Test keyboard shortcut '1' for 'known' action
+      const key1Event = new KeyboardEvent('keydown', { 
+        key: '1',
+        bubbles: true,
+        cancelable: true 
+      });
+      document.dispatchEvent(key1Event);
+
+      // Should advance the session (either to next word or complete)
+      await waitFor(() => {
+        const progressText = document.querySelector('.progress-text');
+        const sessionComplete = document.querySelector('.session-complete');
+        
+        // Either should show progress to second word or complete the session
+        return (progressText && progressText.textContent.trim() === '2 of 2') ||
+               (sessionComplete !== null);
+      });
+    });
+
+    test('should update nextReview date after review action', async () => {
+      // Start review
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+      
+      await waitFor(() => document.querySelector('#start-review-btn'));
+      document.querySelector('#start-review-btn').click();
+
+      await waitFor(() => document.querySelector('#flashcard'));
+      
+      // Get the word being reviewed
+      const wordDisplay = document.querySelector('.word-display').textContent;
+
+      // Flip and mark as known
+      document.querySelector('#flashcard').click();
+      await waitFor(() => document.querySelector('#known-btn'));
+      document.querySelector('#known-btn').click();
+
+      // Wait for action to be processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check that the word's nextReview was updated in storage
+      const result = await browser.storage.local.get('vocab_lists');
+      const list = result.vocab_lists[0];
+      const reviewedWord = list.words[wordDisplay];
+      
+      // nextReview should be updated to a future date
+      expect(new Date(reviewedWord.nextReview)).toBeInstanceOf(Date);
+      expect(new Date(reviewedWord.nextReview).getTime()).toBeGreaterThan(Date.now());
+    });
+  });
 });
