@@ -898,6 +898,7 @@ const LearnTab = {
                   <div class="word-number">${this.currentWordIndex + 1}</div>
                 </div>
                 <h2 class="word-display">${word.word}</h2>
+                ${word.pronunciation ? `<div class="front-pronunciation">${word.pronunciation}</div>` : ''}
                 <div class="flip-hint">
                   <span class="hint-icon">👆</span>
                   <span class="hint-text">Click to reveal definition</span>
