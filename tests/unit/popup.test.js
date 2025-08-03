@@ -191,17 +191,6 @@ describe('Popup UI Tests', () => {
   });
 
   describe('Learn Tab Structure', () => {
-    test('should have learn header', () => {
-      const header = document.querySelector('.learn-header');
-      const title = header.querySelector('.section-title');
-      const count = header.querySelector('.words-due-count');
-
-      expect(header).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(title.textContent).toBe('Daily Review');
-      expect(count).toBeTruthy();
-    });
-
     test('should have learn container', () => {
       const container = document.querySelector('.learn-container');
       expect(container).toBeTruthy();
@@ -423,16 +412,6 @@ describe('Popup UI Tests', () => {
       expect(learnPanel.classList.contains('active')).toBe(false);
     });
 
-    test('should have learn header structure', () => {
-      const header = document.querySelector('.learn-header');
-      const title = header.querySelector('.section-title');
-      const count = header.querySelector('.words-due-count');
-
-      expect(header).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(title.textContent).toBe('Daily Review');
-      expect(count).toBeTruthy();
-    });
 
     test('should have main learn container', () => {
       const container = document.querySelector('.learn-container');

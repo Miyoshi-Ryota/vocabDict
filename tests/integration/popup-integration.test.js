@@ -977,8 +977,8 @@ describe('Popup Integration Tests', () => {
 
       // Wait for review queue to load
       await waitFor(() => {
-        const dueCount = document.querySelector('.words-due-count');
-        return dueCount && dueCount.textContent === '2 words due';
+        const startBtn = document.querySelector('#start-review-btn');
+        return startBtn && startBtn.textContent.includes('Start Review');
       });
 
       // Check start review button is displayed
@@ -1026,8 +1026,8 @@ describe('Popup Integration Tests', () => {
         return container && container.textContent.includes('All caught up!');
       });
 
-      const dueCount = document.querySelector('.words-due-count');
-      expect(dueCount.textContent).toBe('No words due');
+      const container = document.querySelector('.learn-container');
+      expect(container.textContent).toContain('No words are due for review');
     });
 
     test('should start review session and display flashcard', async () => {

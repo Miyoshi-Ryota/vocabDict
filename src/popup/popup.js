@@ -781,10 +781,8 @@ const LearnTab = {
   },
 
   updateDueWordsCount(count) {
-    const countElement = document.querySelector('.words-due-count');
-    if (countElement) {
-      countElement.textContent = count > 0 ? `${count} words due` : 'No words due';
-    }
+    // Due word count is now displayed in the review start screen
+    // No need for separate header element
   },
 
   displayReviewStatus(dueWordsCount) {
