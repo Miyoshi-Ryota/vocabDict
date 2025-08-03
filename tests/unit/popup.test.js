@@ -134,12 +134,9 @@ describe('Popup UI Tests', () => {
   describe('Lists Tab Structure', () => {
     test('should have lists header with new list button', () => {
       const header = document.querySelector('.lists-header');
-      const title = header.querySelector('.section-title');
       const newButton = header.querySelector('#new-list-button');
 
       expect(header).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(title.textContent).toBe('My Lists');
       expect(newButton).toBeTruthy();
       expect(newButton.classList.contains('btn-primary')).toBe(true);
       expect(newButton.classList.contains('btn-small')).toBe(true);
@@ -191,17 +188,6 @@ describe('Popup UI Tests', () => {
   });
 
   describe('Learn Tab Structure', () => {
-    test('should have learn header', () => {
-      const header = document.querySelector('.learn-header');
-      const title = header.querySelector('.section-title');
-      const count = header.querySelector('.words-due-count');
-
-      expect(header).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(title.textContent).toBe('Daily Review');
-      expect(count).toBeTruthy();
-    });
-
     test('should have learn container', () => {
       const container = document.querySelector('.learn-container');
       expect(container).toBeTruthy();
@@ -421,17 +407,6 @@ describe('Popup UI Tests', () => {
       expect(learnTab.classList.contains('active')).toBe(false);
       expect(learnTab.getAttribute('aria-selected')).toBe('false');
       expect(learnPanel.classList.contains('active')).toBe(false);
-    });
-
-    test('should have learn header structure', () => {
-      const header = document.querySelector('.learn-header');
-      const title = header.querySelector('.section-title');
-      const count = header.querySelector('.words-due-count');
-
-      expect(header).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(title.textContent).toBe('Daily Review');
-      expect(count).toBeTruthy();
     });
 
     test('should have main learn container', () => {

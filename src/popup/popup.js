@@ -181,6 +181,9 @@ const SearchTab = {
       recentSearches.style.display = 'none';
     }
 
+    // Add class to enable flex growth
+    resultsContainer.classList.add('has-content');
+
     resultsContainer.innerHTML = `
       <div class="word-card">
         <div class="word-header">
@@ -237,6 +240,9 @@ const SearchTab = {
       recentSearches.style.display = 'none';
     }
 
+    // Add class to enable flex growth
+    resultsContainer.classList.add('has-content');
+
     resultsContainer.innerHTML = `
       <div class="no-results">
         <p>No results found for "<strong>${query}</strong>"</p>
@@ -273,6 +279,9 @@ const SearchTab = {
       recentSearches.style.display = 'none';
     }
 
+    // Add class to enable flex growth
+    resultsContainer.classList.add('has-content');
+
     resultsContainer.innerHTML = `
       <div class="error-message">
         <p>Error: ${error}</p>
@@ -285,6 +294,9 @@ const SearchTab = {
     const recentSearches = document.querySelector('.recent-searches');
 
     resultsContainer.innerHTML = '';
+
+    // Remove class to disable flex growth
+    resultsContainer.classList.remove('has-content');
 
     // Show recent searches when clearing results
     if (recentSearches) {
@@ -780,11 +792,9 @@ const LearnTab = {
     }
   },
 
-  updateDueWordsCount(count) {
-    const countElement = document.querySelector('.words-due-count');
-    if (countElement) {
-      countElement.textContent = count > 0 ? `${count} words due` : 'No words due';
-    }
+  updateDueWordsCount(_count) {
+    // Due word count is now displayed in the review start screen
+    // No need for separate header element
   },
 
   displayReviewStatus(dueWordsCount) {
@@ -867,7 +877,6 @@ const LearnTab = {
       };
 
       this.displayCurrentWord();
-      this.updateSessionProgress();
     } catch (error) {
       console.error('Start review session error:', error);
       NotificationManager.show('Failed to start review session', 'error');
@@ -885,21 +894,16 @@ const LearnTab = {
 
     container.innerHTML = `
       <div class="review-session">
-        <div class="session-header">
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${(this.currentWordIndex / this.sessionWords.length) * 100}%"></div>
-          </div>
-          <div class="progress-text">${this.currentWordIndex + 1} of ${this.sessionWords.length}</div>
-        </div>
-        
         <div class="flashcard-container">
           <div id="flashcard" class="flashcard ${this.isFlipped ? 'flipped' : ''}" data-word="${word.word}">
             <div class="flashcard-front">
               <div class="card-content">
                 <div class="flashcard-header">
                   <div class="word-number">${this.currentWordIndex + 1}</div>
+                  <div class="progress-minimal">${this.currentWordIndex + 1}/${this.sessionWords.length}</div>
                 </div>
                 <h2 class="word-display">${word.word}</h2>
+                ${word.pronunciation ? `<div class="front-pronunciation">${word.pronunciation}</div>` : ''}
                 <div class="flip-hint">
                   <span class="hint-icon">👆</span>
                   <span class="hint-text">Click to reveal definition</span>
@@ -1018,18 +1022,9 @@ const LearnTab = {
       // Move to next word
       this.currentWordIndex++;
       this.displayCurrentWord();
-      this.updateSessionProgress();
     } catch (error) {
       console.error('Process review error:', error);
       NotificationManager.show('Failed to save review result', 'error');
-    }
-  },
-
-  updateSessionProgress() {
-    const progressFill = document.querySelector('.progress-fill');
-    if (progressFill && this.sessionWords.length > 0) {
-      const progress = (this.currentWordIndex / this.sessionWords.length) * 100;
-      progressFill.style.width = `${progress}%`;
     }
   },
 
