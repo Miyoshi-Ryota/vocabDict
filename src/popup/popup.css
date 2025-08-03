@@ -1167,10 +1167,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--spacing-base);
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
   max-width: 100%;
+  padding-top: var(--spacing-lg);
 }
 
 .flashcard {
