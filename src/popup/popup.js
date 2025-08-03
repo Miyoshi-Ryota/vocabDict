@@ -780,7 +780,7 @@ const LearnTab = {
     }
   },
 
-  updateDueWordsCount(count) {
+  updateDueWordsCount(_count) {
     // Due word count is now displayed in the review start screen
     // No need for separate header element
   },

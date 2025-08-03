@@ -412,7 +412,6 @@ describe('Popup UI Tests', () => {
       expect(learnPanel.classList.contains('active')).toBe(false);
     });
 
-
     test('should have main learn container', () => {
       const container = document.querySelector('.learn-container');
       expect(container).toBeTruthy();
