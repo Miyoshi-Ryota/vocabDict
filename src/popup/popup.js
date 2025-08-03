@@ -181,6 +181,9 @@ const SearchTab = {
       recentSearches.style.display = 'none';
     }
 
+    // Add class to enable flex growth
+    resultsContainer.classList.add('has-content');
+
     resultsContainer.innerHTML = `
       <div class="word-card">
         <div class="word-header">
@@ -237,6 +240,9 @@ const SearchTab = {
       recentSearches.style.display = 'none';
     }
 
+    // Add class to enable flex growth
+    resultsContainer.classList.add('has-content');
+
     resultsContainer.innerHTML = `
       <div class="no-results">
         <p>No results found for "<strong>${query}</strong>"</p>
@@ -273,6 +279,9 @@ const SearchTab = {
       recentSearches.style.display = 'none';
     }
 
+    // Add class to enable flex growth
+    resultsContainer.classList.add('has-content');
+
     resultsContainer.innerHTML = `
       <div class="error-message">
         <p>Error: ${error}</p>
@@ -285,6 +294,9 @@ const SearchTab = {
     const recentSearches = document.querySelector('.recent-searches');
 
     resultsContainer.innerHTML = '';
+
+    // Remove class to disable flex growth
+    resultsContainer.classList.remove('has-content');
 
     // Show recent searches when clearing results
     if (recentSearches) {

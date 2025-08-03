@@ -287,7 +287,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .search-input-wrapper {
   position: relative;
-  margin-bottom: var(--spacing-base);
+  margin-bottom: var(--spacing-sm);
   flex-shrink: 0;
 }
 
@@ -324,11 +324,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Recent Searches */
 .recent-searches {
-  flex-shrink: 0;
+  flex: 1;
   border-top: 1px solid var(--border);
-  padding-top: var(--spacing-base);
-  max-height: 200px;
+  padding-top: var(--spacing-sm);
   overflow-y: auto;
+  min-height: 0;
 }
 
 .recent-searches-list {
@@ -355,10 +355,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Search Results */
 .search-results {
-  flex: 1;
+  display: none;
   overflow-y: auto;
   margin-bottom: var(--spacing-base);
   min-height: 0; /* Important for flex child with overflow */
+}
+
+.search-results.has-content {
+  display: block;
+  flex: 1;
 }
 
 .no-results {
