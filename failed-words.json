@@ -1,0 +1,28 @@
+{
+  "batch_null_null": {
+    "timestamp": "2025-08-04T07:03:38.668Z",
+    "failures": [
+      {
+        "word": "pan",
+        "lineNumber": 3457,
+        "error": "Unexpected token '批', ...\"meaning\": 批判する、否定的に評\"... is not valid JSON",
+        "customId": "word_3457_pan",
+        "rawContent": "{\n  \"word\": \"pan\",\n  \"pronunciation\": \"/pæn/\",\n  \"definitions\": [\n    {\n      \"partOfSpeech\": \"名詞\",\n      \"meaning\": \"調理器具。平らで浅い調理用の鍋や容器\",\n      \"examples\": [\"She cooked eggs in a frying pan.\", \"Put the cake pan in the oven.\"]\n    },\n    {\n      \"partOfSpeech\": \"動詞\",\n      \"meaning\": \"カメラやビデオで横に動かしながら撮影する\",\n      \"examples\": [\"The camera panned across the landscape.\", \"He panned the camera to capture the entire scene.\"]\n    },\n    {\n      \"partOfSpeech\": \"動詞\",\n      \"meaning\": 批判する、否定的に評価する\",\n      \"examples\": [\"Critics panned the new movie.\", \"The book was panned by reviewers.\"]\n    },\n    {\n      \"partOfSpeech\": \"名詞\",\n      \"meaning\": \"金鉱を探すための平たい容器\",\n      \"examples\": [\"Prospectors used pans to search for gold.\", \"He sifted the river sand with a pan.\"]\n    }\n  ],\n  \"synonyms\": [\"skillet\", \"criticize\", \"condemn\"],\n  \"antonyms\": [\"praise\", \"commend\"]\n}"
+      },
+      {
+        "word": "backslash",
+        "lineNumber": 41830,
+        "error": "Unexpected token '）', ...\"逆スラッシュ記号（\\）\",\n      \"... is not valid JSON",
+        "customId": "word_41830_backslash",
+        "rawContent": "{\n  \"word\": \"backslash\",\n  \"pronunciation\": \"/ˈbækˌslæʃ/\",\n  \"definitions\": [\n    {\n      \"partOfSpeech\": \"名詞\",\n      \"meaning\": \"コンピューターの逆スラッシュ記号（\\）\",\n      \"examples\": [\"In file paths, a backslash is used to separate directories.\", \"The backslash is often used in programming languages.\"]\n    }\n  ],\n  \"synonyms\": [\"reverse solidus\", \"reverse slash\"],\n  \"antonyms\": []\n}"
+      },
+      {
+        "word": "backslashes",
+        "lineNumber": 79797,
+        "error": "Unexpected token '）', ...\" \"逆スラッシュ（\\）文字のこと\",\n \"... is not valid JSON",
+        "customId": "word_79797_backslashes",
+        "rawContent": "{\n  \"word\": \"backslashes\",\n  \"pronunciation\": \"/ˈbækˌslæʃɪz/\",\n  \"definitions\": [\n    {\n      \"partOfSpeech\": \"名詞\",\n      \"meaning\": \"逆スラッシュ（\\）文字のこと\",\n      \"examples\": [\"Backslashes are used in file paths on Windows systems.\", \"In programming, backslashes can be used as escape characters.\"]\n    }\n  ],\n  \"synonyms\": [\"reverse solidus\", \"escape character\"],\n  \"antonyms\": []\n}"
+      }
+    ]
+  }
+}
