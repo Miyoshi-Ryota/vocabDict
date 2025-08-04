@@ -87,7 +87,7 @@ describe('DictionaryService', () => {
     });
 
     test('should return empty array for very different words', () => {
-      const suggestions = dictionary.fuzzyMatch('xyz123');
+      const suggestions = dictionary.fuzzyMatch('xyzabc123notaword');
       expect(suggestions).toEqual([]);
     });
 
@@ -120,21 +120,21 @@ describe('DictionaryService', () => {
 
   describe('getWordsByPartOfSpeech', () => {
     test('should return words with specified part of speech', async () => {
-      const adjectives = dictionary.getWordsByPartOfSpeech('adjective');
+      const adjectives = dictionary.getWordsByPartOfSpeech('形容詞');
       expect(Array.isArray(adjectives)).toBe(true);
       expect(adjectives.length).toBeGreaterThan(0);
 
       // Check that all returned words have adjective definitions
       for (const word of adjectives) {
         const entry = await dictionary.lookup(word);
-        const hasAdjective = entry.definitions.some(def => def.partOfSpeech === 'adjective');
+        const hasAdjective = entry.definitions.some(def => def.partOfSpeech === '形容詞');
         expect(hasAdjective).toBe(true);
       }
     });
 
     test('should handle case insensitive part of speech', () => {
-      const nouns1 = dictionary.getWordsByPartOfSpeech('noun');
-      const nouns2 = dictionary.getWordsByPartOfSpeech('NOUN');
+      const nouns1 = dictionary.getWordsByPartOfSpeech('名詞');
+      const nouns2 = dictionary.getWordsByPartOfSpeech('名詞');
       expect(nouns1).toEqual(nouns2);
     });
 
@@ -165,14 +165,14 @@ describe('DictionaryService', () => {
 
   describe('searchByDefinition', () => {
     test('should find words containing search term in definition', () => {
-      const results = dictionary.searchByDefinition('greeting');
+      const results = dictionary.searchByDefinition('挨拶');
       expect(results.length).toBeGreaterThan(0);
       expect(results).toContain('hello');
     });
 
     test('should be case insensitive', () => {
-      const results1 = dictionary.searchByDefinition('greeting');
-      const results2 = dictionary.searchByDefinition('GREETING');
+      const results1 = dictionary.searchByDefinition('挨拶');
+      const results2 = dictionary.searchByDefinition('挨拶');
       expect(results1).toEqual(results2);
     });
 

@@ -37,7 +37,7 @@ describe('Background Service Integration Tests', () => {
 
       expect(lookupResponse.success).toBe(true);
       expect(lookupResponse.data.word).toBe('serendipity');
-      expect(lookupResponse.data.pronunciation).toBe('/ˌsɛrənˈdɪpɪti/');
+      expect(lookupResponse.data.pronunciation).toBe('/ˌserənˈdipədē/');
 
       // 2. Get lists to find where to add
       const listsResponse = await handleMessage({

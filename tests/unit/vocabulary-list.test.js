@@ -315,7 +315,7 @@ describe('VocabularyList', () => {
     });
 
     test('should search in definitions', async () => {
-      const results = await list.search('fluent');
+      const results = await list.search('雄弁');
       expect(results.length).toBe(1);
       expect(results[0].word).toBe('eloquent');
     });

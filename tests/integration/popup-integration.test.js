@@ -60,7 +60,7 @@ describe('Popup Integration Tests', () => {
       // Check definition is displayed
       const definition = wordCard.querySelector('.word-definition');
       expect(definition).toBeTruthy();
-      expect(definition.textContent).toContain('greeting');
+      expect(definition.textContent).toContain('挨拶');
     });
 
     test('should handle search with no results', async () => {
@@ -1101,7 +1101,7 @@ describe('Popup Integration Tests', () => {
       if (wordTitle.textContent === 'hello') {
         expect(pronunciation.textContent).toContain('/həˈloʊ/');
       } else if (wordTitle.textContent === 'eloquent') {
-        expect(pronunciation.textContent).toContain('/ˈɛləkwənt/');
+        expect(pronunciation.textContent).toContain('/ˈelˌəkwənt/');
       }
     });
 

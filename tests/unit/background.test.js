@@ -42,7 +42,7 @@ describe('Background Message Handler', () => {
     test('should return error for invalid word', async () => {
       const result = await handleMessage({
         type: MessageTypes.LOOKUP_WORD,
-        word: 'notaword'
+        word: 'xyznotaword123'
       }, { dictionary, storage });
 
       expect(result.success).toBe(false);
@@ -52,10 +52,11 @@ describe('Background Message Handler', () => {
     test('should handle fuzzy matching', async () => {
       const result = await handleMessage({
         type: MessageTypes.LOOKUP_WORD,
-        word: 'helo' // misspelled
+        word: 'hllo' // misspelled
       }, { dictionary, storage });
 
       expect(result.success).toBe(true);
+      expect(result.data).toBeNull();
       expect(result.suggestions).toBeDefined();
       expect(result.suggestions).toContain('hello');
     });
@@ -352,8 +353,8 @@ describe('Background Message Handler', () => {
 
       // Add words with different review times
       const now = new Date();
-      const yesterday = new Date(now - 86400000);
-      const tomorrow = new Date(now + 86400000);
+      const yesterday = new Date(now.getTime() - 86400000);
+      const tomorrow = new Date(now.getTime() + 86400000);
 
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,

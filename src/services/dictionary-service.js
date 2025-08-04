@@ -206,7 +206,7 @@ class DictionaryService {
     for (const word in this.data) {
       const entry = this.data[word];
       const hasPartOfSpeech = entry.definitions.some(
-        def => def.partOfSpeech.toLowerCase() === normalizedPos
+        def => def.partOfSpeech && def.partOfSpeech.toLowerCase() === normalizedPos
       );
       if (hasPartOfSpeech) {
         results.push(word);

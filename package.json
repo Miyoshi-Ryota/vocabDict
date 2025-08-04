@@ -4,9 +4,9 @@
   "description": "VocabDict is a Safari Web Extension designed to help English learners improve their vocabulary through dictionary lookup, vocabulary management, and spaced repetition learning.",
   "private": true,
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "NODE_OPTIONS='--max-old-space-size=8192' jest",
+    "test:watch": "NODE_OPTIONS='--max-old-space-size=8192' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--max-old-space-size=8192' jest --coverage",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "watch": "webpack --mode development --watch",
