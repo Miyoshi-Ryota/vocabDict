@@ -1,0 +1,128 @@
+{
+  "batch_1_10000": {
+    "batchId": "msgbatch_01EGUXWXzGKhKBbX7zymspE7",
+    "status": "completed",
+    "submittedAt": "2025-08-04T05:53:08.626Z",
+    "wordCount": 10000,
+    "startIndex": 1,
+    "endIndex": 10000,
+    "completedAt": "2025-08-04T05:55:42.486Z"
+  },
+  "retry_1_10000_1754286984478": {
+    "batchId": "msgbatch_01Tjk8Q5D2nBtEzSRfJ6fczx",
+    "status": "completed",
+    "submittedAt": "2025-08-04T05:56:25.028Z",
+    "wordCount": 7,
+    "startIndex": 1,
+    "endIndex": 10000,
+    "completedAt": "2025-08-04T05:57:26.367Z"
+  },
+  "retry_1_10000_1754287085161": {
+    "batchId": "msgbatch_01RbD9uwUu5sXvNuvy46g6tS",
+    "status": "completed",
+    "submittedAt": "2025-08-04T05:58:05.584Z",
+    "wordCount": 3,
+    "startIndex": 1,
+    "endIndex": 10000,
+    "completedAt": "2025-08-04T05:59:37.334Z"
+  },
+  "batch_10001_20000": {
+    "batchId": "msgbatch_01WEnPaWRc6orKVkqP2hkqBz",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:00:04.230Z",
+    "wordCount": 10000,
+    "startIndex": 10001,
+    "endIndex": 20000,
+    "completedAt": "2025-08-04T06:02:37.893Z"
+  },
+  "retry_10001_20000_1754287413624": {
+    "batchId": "msgbatch_01XKpFMxcCGodPTUaVeaf7sL",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:03:33.969Z",
+    "wordCount": 1,
+    "startIndex": 10001,
+    "endIndex": 20000,
+    "completedAt": "2025-08-04T06:04:35.833Z"
+  },
+  "batch_20001_30000": {
+    "batchId": "msgbatch_01XnoJwytBLVD8ZDZEZW38fF",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:08:51.627Z",
+    "wordCount": 10000,
+    "startIndex": 20001,
+    "endIndex": 30000,
+    "completedAt": "2025-08-04T06:20:30.213Z"
+  },
+  "batch_30001_40000": {
+    "batchId": "msgbatch_01UT6gAzBXfJ7VJz92m46zSg",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:21:43.315Z",
+    "wordCount": 10000,
+    "startIndex": 30001,
+    "endIndex": 40000,
+    "completedAt": "2025-08-04T06:24:17.056Z"
+  },
+  "batch_40001_50000": {
+    "batchId": "msgbatch_01Fx5FXYD2pLsDSzsFuTf4pv",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:24:37.704Z",
+    "wordCount": 10000,
+    "startIndex": 40001,
+    "endIndex": 50000,
+    "completedAt": "2025-08-04T06:35:46.045Z"
+  },
+  "batch_50001_60000": {
+    "batchId": "msgbatch_018dX7PcXLvgRmGFw9escV4Q",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:36:14.132Z",
+    "wordCount": 10000,
+    "startIndex": 50001,
+    "endIndex": 60000,
+    "completedAt": "2025-08-04T06:39:17.947Z"
+  },
+  "batch_60001_70000": {
+    "batchId": "msgbatch_01KZsGGSCTJKCquPazMBRmQi",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:40:35.434Z",
+    "wordCount": 10000,
+    "startIndex": 60001,
+    "endIndex": 70000,
+    "completedAt": "2025-08-04T06:52:14.577Z"
+  },
+  "batch_70001_80000": {
+    "batchId": "msgbatch_01XGsrdi3No6pn3WV9iHtwqe",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:53:17.498Z",
+    "wordCount": 10000,
+    "startIndex": 70001,
+    "endIndex": 80000,
+    "completedAt": "2025-08-04T06:55:21.235Z"
+  },
+  "batch_80001_90000": {
+    "batchId": "msgbatch_01T59N5iMtkuEmuZ4XF7Udd5",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:56:21.641Z",
+    "wordCount": 10000,
+    "startIndex": 80001,
+    "endIndex": 90000,
+    "completedAt": "2025-08-04T06:58:25.126Z"
+  },
+  "batch_90001_100000": {
+    "batchId": "msgbatch_01RMkfXzHzmiDmu7NPNG6oxn",
+    "status": "completed",
+    "submittedAt": "2025-08-04T06:59:28.715Z",
+    "wordCount": 10000,
+    "startIndex": 90001,
+    "endIndex": 100000,
+    "completedAt": "2025-08-04T07:02:02.659Z"
+  },
+  "retry_all_1754290956691": {
+    "batchId": "msgbatch_01HQJa4DX9McF7MxarQi27fn",
+    "status": "completed",
+    "submittedAt": "2025-08-04T07:02:37.128Z",
+    "wordCount": 12,
+    "startIndex": null,
+    "endIndex": null,
+    "completedAt": "2025-08-04T07:03:38.669Z"
+  }
+}
