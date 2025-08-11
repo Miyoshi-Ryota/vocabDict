@@ -1328,5 +1328,42 @@ describe('Popup Integration Tests', () => {
       const recentSearches = document.querySelector('.recent-searches');
       expect(recentSearches.style.display).toBe('none');
     });
+
+    test('should display error message when word not found via context menu', async () => {
+      // Simulate right-clicking on a non-existent word
+      await browser.contextMenus.simulateClick({
+        menuItemId: 'lookup-vocabdict',
+        selectionText: 'xyznotaword123'
+      });
+
+      // Wait for search results container to exist and have content
+      await waitFor(() => {
+        const searchResults = document.querySelector('.search-results');
+        if (!searchResults) return false;
+
+        // Check if any content has been rendered (error, no-results, or word-card)
+        const hasContent = searchResults.querySelector('.no-results') ||
+                          searchResults.querySelector('.error-message') ||
+                          searchResults.querySelector('.word-card');
+
+        return hasContent !== null;
+      });
+
+      // Now get the actual result
+      const searchResults = document.querySelector('.search-results');
+      // When word is not found and no suggestions, error message is displayed
+      const errorMessage = searchResults.querySelector('.error-message');
+
+      expect(errorMessage).toBeTruthy();
+      expect(errorMessage.textContent).toContain('Word not found');
+
+      // Verify the search input shows the word
+      const searchInput = document.querySelector('.search-input');
+      expect(searchInput.value).toBe('xyznotaword123');
+
+      // Verify recent searches are hidden
+      const recentSearches = document.querySelector('.recent-searches');
+      expect(recentSearches.style.display).toBe('none');
+    });
   });
 });
