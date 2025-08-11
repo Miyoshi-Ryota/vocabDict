@@ -1228,6 +1228,47 @@ describe('Popup Integration Tests', () => {
       });
     });
 
+    test('should reset flashcard to front when moving to next word after review action', async () => {
+      // Start review
+      const learnTab = document.querySelector('[data-tab="learn"]');
+      learnTab.click();
+
+      await waitFor(() => document.querySelector('#start-review-btn'));
+      document.querySelector('#start-review-btn').click();
+
+      await waitFor(() => document.querySelector('#flashcard'));
+
+      // Get first word
+      const firstWord = document.querySelector('.word-display').textContent;
+
+      // Flip the first card to show back
+      const flashcard = document.querySelector('#flashcard');
+      flashcard.click();
+
+      // Wait for card to be flipped
+      await waitFor(() => flashcard.classList.contains('flipped'));
+      expect(flashcard.classList.contains('flipped')).toBe(true);
+
+      // Click "known" button to move to next word
+      const knownBtn = document.querySelector('#known-btn');
+      knownBtn.click();
+
+      // Wait for next word to be displayed
+      await waitFor(() => {
+        const wordDisplay = document.querySelector('.word-display');
+        return wordDisplay && wordDisplay.textContent !== firstWord;
+      });
+
+      // Check that the new card is NOT flipped (should show front)
+      const newFlashcard = document.querySelector('#flashcard');
+      expect(newFlashcard.classList.contains('flipped')).toBe(false);
+
+      // Verify review actions are hidden for the new card
+      const reviewActions = document.querySelector('.review-actions');
+      expect(reviewActions.classList.contains('hidden')).toBe(true);
+      expect(reviewActions.classList.contains('visible')).toBe(false);
+    });
+
     test('should update nextReview date after review action', async () => {
       // Start review
       const learnTab = document.querySelector('[data-tab="learn"]');
