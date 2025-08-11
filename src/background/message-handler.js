@@ -352,8 +352,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Context menu state not available' };
         }
 
-        const pendingData = contextMenuState.getPendingSearch();
-        return { success: true, data: pendingData };
+        const pendingWord = contextMenuState.getPendingSearch();
+        return { success: true, data: pendingWord };
       }
 
       default:

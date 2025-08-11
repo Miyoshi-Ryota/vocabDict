@@ -1,6 +1,6 @@
 const DictionaryService = require('../services/dictionary-service');
 const StorageManager = require('../services/storage');
-const { MessageTypes, handleMessage } = require('./message-handler');
+const { handleMessage } = require('./message-handler');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
@@ -11,18 +11,14 @@ const storage = StorageManager;
 const contextMenuState = {
   pendingSearch: null,
 
-  setPendingSearch(word, result) {
-    this.pendingSearch = {
-      word,
-      result,
-      timestamp: Date.now()
-    };
+  setPendingSearch(word) {
+    this.pendingSearch = word;
   },
 
   getPendingSearch() {
-    const data = this.pendingSearch;
+    const word = this.pendingSearch;
     this.pendingSearch = null; // 取得と同時にクリア
-    return data;
+    return word;
   },
 
   clear() {
@@ -81,20 +77,12 @@ async function handleContextMenuClick(info, _tab) {
   if (info.menuItemId === 'lookup-vocabdict' && info.selectionText) {
     console.log('Context menu clicked:', info.selectionText);
 
-    // Look up the word
-    const response = await handleMessage({
-      type: MessageTypes.LOOKUP_WORD,
-      word: info.selectionText
-    }, services);
+    // Store the word for popup to search
+    contextMenuState.setPendingSearch(info.selectionText);
 
-    // Store the lookup result in memory for popup to display
-    if (response.success && response.data) {
-      contextMenuState.setPendingSearch(info.selectionText, response.data);
-
-      // Open the extension popup to show the result
-      if (browser.action && browser.action.openPopup) {
-        browser.action.openPopup();
-      }
+    // Open the extension popup
+    if (browser.action && browser.action.openPopup) {
+      browser.action.openPopup();
     }
   }
 }

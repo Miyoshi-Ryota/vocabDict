@@ -126,13 +126,16 @@ const SearchTab = {
       });
 
       if (response.success && response.data) {
-        const { word, result } = response.data;
-        this.displaySearchResult(result);
+        const word = response.data;
 
+        // Set the search input value
         const searchInput = document.querySelector('.search-input');
         if (searchInput) {
           searchInput.value = word;
         }
+
+        // Perform the search using the normal flow
+        this.performSearch(word);
       }
     } catch (error) {
       console.error('Failed to check pending context search:', error);
