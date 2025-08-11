@@ -882,7 +882,6 @@ const LearnTab = {
 
       this.sessionWords = response.data;
       this.currentWordIndex = 0;
-      this.isFlipped = false;
       this.sessionStats = {
         total: this.sessionWords.length,
         completed: 0,
@@ -909,6 +908,9 @@ const LearnTab = {
       this.endReviewSession();
       return;
     }
+
+    // Reset flip state before generating HTML to ensure new card shows front
+    this.isFlipped = false;
 
     const word = this.sessionWords[this.currentWordIndex];
     const container = document.querySelector('.learn-container');
@@ -995,7 +997,6 @@ const LearnTab = {
 
     // Re-setup controls
     this.setupLearnControls();
-    this.isFlipped = false;
   },
 
   flipCard() {
