@@ -1,87 +1,50 @@
 # VocabDict - Safari Web Extension for English Learners
 
-VocabDict is a Safari Web Extension designed to help English learners improve their vocabulary through dictionary lookup, vocabulary management, and spaced repetition learning.
+VocabDictは、英語学習者のためのSafari Web Extensionです。辞書検索、語彙管理、間隔反復学習を統合し、効率的な語彙学習をサポートします。
 
-## Features
+## 特徴
 
-### 1. Dictionary Lookup
-- Right-click context menu on macOS
-- Text selection menu on iOS
-- Comprehensive word information (definitions, synonyms, antonyms, examples)
-- Quick add to vocabulary lists
+### 📚 辞書検索
+- **macOS**: 右クリックメニューから即座に検索
+- **iOS**: テキスト選択メニューから検索
+- 単語の定義、発音、同義語、反意語、例文を表示
+- ワンクリックで語彙リストに追加
 
-### 2. Vocabulary Management
-- Create and manage custom vocabulary lists
-- Automatic word tracking with lookup counts
-- Sort by difficulty, date added, or lookup frequency
-- Import/export vocabulary data
+### 📝 語彙管理
+- カスタム語彙リストの作成・管理
+- 自動単語追跡と検索回数カウント
+- 難易度、追加日、検索頻度でソート
+- インポート/エクスポート機能
 
-### 3. Learning Mode
-- Flashcard-based spaced repetition
-- Track learning progress
-- Review scheduling based on performance
-- Daily review reminders
+### 🎓 学習モード
+- フラッシュカードベースの間隔反復学習
+- 学習進捗の追跡
+- パフォーマンスに基づく復習スケジューリング
+- 毎日の復習リマインダー
 
-## Platform Support
-- macOS: Safari 18.0+
-- iOS: Safari on iOS 18.0+
+## プラットフォームサポート
 
-## Development
+- **macOS**: Safari 18.0以上
+- **iOS**: Safari on iOS 18.0以上
 
-### Prerequisites
-- Xcode 15+
-- Node.js 18+
-- npm or yarn
+## 使い方
 
-### Setup
-```bash
-# Install dependencies
-npm install
+1. Safari設定で拡張機能を有効化
+2. Webページでテキストを選択
+3. 右クリック（macOS）またはテキスト選択メニュー（iOS）から「Look up in VocabDict」を選択
+4. ポップアップで詳細を確認し、必要に応じて語彙リストに追加
 
-# Run tests
-npm test
+## ドキュメント
 
-# Build web extension resources only (webpack)
-npm run build:dev       # Development build to Resources folder
-npm run build           # Production build to Resources folder
+- [アーキテクチャ概要](docs/architecture.md) - システム設計と構成
+- [テスト戦略](docs/testing.md) - テスト哲学とベストプラクティス
+- [開発ガイド](docs/development.md) - セットアップとワークフロー
 
-# Build and compile complete app (requires Xcode)
-npm run build:macos     # Build web resources + compile macOS app
-npm run build:ios       # Build web resources + compile iOS app  
-npm run build:all       # Build web resources + compile both platforms
-```
+## 作者
 
-### Project Structure
-```
-VocabDict/
-├── Shared (Extension)/     # Safari extension files
-│   └── Resources/         # Extension resources
-├── iOS (App)/            # iOS app files
-├── macOS (App)/          # macOS app files
-├── src/                  # Additional JS modules
-├── tests/                # Test files
-└── .claude/              # Development notes
-```
+Ryota Miyoshi
 
-### Testing
-This project follows Test-Driven Development (TDD) using the Detroit School approach:
-- Write tests first
-- Use real objects where possible
-- Mock only external dependencies (browser APIs)
-- Use integration tests with real message handlers
+## リンク
 
-Current test coverage:
-- Unit tests: 131 tests covering all services and UI components
-- Integration tests: 16 comprehensive workflow tests
-- Services tested: Storage, Dictionary, VocabularyList, MessageHandler, SpacedRepetition
-- UI tested: Popup interface with real DOM and event handling
-- Test approach: Uses waitFor helpers instead of fixed timeouts for reliable async testing
-
-## Contributing
-1. Create a feature branch
-2. Make small, atomic commits
-3. Ensure all tests pass
-4. Submit a pull request
-
-## License
-[To be determined]
+- [GitHub](https://github.com/Miyoshi-Ryota/vocabDict)
+- [Issues](https://github.com/Miyoshi-Ryota/vocabDict/issues)
