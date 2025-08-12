@@ -9,6 +9,9 @@
     "test:coverage": "NODE_OPTIONS='--max-old-space-size=8192' jest --coverage",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
+    "build:ios": "npm run build && xcodebuild -scheme 'vocabDict (iOS)' -configuration Release clean build",
+    "build:macos": "npm run build && xcodebuild -scheme 'vocabDict (macOS)' -configuration Release clean build",
+    "build:all": "npm run build && xcodebuild -scheme 'vocabDict (iOS)' -configuration Release clean build && xcodebuild -scheme 'vocabDict (macOS)' -configuration Release clean build",
     "watch": "webpack --mode development --watch",
     "lint": "eslint src tests --ext .js",
     "lint:fix": "eslint src tests --ext .js --fix"

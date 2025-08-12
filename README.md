@@ -41,11 +41,14 @@ npm install
 # Run tests
 npm test
 
-# Build for development
-npm run build:dev
+# Build web extension resources only (webpack)
+npm run build:dev       # Development build to Resources folder
+npm run build           # Production build to Resources folder
 
-# Build for production
-npm run build
+# Build and compile complete app (requires Xcode)
+npm run build:macos     # Build web resources + compile macOS app
+npm run build:ios       # Build web resources + compile iOS app  
+npm run build:all       # Build web resources + compile both platforms
 ```
 
 ### Project Structure
