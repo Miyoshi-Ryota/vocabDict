@@ -10,7 +10,10 @@ const MessageTypes = {
   UPDATE_WORD: 'update_word',
   GET_REVIEW_QUEUE: 'get_review_queue',
   SUBMIT_REVIEW: 'submit_review',
-  GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search'
+  GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',
+  GET_RECENT_SEARCHES: 'GET_RECENT_SEARCHES',
+  GET_SETTINGS: 'GET_SETTINGS',
+  UPDATE_SETTINGS: 'UPDATE_SETTINGS'
 };
 
 /**
@@ -31,6 +34,13 @@ async function handleMessage(message, services) {
 
         const result = await dictionary.lookup(message.word);
         if (result) {
+          // Add to recent searches automatically on successful lookup
+          let searches = await storage.get('recentSearches') || [];
+          searches = searches.filter(s => s !== message.word);
+          searches.unshift(message.word);
+          searches = searches.slice(0, 10);
+          await storage.set('recentSearches', searches);
+
           return { success: true, data: result };
         }
 
@@ -354,6 +364,32 @@ async function handleMessage(message, services) {
 
         const pendingWord = contextMenuState.getPendingSearch();
         return { success: true, data: pendingWord };
+      }
+
+      case MessageTypes.GET_RECENT_SEARCHES: {
+        const searches = await storage.get('recentSearches') || [];
+        return { success: true, data: searches };
+      }
+
+      case MessageTypes.GET_SETTINGS: {
+        const settings = await storage.get('settings') || {
+          theme: 'dark',
+          autoPlayPronunciation: false,
+          showExampleSentences: true
+        };
+        return { success: true, data: settings };
+      }
+
+      case MessageTypes.UPDATE_SETTINGS: {
+        if (!message.settings) {
+          return { success: false, error: 'Settings object is required' };
+        }
+
+        const currentSettings = await storage.get('settings') || {};
+        const updatedSettings = { ...currentSettings, ...message.settings };
+        await storage.set('settings', updatedSettings);
+
+        return { success: true, data: updatedSettings };
       }
 
       default:
