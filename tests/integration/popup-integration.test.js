@@ -77,7 +77,7 @@ describe('Popup Integration Tests', () => {
       expect(errorMessage.textContent).toContain('Word not found');
     });
 
-    test('should save recent searches', async () => {
+    test('should save recent searches and update UI immediately', async () => {
       // Initial state - no recent searches
       const recentSearchesList = document.querySelector('.recent-searches-list');
       expect(recentSearchesList.children.length).toBe(0);
@@ -91,24 +91,57 @@ describe('Popup Integration Tests', () => {
       // Wait for search results to appear (confirming search completed)
       await waitForElement('.word-card', searchResults);
 
-      // Navigate away and back to see recent searches
-      // (Recent searches are loaded when the search tab is shown)
-      const listsTab = document.querySelector('[data-tab="lists"]');
-      listsTab.click();
-      const searchTab = document.querySelector('[data-tab="search"]');
-      searchTab.click();
-
-      // Wait for recent search to appear in the list
+      // Wait for recent search to appear in the list WITHOUT tab switching
+      // The UI should update immediately after successful search
       await waitFor(() => {
         const items = recentSearchesList.querySelectorAll('li');
         return items.length > 0 &&
                Array.from(items).some(item => item.textContent === 'hello');
       });
 
-      // Verify the recent search is displayed
+      // Verify the recent search is displayed immediately
       const recentItems = recentSearchesList.querySelectorAll('li');
       expect(recentItems.length).toBeGreaterThan(0);
       expect(recentItems[0].textContent).toBe('hello');
+    });
+
+    test('should update recent searches list after multiple searches', async () => {
+      const recentSearchesList = document.querySelector('.recent-searches-list');
+      const searchInput = document.querySelector('.search-input');
+      const searchResults = document.querySelector('.search-results');
+
+      // Perform first search
+      searchInput.value = 'world';
+      searchInput.dispatchEvent(new Event('input'));
+      await waitForElement('.word-card', searchResults);
+
+      // Wait for first search to appear in recent searches
+      await waitFor(() => {
+        const items = recentSearchesList.querySelectorAll('li');
+        return items.length > 0 && items[0].textContent === 'world';
+      });
+
+      // Clear search and perform second search
+      searchInput.value = '';
+      searchResults.innerHTML = '';
+
+      searchInput.value = 'hello';
+      searchInput.dispatchEvent(new Event('input'));
+      await waitForElement('.word-card', searchResults);
+
+      // Wait for second search to appear at the top of recent searches
+      await waitFor(() => {
+        const items = recentSearchesList.querySelectorAll('li');
+        return items.length >= 2 &&
+               items[0].textContent === 'hello' &&
+               items[1].textContent === 'world';
+      });
+
+      // Verify both searches are in the list with correct order
+      const recentItems = recentSearchesList.querySelectorAll('li');
+      expect(recentItems.length).toBe(2);
+      expect(recentItems[0].textContent).toBe('hello');
+      expect(recentItems[1].textContent).toBe('world');
     });
 
     test('should search when clicking on recent search item', async () => {

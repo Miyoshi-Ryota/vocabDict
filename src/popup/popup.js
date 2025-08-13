@@ -21,15 +21,18 @@ const ThemeManager = {
 
   loadTheme() {
     // Check for saved theme preference
-    browser.storage.local.get('settings').then(result => {
-      const settings = result.settings || {};
-      const theme = settings.theme || 'dark';
-      this.applyTheme(theme);
+    browser.runtime.sendMessage({
+      type: 'GET_SETTINGS'
+    }).then(response => {
+      if (response.success) {
+        const theme = response.data.theme || 'dark';
+        this.applyTheme(theme);
 
-      // Update theme selector if it exists
-      const themeSelect = document.getElementById('theme-select');
-      if (themeSelect) {
-        themeSelect.value = theme;
+        // Update theme selector if it exists
+        const themeSelect = document.getElementById('theme-select');
+        if (themeSelect) {
+          themeSelect.value = theme;
+        }
       }
     });
   },
@@ -48,10 +51,10 @@ const ThemeManager = {
         this.applyTheme(theme);
 
         // Save preference
-        const result = await browser.storage.local.get('settings');
-        const settings = result.settings || {};
-        settings.theme = theme;
-        await browser.storage.local.set({ settings });
+        await browser.runtime.sendMessage({
+          type: 'UPDATE_SETTINGS',
+          settings: { theme }
+        });
       });
     }
   }
@@ -183,7 +186,8 @@ const SearchTab = {
       if (response.success) {
         if (response.data) {
           this.displaySearchResult(response.data);
-          this.addToRecentSearches(query);
+          // Reload recent searches to show the new search immediately
+          await this.loadRecentSearches();
         } else {
           this.displayNoResults(query, response.suggestions);
         }
@@ -331,8 +335,10 @@ const SearchTab = {
   async addToList(wordData) {
     try {
       // Get default list
-      const listsResult = await browser.storage.local.get('vocab_lists');
-      const lists = listsResult.vocab_lists || [];
+      const listsResponse = await browser.runtime.sendMessage({
+        type: 'get_lists'
+      });
+      const lists = listsResponse.success ? listsResponse.data : [];
       const defaultList = lists.find(l => l.isDefault) || lists[0];
 
       if (!defaultList) {
@@ -341,16 +347,16 @@ const SearchTab = {
       }
 
       // Send add to list request
-      const response = await browser.runtime.sendMessage({
+      const addResponse = await browser.runtime.sendMessage({
         type: 'add_to_list',
         word: wordData.word,
         listId: defaultList.id
       });
 
-      if (response.success) {
+      if (addResponse.success) {
         NotificationManager.show(`Added "${wordData.word}" to ${defaultList.name}`, 'success');
       } else {
-        NotificationManager.show(response.error || 'Failed to add word', 'error');
+        NotificationManager.show(addResponse.error || 'Failed to add word', 'error');
       }
     } catch (error) {
       console.error('Add to list error:', error);
@@ -359,9 +365,13 @@ const SearchTab = {
   },
 
   async loadRecentSearches() {
-    const result = await browser.storage.local.get('recentSearches');
-    this.recentSearches = result.recentSearches || [];
-    this.displayRecentSearches();
+    const response = await browser.runtime.sendMessage({
+      type: 'GET_RECENT_SEARCHES'
+    });
+    if (response.success) {
+      this.recentSearches = response.data;
+      this.displayRecentSearches();
+    }
   },
 
   displayRecentSearches() {
@@ -381,15 +391,6 @@ const SearchTab = {
         this.performSearch(search);
       });
     });
-  },
-
-  async addToRecentSearches(query) {
-    if (!this.recentSearches.includes(query)) {
-      this.recentSearches.unshift(query);
-      this.recentSearches = this.recentSearches.slice(0, 10);
-      await browser.storage.local.set({ recentSearches: this.recentSearches });
-      this.displayRecentSearches();
-    }
   }
 };
 
@@ -1129,12 +1130,16 @@ const SettingsTab = {
   },
 
   async loadSettings() {
-    const result = await browser.storage.local.get('settings');
-    const settings = result.settings || {
-      theme: 'dark',
-      autoAddLookups: true,
-      dailyReviewLimit: 30
-    };
+    const response = await browser.runtime.sendMessage({
+      type: 'GET_SETTINGS'
+    });
+    const settings = response.success
+      ? response.data
+      : {
+          theme: 'dark',
+          autoAddLookups: true,
+          dailyReviewLimit: 30
+        };
 
     // Update UI
     const autoAddToggle = document.getElementById('auto-add-toggle');
@@ -1165,10 +1170,10 @@ const SettingsTab = {
   },
 
   async updateSetting(key, value) {
-    const result = await browser.storage.local.get('settings');
-    const settings = result.settings || {};
-    settings[key] = value;
-    await browser.storage.local.set({ settings });
+    await browser.runtime.sendMessage({
+      type: 'UPDATE_SETTINGS',
+      settings: { [key]: value }
+    });
   }
 };
 

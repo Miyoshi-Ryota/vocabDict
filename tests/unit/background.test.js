@@ -501,6 +501,163 @@ describe('Background Message Handler', () => {
     });
   });
 
+  describe('GET_RECENT_SEARCHES message', () => {
+    test('should return recent searches', async () => {
+      // Set some recent searches
+      await storage.set('recentSearches', ['hello', 'world', 'test']);
+
+      const result = await handleMessage({
+        type: 'GET_RECENT_SEARCHES'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(['hello', 'world', 'test']);
+    });
+
+    test('should return empty array when no recent searches', async () => {
+      const result = await handleMessage({
+        type: 'GET_RECENT_SEARCHES'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+  });
+
+  describe('GET_SETTINGS message', () => {
+    test('should return settings', async () => {
+      const settings = {
+        theme: 'light',
+        autoPlayPronunciation: true,
+        showExampleSentences: false
+      };
+      await storage.set('settings', settings);
+
+      const result = await handleMessage({
+        type: 'GET_SETTINGS'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(settings);
+    });
+
+    test('should return default settings when none exist', async () => {
+      const result = await handleMessage({
+        type: 'GET_SETTINGS'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        theme: 'dark',
+        autoPlayPronunciation: false,
+        showExampleSentences: true
+      });
+    });
+  });
+
+  describe('UPDATE_SETTINGS message', () => {
+    test('should update settings', async () => {
+      const newSettings = { theme: 'light' };
+
+      const result = await handleMessage({
+        type: 'UPDATE_SETTINGS',
+        settings: newSettings
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data.theme).toBe('light');
+
+      // Verify settings were saved
+      const savedSettings = await storage.get('settings');
+      expect(savedSettings.theme).toBe('light');
+    });
+
+    test('should merge with existing settings', async () => {
+      await storage.set('settings', {
+        theme: 'dark',
+        autoPlayPronunciation: true
+      });
+
+      const result = await handleMessage({
+        type: 'UPDATE_SETTINGS',
+        settings: { theme: 'light' }
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data.theme).toBe('light');
+      expect(result.data.autoPlayPronunciation).toBe(true);
+    });
+
+    test('should handle missing settings parameter', async () => {
+      const result = await handleMessage({
+        type: 'UPDATE_SETTINGS'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Settings object is required');
+    });
+  });
+
+  describe('LOOKUP_WORD message with recent searches', () => {
+    test('should automatically add successful searches to recent searches', async () => {
+      // Clear any existing recent searches
+      await storage.set('recentSearches', []);
+
+      // Perform a successful lookup
+      const result = await handleMessage({
+        type: MessageTypes.LOOKUP_WORD,
+        word: 'hello'
+      }, { dictionary, storage });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+
+      // Check that the word was added to recent searches
+      const recentSearches = await storage.get('recentSearches');
+      expect(recentSearches).toContain('hello');
+    });
+
+    test('should not add duplicate searches', async () => {
+      await storage.set('recentSearches', ['hello', 'world']);
+
+      await handleMessage({
+        type: MessageTypes.LOOKUP_WORD,
+        word: 'hello'
+      }, { dictionary, storage });
+
+      const recentSearches = await storage.get('recentSearches');
+      expect(recentSearches[0]).toBe('hello');
+      expect(recentSearches.filter(s => s === 'hello')).toHaveLength(1);
+    });
+
+    test('should limit recent searches to 10 items', async () => {
+      const existingSearches = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+      await storage.set('recentSearches', existingSearches);
+
+      await handleMessage({
+        type: MessageTypes.LOOKUP_WORD,
+        word: 'hello'
+      }, { dictionary, storage });
+
+      const recentSearches = await storage.get('recentSearches');
+      expect(recentSearches).toHaveLength(10);
+      expect(recentSearches[0]).toBe('hello');
+      expect(recentSearches).not.toContain('ten');
+    });
+
+    test('should not add failed searches to recent searches', async () => {
+      await storage.set('recentSearches', []);
+
+      await handleMessage({
+        type: MessageTypes.LOOKUP_WORD,
+        word: 'xyznotaword123'
+      }, { dictionary, storage });
+
+      const recentSearches = await storage.get('recentSearches');
+      expect(recentSearches).toEqual([]);
+    });
+  });
+
   describe('Unknown message type', () => {
     test('should return error for unknown message type', async () => {
       const result = await handleMessage({
