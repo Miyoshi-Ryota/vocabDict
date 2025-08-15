@@ -1,0 +1,389 @@
+/**
+ * @jest-environment jsdom
+ */
+
+const { waitFor, waitForElement } = require('../helpers/wait-helpers');
+const VocabularyList = require('../../src/services/vocabulary-list');
+const DictionaryService = require('../../src/services/dictionary-service');
+const StorageManager = require('../../src/services/storage');
+const dictionaryData = require('../../src/data/dictionary.json');
+
+describe('Content Script User Flow Integration Tests', () => {
+  beforeEach(async () => {
+    // Set up realistic webpage content
+    document.body.innerHTML = `
+      <article>
+        <h1>Learning New Vocabulary</h1>
+        <p>This article contains various words like <span>serendipity</span> and other terms.</p>
+        <p>Reading helps improve <span>vocabulary</span> and language skills significantly.</p>
+        <div class="content">
+          <p>The word <strong>ephemeral</strong> means lasting for a very short time.</p>
+        </div>
+      </article>
+    `;
+
+    // Initialize with default vocabulary list
+    const dictionary = new DictionaryService(dictionaryData);
+    const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
+    await StorageManager.set('vocab_lists', [defaultList.toJSON()]);
+
+    // Load the content script
+    require('../../src/content/content.js');
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+    
+    // Clean up any lookup buttons or popups
+    document.querySelectorAll('.vocabdict-lookup-button, .vocabdict-popup').forEach(el => el.remove());
+  });
+
+  describe('User selects text and looks up word', () => {
+    test('should show lookup button when user selects a word', async () => {
+      // User selects the word "serendipity"
+      const span = document.querySelector('span');
+      const textNode = span.firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      
+      // Mock getBoundingClientRect for realistic positioning
+      range.getBoundingClientRect = () => ({
+        width: 80,
+        height: 20,
+        top: 100,
+        left: 200,
+        right: 280,
+        bottom: 120
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // User triggers selection change
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button to appear
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      
+      expect(lookupButton).toBeTruthy();
+      expect(selection.toString().trim()).toBe('serendipity');
+    });
+
+    test('should trigger word lookup when user clicks lookup button', async () => {
+      // User selects "vocabulary"
+      const spans = document.querySelectorAll('span');
+      const vocabSpan = Array.from(spans).find(span => span.textContent === 'vocabulary');
+      const textNode = vocabSpan.firstChild;
+      
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 90,
+        height: 20,
+        top: 150,
+        left: 100,
+        right: 190,
+        bottom: 170
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button to appear
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      
+      // User clicks the lookup button
+      lookupButton.click();
+
+      // Wait for search results popup to appear
+      const popup = await waitForElement('.vocabdict-popup');
+      
+      expect(popup).toBeTruthy();
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'lookup_word',
+          word: 'vocabulary'
+        })
+      );
+    });
+
+    test('should display word definition in popup after successful lookup', async () => {
+      // User selects "hello"
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = '<span>hello</span>';
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 50,
+        height: 20,
+        top: 200,
+        left: 150,
+        right: 200,
+        bottom: 220
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button and click it
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      lookupButton.click();
+
+      // Wait for popup with word definition
+      const popup = await waitForElement('.vocabdict-popup');
+      
+      // Wait for word title to appear in popup
+      const wordTitle = await waitForElement('.word-title', popup);
+      
+      // Wait for content to load
+      await waitFor(() => wordTitle.textContent === 'hello');
+      expect(wordTitle.textContent).toBe('hello');
+
+      // Check that pronunciation is displayed
+      const pronunciation = await waitForElement('.word-pronunciation', popup);
+      expect(pronunciation.textContent).toContain('/həˈloʊ/');
+
+      // Check that definition is displayed
+      const definition = await waitForElement('.definition-text', popup);
+      expect(definition.textContent).toContain('挨拶');
+    });
+
+    test('should show "Add to List" button and allow adding word to vocabulary', async () => {
+      // User selects "ephemeral"
+      const strong = document.querySelector('strong');
+      const textNode = strong.firstChild;
+      
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 70,
+        height: 20,
+        top: 250,
+        left: 180,
+        right: 250,
+        bottom: 270
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // User clicks lookup button
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      lookupButton.click();
+
+      // Wait for popup with word info
+      const popup = await waitForElement('.vocabdict-popup');
+      
+      // User clicks "Add to List" button
+      const addButton = await waitForElement('.add-to-list-button', popup);
+      addButton.click();
+
+      // Wait for the add to list flow to complete
+      await waitFor(() => {
+        const calls = browser.runtime.sendMessage.mock.calls;
+        return calls.some(call => call[0].type === 'add_to_list');
+      });
+
+      // Verify that add to list message was sent
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'add_to_list',
+          word: 'ephemeral'
+        })
+      );
+    });
+  });
+
+  describe('User selects invalid text', () => {
+    test('should not show lookup button for empty selection', async () => {
+      // User clears selection
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait a bit to ensure no button appears
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const lookupButton = document.querySelector('.vocabdict-lookup-button');
+      expect(lookupButton).toBeNull();
+    });
+
+    test('should not show lookup button for long text selection', async () => {
+      // Add very long text
+      const testDiv = document.createElement('div');
+      const longText = 'a'.repeat(51);
+      testDiv.innerHTML = `<span>${longText}</span>`;
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 400,
+        height: 20,
+        top: 300,
+        left: 100,
+        right: 500,
+        bottom: 320
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const lookupButton = document.querySelector('.vocabdict-lookup-button');
+      expect(lookupButton).toBeNull();
+    });
+
+    test('should not show lookup button for more than 3 words', async () => {
+      // Add text with 4 words
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = '<span>one two three four</span>';
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 150,
+        height: 20,
+        top: 350,
+        left: 100,
+        right: 250,
+        bottom: 370
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      const lookupButton = document.querySelector('.vocabdict-lookup-button');
+      expect(lookupButton).toBeNull();
+    });
+  });
+
+  describe('User interaction with popup', () => {
+    test('should close popup when user clicks outside', async () => {
+      // User selects word and opens popup
+      const span = document.querySelector('span');
+      const textNode = span.firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 80,
+        height: 20,
+        top: 100,
+        left: 200,
+        right: 280,
+        bottom: 120
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      lookupButton.click();
+
+      const popup = await waitForElement('.vocabdict-popup');
+      
+      // Wait for popup content to load
+      await waitForElement('.word-title', popup);
+      expect(popup).toBeTruthy();
+
+      // User clicks outside the popup (no delay needed since stopPropagation prevents immediate closure)
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        clientX: 50,
+        clientY: 50
+      });
+      document.body.dispatchEvent(clickEvent);
+
+      // Wait for popup to disappear
+      await waitFor(() => {
+        return !document.querySelector('.vocabdict-popup');
+      });
+
+      expect(document.querySelector('.vocabdict-popup')).toBeNull();
+    });
+
+    test('should clear selection when popup closes', async () => {
+      // User selects word, opens popup, then closes it
+      const span = document.querySelector('span');
+      const textNode = span.firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 80,
+        height: 20,
+        top: 100,
+        left: 200,
+        right: 280,
+        bottom: 120
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      lookupButton.click();
+
+      const popup = await waitForElement('.vocabdict-popup');
+      
+      // Wait for popup content to load
+      await waitForElement('.word-title', popup);
+      
+      // User presses Escape to close popup
+      const escapeEvent = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true
+      });
+      document.dispatchEvent(escapeEvent);
+
+      // Wait for popup to close and selection to clear
+      await waitFor(() => {
+        return !document.querySelector('.vocabdict-popup') && 
+               window.getSelection().toString() === '';
+      });
+
+      expect(document.querySelector('.vocabdict-popup')).toBeNull();
+      expect(window.getSelection().toString()).toBe('');
+    });
+  });
+});

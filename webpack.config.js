@@ -55,6 +55,10 @@ module.exports = (env, argv) => {
           {
             from: 'src/data/dictionary.json',
             to: 'data/dictionary.json'
+          },
+          {
+            from: 'src/content/content.css',
+            to: 'content.css'
           }
         ]
       })
