@@ -49,15 +49,15 @@ function createLookupButton(selectedText, rect) {
   button.className = 'vocabdict-lookup-button';
   button.textContent = '🔍';
   button.setAttribute('aria-label', `Look up "${selectedText}"`);
-  
+
   // Position button near selection
   const buttonSize = 44; // minimum touch target size
   const padding = 8;
-  
+
   // Calculate position - try to place above selection, but adjust if near screen edge
   let top = rect.top - buttonSize - padding;
   let left = rect.left + (rect.width / 2) - (buttonSize / 2);
-  
+
   // Adjust if button would be off-screen
   if (top < padding) {
     top = rect.bottom + padding; // Place below instead
@@ -68,42 +68,41 @@ function createLookupButton(selectedText, rect) {
   if (left + buttonSize > window.innerWidth - padding) {
     left = window.innerWidth - buttonSize - padding;
   }
-  
+
   // Account for scroll position
   top += window.scrollY;
   left += window.scrollX;
-  
+
   button.style.top = `${top}px`;
   button.style.left = `${left}px`;
-  
+
   // Add click handler
   button.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Remove button and show popup
+
+    // Remove button and show overlay
     button.remove();
     lookupButton = null;
-    
-    await showWordLookupPopup(selectedText, rect);
+
+    await showWordLookupOverlay(selectedText, rect);
   });
-  
-  
+
   // Add button to page
   document.body.appendChild(button);
   lookupButton = button;
 }
 
-async function showWordLookupPopup(word, rect) {
-  // Create popup container
-  const popup = document.createElement('div');
-  popup.className = 'vocabdict-popup loading';
-  
-  // Position popup
+async function showWordLookupOverlay(word, rect) {
+  // Create overlay container
+  const overlay = document.createElement('div');
+  overlay.className = 'vocabdict-overlay loading';
+
+  // Position overlay
   let top = rect.top - 200; // Try to place above selection
   let left = rect.left + (rect.width / 2) - 140; // Center horizontally
-  
-  // Adjust if popup would be off-screen
+
+  // Adjust if overlay would be off-screen
   if (top < 20) {
     top = rect.bottom + 20; // Place below instead
   }
@@ -113,131 +112,131 @@ async function showWordLookupPopup(word, rect) {
   if (left + 280 > window.innerWidth - 20) {
     left = window.innerWidth - 300;
   }
-  
+
   // Account for scroll position
   top += window.scrollY;
   left += window.scrollX;
-  
-  popup.style.top = `${top}px`;
-  popup.style.left = `${left}px`;
-  
+
+  overlay.style.top = `${top}px`;
+  overlay.style.left = `${left}px`;
+
   // Show loading state
-  popup.innerHTML = `
-    <div class="vocabdict-popup-content">
+  overlay.innerHTML = `
+    <div class="vocabdict-overlay-content">
       <div class="loading-spinner"></div>
       <div class="loading-text">Looking up "${word}"...</div>
     </div>
   `;
-  
-  document.body.appendChild(popup);
-  
+
+  document.body.appendChild(overlay);
+
   try {
     // Look up word using background script
     const response = await browser.runtime.sendMessage({
       type: 'lookup_word',
-      word: word
+      word
     });
-    
+
     if (response.success) {
       if (response.data) {
         // Show word definition
-        displayWordDefinition(popup, response.data);
+        displayWordDefinition(overlay, response.data);
       } else if (response.suggestions && response.suggestions.length > 0) {
         // Show suggestions for misspelled word
-        displaySuggestions(popup, word, response.suggestions);
+        displaySuggestions(overlay, word, response.suggestions);
       } else {
         // No results found
-        displayError(popup, `No definition found for "${word}"`);
+        displayError(overlay, `No definition found for "${word}"`);
       }
     } else {
-      displayError(popup, response.error || 'Failed to look up word');
+      displayError(overlay, response.error || 'Failed to look up word');
     }
   } catch (error) {
     console.error('VocabDict: Error looking up word', error);
-    displayError(popup, 'Failed to look up word');
+    displayError(overlay, 'Failed to look up word');
   }
-  
-  // Set up popup event handlers
-  setupPopupEventHandlers(popup);
+
+  // Set up overlay event handlers
+  setupOverlayEventHandlers(overlay);
 }
 
-function displayWordDefinition(popup, wordData) {
-  popup.className = 'vocabdict-popup';
-  
-  const definitions = Array.isArray(wordData.definitions) 
-    ? wordData.definitions 
+function displayWordDefinition(overlay, wordData) {
+  overlay.className = 'vocabdict-overlay';
+
+  const definitions = Array.isArray(wordData.definitions)
+    ? wordData.definitions
     : [{ partOfSpeech: '', meaning: wordData.definition }];
-  
+
   const definitionsHTML = definitions.map(def => `
     <div class="definition-item">
       ${def.partOfSpeech ? `<div class="part-of-speech">${def.partOfSpeech}</div>` : ''}
       <div class="definition-text">${def.meaning || def.definition}</div>
     </div>
   `).join('');
-  
-  popup.innerHTML = `
-    <div class="vocabdict-popup-content">
+
+  overlay.innerHTML = `
+    <div class="vocabdict-overlay-content">
       <div class="word-title">${wordData.word}</div>
       ${wordData.pronunciation ? `<div class="word-pronunciation">${wordData.pronunciation}</div>` : ''}
       <div class="word-definitions">
         ${definitionsHTML}
       </div>
     </div>
-    <div class="popup-actions">
+    <div class="overlay-actions">
       <button class="add-to-list-button">Add to List</button>
       <button class="close-button">×</button>
     </div>
   `;
-  
+
   // Set up add to list functionality
-  const addButton = popup.querySelector('.add-to-list-button');
+  const addButton = overlay.querySelector('.add-to-list-button');
   addButton.addEventListener('click', async () => {
     await addWordToList(wordData.word);
   });
 }
 
-function displaySuggestions(popup, originalWord, suggestions) {
-  popup.className = 'vocabdict-popup';
-  
+function displaySuggestions(overlay, originalWord, suggestions) {
+  overlay.className = 'vocabdict-overlay';
+
   const suggestionsHTML = suggestions.map(suggestion => `
     <span class="suggestion-item" data-word="${suggestion}">${suggestion}</span>
   `).join('');
-  
-  popup.innerHTML = `
-    <div class="vocabdict-popup-content">
+
+  overlay.innerHTML = `
+    <div class="vocabdict-overlay-content">
       <div class="error-message">No definition found for "${originalWord}"</div>
       <div class="suggestions">
         <div class="suggestions-title">Did you mean?</div>
         ${suggestionsHTML}
       </div>
     </div>
-    <div class="popup-actions">
+    <div class="overlay-actions">
       <button class="close-button">Close</button>
     </div>
   `;
-  
+
   // Handle suggestion clicks
-  popup.querySelectorAll('.suggestion-item').forEach(item => {
+  overlay.querySelectorAll('.suggestion-item').forEach(item => {
     item.addEventListener('click', async () => {
       const suggestedWord = item.getAttribute('data-word');
-      popup.remove();
-      
+      overlay.remove();
+
       // Look up the suggested word
       const selection = window.getSelection();
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      await showWordLookupPopup(suggestedWord, rect);
+      await showWordLookupOverlay(suggestedWord, rect);
     });
   });
 }
 
-function displayError(popup, errorMessage) {
-  popup.className = 'vocabdict-popup';
-  popup.innerHTML = `
-    <div class="vocabdict-popup-content">
+function displayError(overlay, errorMessage) {
+  overlay.className = 'vocabdict-overlay';
+  overlay.innerHTML = `
+    <div class="vocabdict-overlay-content">
       <div class="error-message">${errorMessage}</div>
     </div>
-    <div class="popup-actions">
+    <div class="overlay-actions">
       <button class="close-button">Close</button>
     </div>
   `;
@@ -249,22 +248,21 @@ async function addWordToList(word) {
     const listsResponse = await browser.runtime.sendMessage({
       type: 'get_lists'
     });
-    
-    
+
     if (listsResponse.success && listsResponse.data.length > 0) {
       // Use the first available list (default list)
       const listId = listsResponse.data[0].id;
-      
+
       const addResponse = await browser.runtime.sendMessage({
         type: 'add_to_list',
-        word: word,
-        listId: listId,
+        word,
+        listId,
         metadata: {
           difficulty: 'medium',
           context: 'Added from webpage'
         }
       });
-      
+
       if (addResponse.success) {
         // Show success feedback
         showNotification(`Added "${word}" to vocabulary list`);
@@ -298,57 +296,56 @@ function showNotification(message) {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   `;
   notification.textContent = message;
-  
+
   document.body.appendChild(notification);
-  
+
   setTimeout(() => {
     notification.remove();
   }, 3000);
 }
 
-function setupPopupEventHandlers(popup) {
+function setupOverlayEventHandlers(overlay) {
   // Close button handler
-  const closeButton = popup.querySelector('.close-button');
+  const closeButton = overlay.querySelector('.close-button');
   if (closeButton) {
     closeButton.addEventListener('click', () => {
-      closePopup(popup);
+      closeOverlay(overlay);
     });
   }
-  
+
   // Click outside to close
   const handleClickOutside = (e) => {
-    if (!popup.contains(e.target)) {
-      closePopup(popup);
+    if (!overlay.contains(e.target)) {
+      closeOverlay(overlay);
       document.removeEventListener('click', handleClickOutside);
     }
   };
-  
+
   // Add listener immediately since button click already has stopPropagation()
   document.addEventListener('click', handleClickOutside);
-  
+
   // Escape key to close
   const handleEscape = (e) => {
     if (e.key === 'Escape') {
-      closePopup(popup);
+      closeOverlay(overlay);
       document.removeEventListener('keydown', handleEscape);
     }
   };
-  
+
   document.addEventListener('keydown', handleEscape);
 }
 
-function closePopup(popup) {
-  popup.classList.add('closing');
-  
+function closeOverlay(overlay) {
+  overlay.classList.add('closing');
+
   setTimeout(() => {
-    popup.remove();
-    
+    overlay.remove();
+
     // Clear text selection
     const selection = window.getSelection();
     selection.removeAllRanges();
   }, 150); // Match CSS animation duration
 }
-
 
 // Clean up on page unload
 window.addEventListener('pagehide', () => {
