@@ -916,7 +916,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Responsive Design */
 
 /* iOS Safari Extension - Mobile viewport adjustments */
-@media (max-width: 600px) {
+@media only screen and (max-device-width: 600px) {
   /* Compact tab navigation for mobile */
   .tab-button {
     padding: var(--spacing-sm);

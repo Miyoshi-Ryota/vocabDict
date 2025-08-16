@@ -10,16 +10,12 @@
         html, body {
             margin: 0;
             padding: 0;
-        }
-        
-        /* Desktop default size */
-        html, body {
             width: 600px;
             height: 700px;
         }
         
-        /* iOS Safari responsive design - for narrow viewports */
-        @media (max-width: 600px) {
+        /* Mobile devices (iPhone) - use device-width instead of viewport width */
+        @media only screen and (max-device-width: 600px) {
             html, body {
                 width: 100%;
                 height: 100vh;
