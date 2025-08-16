@@ -59,13 +59,13 @@ function createLookupButton(selectedText, rect) {
   const buttonSize = 44; // minimum touch target size
   const padding = 8;
 
-  // Calculate position - try to place above selection, but adjust if near screen edge
-  let top = rect.top - buttonSize - padding;
+  // Calculate position - try to place below selection, but adjust if near screen edge
+  let top = rect.bottom + padding;
   let left = rect.left + (rect.width / 2) - (buttonSize / 2);
 
   // Adjust if button would be off-screen
-  if (top < padding) {
-    top = rect.bottom + padding; // Place below instead
+  if (top + buttonSize > window.innerHeight - padding) {
+    top = rect.top - buttonSize - padding; // Place above instead
   }
   if (left < padding) {
     left = padding;
