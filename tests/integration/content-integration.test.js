@@ -32,10 +32,14 @@ describe('Content Script User Flow Integration Tests', () => {
   });
 
   afterEach(() => {
+    // Clean up any lookup buttons or overlays first
+    document.querySelectorAll('.vocabdict-lookup-button, .vocabdict-overlay').forEach(el => el.remove());
+
+    // Then clear the entire body
     document.body.innerHTML = '';
-    
-    // Clean up any lookup buttons or popups
-    document.querySelectorAll('.vocabdict-lookup-button, .vocabdict-popup').forEach(el => el.remove());
+
+    // Clear any selections
+    window.getSelection().removeAllRanges();
   });
 
   describe('User selects text and looks up word', () => {
@@ -45,7 +49,7 @@ describe('Content Script User Flow Integration Tests', () => {
       const textNode = span.firstChild;
       const range = document.createRange();
       range.selectNodeContents(textNode);
-      
+
       // Mock getBoundingClientRect for realistic positioning
       range.getBoundingClientRect = () => ({
         width: 80,
@@ -66,7 +70,7 @@ describe('Content Script User Flow Integration Tests', () => {
 
       // Wait for lookup button to appear
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
-      
+
       expect(lookupButton).toBeTruthy();
       expect(selection.toString().trim()).toBe('serendipity');
     });
@@ -76,7 +80,7 @@ describe('Content Script User Flow Integration Tests', () => {
       const spans = document.querySelectorAll('span');
       const vocabSpan = Array.from(spans).find(span => span.textContent === 'vocabulary');
       const textNode = vocabSpan.firstChild;
-      
+
       const range = document.createRange();
       range.selectNodeContents(textNode);
       range.getBoundingClientRect = () => ({
@@ -97,14 +101,14 @@ describe('Content Script User Flow Integration Tests', () => {
 
       // Wait for lookup button to appear
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
-      
+
       // User clicks the lookup button
       lookupButton.click();
 
-      // Wait for search results popup to appear
-      const popup = await waitForElement('.vocabdict-popup');
-      
-      expect(popup).toBeTruthy();
+      // Wait for search results overlay to appear
+      const overlay = await waitForElement('.vocabdict-overlay');
+
+      expect(overlay).toBeTruthy();
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'lookup_word',
@@ -113,7 +117,7 @@ describe('Content Script User Flow Integration Tests', () => {
       );
     });
 
-    test('should display word definition in popup after successful lookup', async () => {
+    test('should display word definition in overlay after successful lookup', async () => {
       // User selects "hello"
       const testDiv = document.createElement('div');
       testDiv.innerHTML = '<span>hello</span>';
@@ -142,22 +146,22 @@ describe('Content Script User Flow Integration Tests', () => {
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
       lookupButton.click();
 
-      // Wait for popup with word definition
-      const popup = await waitForElement('.vocabdict-popup');
-      
-      // Wait for word title to appear in popup
-      const wordTitle = await waitForElement('.word-title', popup);
-      
+      // Wait for overlay with word definition
+      const overlay = await waitForElement('.vocabdict-overlay');
+
+      // Wait for word title to appear in overlay
+      const wordTitle = await waitForElement('.word-title', overlay);
+
       // Wait for content to load
       await waitFor(() => wordTitle.textContent === 'hello');
       expect(wordTitle.textContent).toBe('hello');
 
       // Check that pronunciation is displayed
-      const pronunciation = await waitForElement('.word-pronunciation', popup);
+      const pronunciation = await waitForElement('.word-pronunciation', overlay);
       expect(pronunciation.textContent).toContain('/həˈloʊ/');
 
       // Check that definition is displayed
-      const definition = await waitForElement('.definition-text', popup);
+      const definition = await waitForElement('.definition-text', overlay);
       expect(definition.textContent).toContain('挨拶');
     });
 
@@ -165,7 +169,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // User selects "ephemeral"
       const strong = document.querySelector('strong');
       const textNode = strong.firstChild;
-      
+
       const range = document.createRange();
       range.selectNodeContents(textNode);
       range.getBoundingClientRect = () => ({
@@ -188,11 +192,11 @@ describe('Content Script User Flow Integration Tests', () => {
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
       lookupButton.click();
 
-      // Wait for popup with word info
-      const popup = await waitForElement('.vocabdict-popup');
-      
+      // Wait for overlay with word info
+      const overlay = await waitForElement('.vocabdict-overlay');
+
       // User clicks "Add to List" button
-      const addButton = await waitForElement('.add-to-list-button', popup);
+      const addButton = await waitForElement('.add-to-list-button', overlay);
       addButton.click();
 
       // Wait for the add to list flow to complete
@@ -291,9 +295,9 @@ describe('Content Script User Flow Integration Tests', () => {
     });
   });
 
-  describe('User interaction with popup', () => {
-    test('should close popup when user clicks outside', async () => {
-      // User selects word and opens popup
+  describe('User interaction with overlay', () => {
+    test('should close overlay when user clicks outside', async () => {
+      // User selects word and opens overlay
       const span = document.querySelector('span');
       const textNode = span.firstChild;
       const range = document.createRange();
@@ -317,13 +321,13 @@ describe('Content Script User Flow Integration Tests', () => {
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
       lookupButton.click();
 
-      const popup = await waitForElement('.vocabdict-popup');
-      
-      // Wait for popup content to load
-      await waitForElement('.word-title', popup);
-      expect(popup).toBeTruthy();
+      const overlay = await waitForElement('.vocabdict-overlay');
 
-      // User clicks outside the popup (no delay needed since stopPropagation prevents immediate closure)
+      // Wait for overlay content to load
+      await waitForElement('.word-title', overlay);
+      expect(overlay).toBeTruthy();
+
+      // User clicks outside the overlay (no delay needed since stopPropagation prevents immediate closure)
       const clickEvent = new MouseEvent('click', {
         bubbles: true,
         clientX: 50,
@@ -331,16 +335,16 @@ describe('Content Script User Flow Integration Tests', () => {
       });
       document.body.dispatchEvent(clickEvent);
 
-      // Wait for popup to disappear
+      // Wait for overlay to disappear
       await waitFor(() => {
-        return !document.querySelector('.vocabdict-popup');
+        return !document.querySelector('.vocabdict-overlay');
       });
 
-      expect(document.querySelector('.vocabdict-popup')).toBeNull();
+      expect(document.querySelector('.vocabdict-overlay')).toBeNull();
     });
 
-    test('should clear selection when popup closes', async () => {
-      // User selects word, opens popup, then closes it
+    test('should clear selection when overlay closes', async () => {
+      // User selects word, opens overlay, then closes it
       const span = document.querySelector('span');
       const textNode = span.firstChild;
       const range = document.createRange();
@@ -364,26 +368,206 @@ describe('Content Script User Flow Integration Tests', () => {
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
       lookupButton.click();
 
-      const popup = await waitForElement('.vocabdict-popup');
-      
-      // Wait for popup content to load
-      await waitForElement('.word-title', popup);
-      
-      // User presses Escape to close popup
+      const overlay = await waitForElement('.vocabdict-overlay');
+
+      // Wait for overlay content to load
+      await waitForElement('.word-title', overlay);
+
+      // User presses Escape to close overlay
       const escapeEvent = new KeyboardEvent('keydown', {
         key: 'Escape',
         bubbles: true
       });
       document.dispatchEvent(escapeEvent);
 
-      // Wait for popup to close and selection to clear
+      // Wait for overlay to close and selection to clear
       await waitFor(() => {
-        return !document.querySelector('.vocabdict-popup') && 
+        return !document.querySelector('.vocabdict-overlay') &&
                window.getSelection().toString() === '';
       });
 
-      expect(document.querySelector('.vocabdict-popup')).toBeNull();
+      expect(document.querySelector('.vocabdict-overlay')).toBeNull();
       expect(window.getSelection().toString()).toBe('');
+    });
+  });
+
+  describe('Text selection mode settings', () => {
+    test('should not show inline overlay when user clicks lookup button in popup mode', async () => {
+      // Set text selection mode to popup
+      await browser.runtime.sendMessage({
+        type: 'UPDATE_SETTINGS',
+        settings: { textSelectionMode: 'popup' }
+      });
+
+      // User selects "hello"
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = '<span>hello</span>';
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 50,
+        height: 20,
+        top: 200,
+        left: 150,
+        right: 200,
+        bottom: 220
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button to appear
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+
+      // User clicks the lookup button
+      lookupButton.click();
+
+      // Wait a bit for async operations to complete
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Verify that no inline overlay is shown (user visible behavior)
+      const overlay = document.querySelector('.vocabdict-overlay');
+      expect(overlay).toBeNull();
+
+      // Verify that lookup button is removed (user visible feedback)
+      expect(document.querySelector('.vocabdict-lookup-button')).toBeNull();
+
+      // Note: Popupウィンドウが実際に開くことは、ブラウザ環境でないと確認できないため、
+      // メッセージが正しく送信されたことを確認する（実装の詳細だが、他に方法がない）
+      await waitFor(() => {
+        const calls = browser.runtime.sendMessage.mock.calls;
+        return calls.some(call => call[0].type === 'open_popup_with_word');
+      });
+
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'open_popup_with_word',
+          word: 'hello'
+        })
+      );
+    });
+
+    test('should show inline overlay with selected word definition when user clicks lookup button in inline mode', async () => {
+      // Set text selection mode to inline
+      await browser.runtime.sendMessage({
+        type: 'UPDATE_SETTINGS',
+        settings: { textSelectionMode: 'inline' }
+      });
+
+      // User selects "hello"
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = '<span>hello</span>';
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 50,
+        height: 20,
+        top: 200,
+        left: 150,
+        right: 200,
+        bottom: 220
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button to appear
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+
+      // User clicks the lookup button
+      lookupButton.click();
+
+      // Wait for search results overlay to appear
+      const overlay = await waitForElement('.vocabdict-overlay');
+
+      // Verify that inline overlay is displayed with the selected word's definition
+      expect(overlay).toBeTruthy();
+
+      // Wait for the word definition to be displayed in overlay
+      const wordTitle = await waitForElement('.word-title', overlay);
+      await waitFor(() => wordTitle.textContent === 'hello');
+      expect(wordTitle.textContent).toBe('hello');
+
+      // Check that pronunciation is displayed in overlay
+      const pronunciation = await waitForElement('.word-pronunciation', overlay);
+      expect(pronunciation.textContent).toContain('/həˈloʊ/');
+
+      // Check that definition is displayed in overlay
+      const definition = await waitForElement('.definition-text', overlay);
+      expect(definition.textContent).toContain('挨拶');
+
+      // Verify that no popup window opened
+      const popupElement = document.querySelector('.popup-container');
+      expect(popupElement).toBeNull();
+    });
+
+    test('should default to inline mode and show word definition when no setting is configured', async () => {
+      // Don't set any text selection mode (should default to inline)
+
+      // User selects "hello"
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = '<span>hello</span>';
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 50,
+        height: 20,
+        top: 200,
+        left: 150,
+        right: 200,
+        bottom: 220
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button and click it
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      lookupButton.click();
+
+      // Wait for overlay to appear (default inline behavior)
+      const overlay = await waitForElement('.vocabdict-overlay');
+
+      // Verify that inline overlay is displayed with word definition (default behavior)
+      expect(overlay).toBeTruthy();
+
+      // Wait for the word definition to be displayed in overlay
+      const wordTitle = await waitForElement('.word-title', overlay);
+      await waitFor(() => wordTitle.textContent === 'hello');
+      expect(wordTitle.textContent).toBe('hello');
+
+      // Check that pronunciation is displayed in overlay
+      const pronunciation = await waitForElement('.word-pronunciation', overlay);
+      expect(pronunciation.textContent).toContain('/həˈloʊ/');
+
+      // Check that definition is displayed in overlay
+      const definition = await waitForElement('.definition-text', overlay);
+      expect(definition.textContent).toContain('挨拶');
+
+      // Verify that no popup window opened
+      const popupElement = document.querySelector('.popup-container');
+      expect(popupElement).toBeNull();
     });
   });
 });

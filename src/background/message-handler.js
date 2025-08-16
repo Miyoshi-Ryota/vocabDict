@@ -13,7 +13,8 @@ const MessageTypes = {
   GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',
   GET_RECENT_SEARCHES: 'GET_RECENT_SEARCHES',
   GET_SETTINGS: 'GET_SETTINGS',
-  UPDATE_SETTINGS: 'UPDATE_SETTINGS'
+  UPDATE_SETTINGS: 'UPDATE_SETTINGS',
+  OPEN_POPUP_WITH_WORD: 'open_popup_with_word'
 };
 
 /**
@@ -375,7 +376,8 @@ async function handleMessage(message, services) {
         const settings = await storage.get('settings') || {
           theme: 'dark',
           autoPlayPronunciation: false,
-          showExampleSentences: true
+          showExampleSentences: true,
+          textSelectionMode: 'inline'
         };
         return { success: true, data: settings };
       }
@@ -390,6 +392,32 @@ async function handleMessage(message, services) {
         await storage.set('settings', updatedSettings);
 
         return { success: true, data: updatedSettings };
+      }
+
+      case MessageTypes.OPEN_POPUP_WITH_WORD: {
+        if (!message.word) {
+          return { success: false, error: 'Word parameter is required' };
+        }
+
+        if (!contextMenuState) {
+          return { success: false, error: 'Context menu state not available' };
+        }
+
+        // Store the word for popup to search
+        contextMenuState.setPendingSearch(message.word);
+
+        // Open the extension popup using browser.action.openPopup
+        if (typeof browser !== 'undefined' && browser.action && browser.action.openPopup) {
+          try {
+            await browser.action.openPopup();
+            return { success: true, data: { popupOpened: true } };
+          } catch (error) {
+            console.error('Failed to open popup:', error);
+            return { success: false, error: 'Failed to open popup' };
+          }
+        } else {
+          return { success: false, error: 'Popup opening not supported' };
+        }
       }
 
       default:
