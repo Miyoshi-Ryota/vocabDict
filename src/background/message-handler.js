@@ -11,9 +11,9 @@ const MessageTypes = {
   GET_REVIEW_QUEUE: 'get_review_queue',
   SUBMIT_REVIEW: 'submit_review',
   GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',
-  GET_RECENT_SEARCHES: 'GET_RECENT_SEARCHES',
-  GET_SETTINGS: 'GET_SETTINGS',
-  UPDATE_SETTINGS: 'UPDATE_SETTINGS',
+  GET_RECENT_SEARCHES: 'get_recent_searches',
+  GET_SETTINGS: 'get_settings',
+  UPDATE_SETTINGS: 'update_settings',
   OPEN_POPUP_WITH_WORD: 'open_popup_with_word'
 };
 
