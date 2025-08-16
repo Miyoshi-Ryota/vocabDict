@@ -507,7 +507,7 @@ describe('Background Message Handler', () => {
       await storage.set('recentSearches', ['hello', 'world', 'test']);
 
       const result = await handleMessage({
-        type: 'GET_RECENT_SEARCHES'
+        type: 'get_recent_searches'
       }, { dictionary, storage });
 
       expect(result.success).toBe(true);
@@ -516,7 +516,7 @@ describe('Background Message Handler', () => {
 
     test('should return empty array when no recent searches', async () => {
       const result = await handleMessage({
-        type: 'GET_RECENT_SEARCHES'
+        type: 'get_recent_searches'
       }, { dictionary, storage });
 
       expect(result.success).toBe(true);
@@ -534,7 +534,7 @@ describe('Background Message Handler', () => {
       await storage.set('settings', settings);
 
       const result = await handleMessage({
-        type: 'GET_SETTINGS'
+        type: 'get_settings'
       }, { dictionary, storage });
 
       expect(result.success).toBe(true);
@@ -543,7 +543,7 @@ describe('Background Message Handler', () => {
 
     test('should return default settings when none exist', async () => {
       const result = await handleMessage({
-        type: 'GET_SETTINGS'
+        type: 'get_settings'
       }, { dictionary, storage });
 
       expect(result.success).toBe(true);
@@ -561,7 +561,7 @@ describe('Background Message Handler', () => {
       const newSettings = { theme: 'light' };
 
       const result = await handleMessage({
-        type: 'UPDATE_SETTINGS',
+        type: 'update_settings',
         settings: newSettings
       }, { dictionary, storage });
 
@@ -580,7 +580,7 @@ describe('Background Message Handler', () => {
       });
 
       const result = await handleMessage({
-        type: 'UPDATE_SETTINGS',
+        type: 'update_settings',
         settings: { theme: 'light' }
       }, { dictionary, storage });
 
@@ -591,7 +591,7 @@ describe('Background Message Handler', () => {
 
     test('should handle missing settings parameter', async () => {
       const result = await handleMessage({
-        type: 'UPDATE_SETTINGS'
+        type: 'update_settings'
       }, { dictionary, storage });
 
       expect(result.success).toBe(false);

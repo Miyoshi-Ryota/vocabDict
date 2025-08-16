@@ -93,7 +93,7 @@ function createLookupButton(selectedText, rect) {
     // Get user's text selection mode preference
     try {
       const settingsResponse = await browser.runtime.sendMessage({
-        type: 'GET_SETTINGS'
+        type: 'get_settings'
       });
 
       const textSelectionMode = settingsResponse.success && settingsResponse.data

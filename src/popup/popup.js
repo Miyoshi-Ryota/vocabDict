@@ -22,7 +22,7 @@ const ThemeManager = {
   loadTheme() {
     // Check for saved theme preference
     browser.runtime.sendMessage({
-      type: 'GET_SETTINGS'
+      type: 'get_settings'
     }).then(response => {
       if (response.success) {
         const theme = response.data.theme || 'dark';
@@ -52,7 +52,7 @@ const ThemeManager = {
 
         // Save preference
         await browser.runtime.sendMessage({
-          type: 'UPDATE_SETTINGS',
+          type: 'update_settings',
           settings: { theme }
         });
       });
@@ -366,7 +366,7 @@ const SearchTab = {
 
   async loadRecentSearches() {
     const response = await browser.runtime.sendMessage({
-      type: 'GET_RECENT_SEARCHES'
+      type: 'get_recent_searches'
     });
     if (response.success) {
       this.recentSearches = response.data;
@@ -1131,7 +1131,7 @@ const SettingsTab = {
 
   async loadSettings() {
     const response = await browser.runtime.sendMessage({
-      type: 'GET_SETTINGS'
+      type: 'get_settings'
     });
     const settings = response.success
       ? response.data
@@ -1204,7 +1204,7 @@ const SettingsTab = {
 
   async updateSetting(key, value) {
     await browser.runtime.sendMessage({
-      type: 'UPDATE_SETTINGS',
+      type: 'update_settings',
       settings: { [key]: value }
     });
   }

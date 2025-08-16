@@ -395,7 +395,7 @@ describe('Content Script User Flow Integration Tests', () => {
     test('should not show inline overlay when user clicks lookup button in popup mode', async () => {
       // Set text selection mode to popup
       await browser.runtime.sendMessage({
-        type: 'UPDATE_SETTINGS',
+        type: 'update_settings',
         settings: { textSelectionMode: 'popup' }
       });
 
@@ -457,7 +457,7 @@ describe('Content Script User Flow Integration Tests', () => {
     test('should show inline overlay with selected word definition when user clicks lookup button in inline mode', async () => {
       // Set text selection mode to inline
       await browser.runtime.sendMessage({
-        type: 'UPDATE_SETTINGS',
+        type: 'update_settings',
         settings: { textSelectionMode: 'inline' }
       });
 
