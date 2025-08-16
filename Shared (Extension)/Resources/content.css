@@ -1,0 +1,347 @@
+/* VocabDict Content Script Styles */
+
+.vocabdict-lookup-button {
+  position: absolute;
+  z-index: 2147483647; /* Maximum z-index to ensure visibility */
+  padding: 8px 12px;
+  min-width: 44px;
+  min-height: 44px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  
+  /* Touch optimization for iOS */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.vocabdict-lookup-button:hover {
+  background: #0056CC;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.vocabdict-lookup-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.vocabdict-popup {
+  position: absolute;
+  z-index: 2147483646;
+  min-width: 280px;
+  max-width: 400px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  
+  /* iOS optimizations */
+  -webkit-overflow-scrolling: touch;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.vocabdict-popup-content {
+  padding: 16px;
+}
+
+.word-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1D1D1F;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.word-pronunciation {
+  font-size: 14px;
+  color: #6E6E73;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+.word-definition {
+  font-size: 14px;
+  color: #1D1D1F;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.word-definitions {
+  margin: 0 0 16px 0;
+}
+
+.definition-item {
+  margin: 0 0 8px 0;
+  padding-left: 12px;
+  position: relative;
+}
+
+.definition-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #007AFF;
+  font-weight: bold;
+}
+
+.part-of-speech {
+  font-size: 12px;
+  color: #007AFF;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.definition-text {
+  font-size: 14px;
+  color: #1D1D1F;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.popup-actions {
+  border-top: 1px solid #E5E5E7;
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.add-to-list-button {
+  flex: 1;
+  padding: 10px 16px;
+  min-height: 44px;
+  background: #34C759;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  /* Touch optimization */
+  touch-action: manipulation;
+}
+
+.add-to-list-button:hover {
+  background: #2DB74A;
+}
+
+.add-to-list-button:active {
+  background: #28A642;
+}
+
+.close-button {
+  padding: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  background: #F2F2F7;
+  color: #1D1D1F;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  /* Touch optimization */
+  touch-action: manipulation;
+}
+
+.close-button:hover {
+  background: #E5E5EA;
+}
+
+.error-message {
+  padding: 16px;
+  text-align: center;
+  color: #FF3B30;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.suggestions {
+  margin-top: 12px;
+}
+
+.suggestions-title {
+  font-size: 12px;
+  color: #6E6E73;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.suggestion-item {
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 0 4px 4px 0;
+  background: #F2F2F7;
+  color: #007AFF;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* Touch optimization */
+  min-height: 32px;
+  touch-action: manipulation;
+}
+
+.suggestion-item:hover {
+  background: #E5E5EA;
+  transform: translateY(-1px);
+}
+
+.suggestion-item:active {
+  transform: translateY(0);
+}
+
+/* Loading state */
+.vocabdict-popup.loading .vocabdict-popup-content {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #F2F2F7;
+  border-top: 2px solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #6E6E73;
+}
+
+/* Responsive design for different screen sizes */
+@media (max-width: 480px) {
+  .vocabdict-popup {
+    min-width: 260px;
+    max-width: calc(100vw - 32px);
+  }
+  
+  .vocabdict-popup-content {
+    padding: 12px;
+  }
+  
+  .popup-actions {
+    padding: 8px 12px;
+    flex-direction: column;
+  }
+  
+  .add-to-list-button {
+    margin-bottom: 8px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .vocabdict-popup {
+    background: #1C1C1E;
+    border: 1px solid #38383A;
+  }
+  
+  .word-title {
+    color: #FFFFFF;
+  }
+  
+  .word-pronunciation {
+    color: #98989D;
+  }
+  
+  .word-definition,
+  .definition-text {
+    color: #FFFFFF;
+  }
+  
+  .popup-actions {
+    border-top-color: #38383A;
+  }
+  
+  .close-button {
+    background: #2C2C2E;
+    color: #FFFFFF;
+  }
+  
+  .close-button:hover {
+    background: #3A3A3C;
+  }
+  
+  .error-message {
+    color: #FF453A;
+  }
+  
+  .suggestion-item {
+    background: #2C2C2E;
+    color: #0A84FF;
+  }
+  
+  .suggestion-item:hover {
+    background: #3A3A3C;
+  }
+  
+  .loading-spinner {
+    border-color: #3A3A3C;
+    border-top-color: #0A84FF;
+  }
+  
+  .loading-text {
+    color: #98989D;
+  }
+}
+
+/* Animation for popup appearance */
+.vocabdict-popup {
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Animation for popup disappearance */
+.vocabdict-popup.closing {
+  animation: popupFadeOut 0.15s ease-in;
+}
+
+@keyframes popupFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+}

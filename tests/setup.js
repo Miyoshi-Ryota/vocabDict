@@ -52,7 +52,8 @@ function createBasicRuntimeMock() {
     },
     onConnect: {
       addListener: jest.fn()
-    }
+    },
+    getURL: jest.fn((path) => `chrome-extension://test-id/${path}`)
   };
 }
 

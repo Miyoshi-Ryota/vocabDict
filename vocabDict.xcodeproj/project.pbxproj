@@ -111,6 +111,7 @@
 			membershipExceptions = (
 				Resources/_locales,
 				Resources/background.js,
+				Resources/content.css,
 				Resources/content.js,
 				Resources/data/dictionary.json,
 				Resources/images,
@@ -127,6 +128,7 @@
 			membershipExceptions = (
 				Resources/_locales,
 				Resources/background.js,
+				Resources/content.css,
 				Resources/content.js,
 				Resources/data/dictionary.json,
 				Resources/images,
