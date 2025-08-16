@@ -7,8 +7,8 @@ const dictionaryData = require('../data/dictionary.json');
 const dictionary = new DictionaryService(dictionaryData, StorageManager);
 const storage = StorageManager;
 
-// Context menu state management
-const contextMenuState = {
+// Popup word state management
+const popupWordState = {
   pendingSearch: null,
 
   setPendingSearch(word) {
@@ -30,7 +30,7 @@ const contextMenuState = {
 const services = {
   dictionary,
   storage,
-  contextMenuState
+  popupWordState
 };
 
 /**
@@ -77,13 +77,13 @@ async function handleContextMenuClick(info, _tab) {
   if (info.menuItemId === 'lookup-vocabdict' && info.selectionText) {
     console.log('Context menu clicked:', info.selectionText);
 
-    // Store the word for popup to search
-    contextMenuState.setPendingSearch(info.selectionText);
-
-    // Open the extension popup
-    if (browser.action && browser.action.openPopup) {
-      browser.action.openPopup();
-    }
+    // Use the messaging system for consistency
+    browser.runtime.sendMessage({
+      type: 'open_popup_with_word',
+      word: info.selectionText
+    }).catch(error => {
+      console.error('Error sending context menu message:', error);
+    });
   }
 }
 
@@ -141,5 +141,5 @@ module.exports = {
   dictionary,
   storage,
   handleContextMenuClick,
-  contextMenuState
+  popupWordState
 };
