@@ -88,8 +88,6 @@ body {
   line-height: 1.5;
   color: var(--text-primary);
   background-color: var(--bg-primary);
-  width: 400px;
-  height: 600px;
   overflow: hidden;
   transition: background-color var(--transition-base), color var(--transition-base);
 }
@@ -240,10 +238,6 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom-color: var(--primary);
 }
 
-.tab-button[aria-selected="true"] {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
 
 .tab-icon {
   font-size: 18px;
@@ -920,16 +914,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Responsive */
-@media (max-width: 400px) {
-  body {
-    width: 100vw;
-    height: 100vh;
-  }
-  
-  .popup-container {
-    border-radius: 0;
-  }
-}
+
+/* Mobile/Compact View Adjustments */
+/* iOS Safari Extension のポップアップは別のビューポートサイズを持つ可能性がある */
+/* 現在の固定幅600pxの設定ではこれらのスタイルは適用されない */
+/* TODO: Issue #41でiOS対応時に適切なビューポート処理を実装 */
 
 /* High Contrast Mode */
 @media (prefers-contrast: high) {
@@ -1651,35 +1640,6 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, var(--bg-secondary), rgba(0, 102, 204, 0.1));
 }
 
-/* Responsive Adjustments for Learning Mode */
-@media (max-width: 500px) {
-  
-  .flashcard {
-    height: 320px;
-  }
-  
-  .word-display {
-    font-size: 1.75rem;
-  }
-  
-  .review-actions {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .review-btn {
-    min-height: 52px;
-    padding: var(--spacing-sm);
-    font-size: 0.85rem;
-  }
-  
-  .btn-icon {
-    font-size: 1rem;
-  }
-  
-  .review-tips li {
-    font-size: 0.7rem;
-  }
-}
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
