@@ -6,14 +6,19 @@ console.log('VocabDict content script loaded');
 let lookupButton = null;
 let selectionTimeout = null;
 
-// Debounced selection handler
-document.addEventListener('selectionchange', () => {
-  clearTimeout(selectionTimeout);
+// Track if event listener is already added to prevent duplicates
+if (!window.__vocabDictListenerAdded) {
+  window.__vocabDictListenerAdded = true;
 
-  selectionTimeout = setTimeout(() => {
-    handleSelection();
-  }, 300);
-});
+  // Debounced selection handler
+  document.addEventListener('selectionchange', () => {
+    clearTimeout(selectionTimeout);
+
+    selectionTimeout = setTimeout(() => {
+      handleSelection();
+    }, 300);
+  });
+}
 
 function handleSelection() {
   const selection = window.getSelection();
@@ -81,11 +86,35 @@ function createLookupButton(selectedText, rect) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Remove button and show overlay
+    // Remove button
     button.remove();
     lookupButton = null;
 
-    await showWordLookupOverlay(selectedText, rect);
+    // Get user's text selection mode preference
+    try {
+      const settingsResponse = await browser.runtime.sendMessage({
+        type: 'GET_SETTINGS'
+      });
+
+      const textSelectionMode = settingsResponse.success && settingsResponse.data
+        ? settingsResponse.data.textSelectionMode || 'inline'
+        : 'inline';
+
+      if (textSelectionMode === 'popup') {
+        // Open popup with the selected word
+        await browser.runtime.sendMessage({
+          type: 'open_popup_with_word',
+          word: selectedText
+        });
+      } else {
+        // Default inline behavior - show overlay
+        await showWordLookupOverlay(selectedText, rect);
+      }
+    } catch (error) {
+      console.error('VocabDict: Error getting settings, falling back to inline mode', error);
+      // Fallback to inline mode if settings can't be retrieved
+      await showWordLookupOverlay(selectedText, rect);
+    }
   });
 
   // Add button to page

@@ -1138,7 +1138,8 @@ const SettingsTab = {
       : {
           theme: 'dark',
           autoAddLookups: true,
-          dailyReviewLimit: 30
+          dailyReviewLimit: 30,
+          textSelectionMode: 'inline'
         };
 
     // Update UI
@@ -1147,6 +1148,18 @@ const SettingsTab = {
 
     const reviewLimit = document.getElementById('review-limit');
     if (reviewLimit) reviewLimit.value = settings.dailyReviewLimit;
+
+    // Text selection mode radio buttons
+    const textSelectionMode = settings.textSelectionMode || 'inline';
+    const inlineRadio = document.getElementById('text-selection-inline');
+    const popupRadio = document.getElementById('text-selection-popup');
+    if (inlineRadio && popupRadio) {
+      if (textSelectionMode === 'popup') {
+        popupRadio.checked = true;
+      } else {
+        inlineRadio.checked = true;
+      }
+    }
   },
 
   setupSettingsListeners() {
@@ -1163,6 +1176,26 @@ const SettingsTab = {
     if (reviewLimit) {
       reviewLimit.addEventListener('change', (e) => {
         this.updateSetting('dailyReviewLimit', parseInt(e.target.value));
+      });
+    }
+
+    // Text selection mode radio buttons
+    const inlineRadio = document.getElementById('text-selection-inline');
+    const popupRadio = document.getElementById('text-selection-popup');
+
+    if (inlineRadio) {
+      inlineRadio.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          this.updateSetting('textSelectionMode', 'inline');
+        }
+      });
+    }
+
+    if (popupRadio) {
+      popupRadio.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          this.updateSetting('textSelectionMode', 'popup');
+        }
       });
     }
 

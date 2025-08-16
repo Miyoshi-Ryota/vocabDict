@@ -550,7 +550,8 @@ describe('Background Message Handler', () => {
       expect(result.data).toEqual({
         theme: 'dark',
         autoPlayPronunciation: false,
-        showExampleSentences: true
+        showExampleSentences: true,
+        textSelectionMode: 'inline'
       });
     });
   });
