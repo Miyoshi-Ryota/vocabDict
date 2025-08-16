@@ -913,12 +913,71 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--text-secondary);
 }
 
-/* Responsive */
+/* Responsive Design */
 
-/* Mobile/Compact View Adjustments */
-/* iOS Safari Extension のポップアップは別のビューポートサイズを持つ可能性がある */
-/* 現在の固定幅600pxの設定ではこれらのスタイルは適用されない */
-/* TODO: Issue #41でiOS対応時に適切なビューポート処理を実装 */
+/* iOS Safari Extension - Mobile viewport adjustments */
+@media (max-width: 600px) {
+  /* Compact tab navigation for mobile */
+  .tab-button {
+    padding: var(--spacing-sm);
+    min-width: auto;
+  }
+  
+  .tab-label {
+    font-size: 0.85rem;
+  }
+  
+  /* Prevent zoom on iOS when focusing input */
+  .search-input,
+  input[type="text"],
+  input[type="number"],
+  select {
+    font-size: 16px;
+  }
+  
+  /* Adjust header spacing */
+  .popup-header {
+    padding: var(--spacing-sm) var(--spacing-base);
+  }
+  
+  /* Compact list items */
+  .list-item,
+  .word-card {
+    padding: var(--spacing-sm);
+  }
+  
+  /* Learning mode adjustments */
+  .flashcard {
+    height: 320px;
+  }
+  
+  .word-display {
+    font-size: 1.75rem;
+  }
+  
+  .review-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .review-btn {
+    min-height: 48px;
+    padding: var(--spacing-sm);
+    font-size: 0.85rem;
+  }
+  
+  /* Settings adjustments */
+  .setting-item {
+    padding: var(--spacing-sm);
+  }
+  
+  /* Button adjustments */
+  .btn-primary,
+  .btn-secondary {
+    padding: var(--spacing-sm) var(--spacing-base);
+    font-size: 0.875rem;
+  }
+}
 
 /* High Contrast Mode */
 @media (prefers-contrast: high) {
