@@ -24,7 +24,7 @@ const MessageTypes = {
  * @returns {Promise<Object>} Response object
  */
 async function handleMessage(message, services) {
-  const { dictionary, storage, contextMenuState } = services;
+  const { dictionary, storage, popupWordState } = services;
 
   try {
     switch (message.type) {
@@ -359,11 +359,11 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_PENDING_CONTEXT_SEARCH: {
-        if (!contextMenuState) {
-          return { success: false, error: 'Context menu state not available' };
+        if (!popupWordState) {
+          return { success: false, error: 'Popup word state not available' };
         }
 
-        const pendingWord = contextMenuState.getPendingSearch();
+        const pendingWord = popupWordState.getPendingSearch();
         return { success: true, data: pendingWord };
       }
 
@@ -399,12 +399,12 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Word parameter is required' };
         }
 
-        if (!contextMenuState) {
-          return { success: false, error: 'Context menu state not available' };
+        if (!popupWordState) {
+          return { success: false, error: 'Popup word state not available' };
         }
 
         // Store the word for popup to search
-        contextMenuState.setPendingSearch(message.word);
+        popupWordState.setPendingSearch(message.word);
 
         // Open the extension popup using browser.action.openPopup
         if (typeof browser !== 'undefined' && browser.action && browser.action.openPopup) {

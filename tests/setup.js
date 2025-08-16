@@ -92,7 +92,7 @@ const dictionary = new DictionaryService(dictionaryData, StorageManager);
 // Load message handler and background modules
 // These modules can now safely use browser API during initialization
 const { handleMessage } = require('../src/background/message-handler');
-const { handleContextMenuClick, contextMenuState } = require('../src/background/background');
+const { handleContextMenuClick, popupWordState } = require('../src/background/background');
 
 // Polyfill browser APIs that jsdom doesn't provide
 Object.defineProperty(window, 'matchMedia', {
@@ -122,7 +122,7 @@ function setupBrowserMock() {
         const services = {
           dictionary,
           storage: StorageManager,
-          contextMenuState
+          popupWordState
         };
 
         return handleMessage(message, services);
