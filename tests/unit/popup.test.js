@@ -334,8 +334,8 @@ describe('Popup UI Tests', () => {
 
     test('should have responsive CSS media queries', () => {
       // iOS Safari対応のレスポンシブデザイン
-      expect(popupHTML).toContain('@media (max-width: 600px)');
-      expect(popupCSS).toContain('@media (max-width: 600px)');
+      expect(popupHTML).toContain('@media only screen and (max-device-width: 600px)');
+      expect(popupCSS).toContain('@media only screen and (max-device-width: 600px)');
       expect(popupCSS).toContain('@media (prefers-contrast: high)');
       expect(popupCSS).toContain('@media (prefers-reduced-motion: reduce)');
     });
