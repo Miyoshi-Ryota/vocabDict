@@ -7,17 +7,26 @@
     <link rel="stylesheet" href="popup.css">
     <style>
         /* Safari extension workaround - must use inline styles for body dimensions */
-        html, body {
+        html {
             margin: 0;
             padding: 0;
-            width: 600px;
+            width: 100%;
+            min-width: 600px;
             height: 700px;
         }
-        
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
         /* Mobile devices (iPhone) - use device-width instead of viewport width */
         @media only screen and (max-device-width: 600px) {
             html, body {
                 width: 100%;
+                min-width: unset;
                 height: 100vh;
             }
         }
