@@ -26,6 +26,9 @@ final class Word {
     @Relationship(inverse: \VocabularyList.words)
     var list: VocabularyList?
     
+    @Relationship
+    var reviewSessions: [ReviewSession]? = []
+    
     init(word: String, normalizedWord: String? = nil) {
         self.word = word
         self.normalizedWord = normalizedWord ?? word.lowercased().trimmingCharacters(in: .whitespaces)

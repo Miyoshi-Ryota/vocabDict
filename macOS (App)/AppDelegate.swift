@@ -13,9 +13,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var syncTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        DataController.shared.modelContext.autosaveEnabled = true
+        print("AppDelegate: applicationDidFinishLaunching")
+        
+        // Initialize DataController
+        print("Initializing DataController...")
+        let controller = DataController.shared
+        print("DataController initialized: \(controller)")
+        
+        controller.modelContext.autosaveEnabled = true
+        print("Autosave enabled")
         
         CloudKitSyncManager.shared.setupBackgroundSync()
+        print("Background sync setup complete")
         
         syncTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
             CloudKitSyncManager.shared.performImmediateSync()

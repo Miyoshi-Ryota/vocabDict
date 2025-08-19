@@ -17,10 +17,20 @@ class DataController {
     
     private init() {
         do {
-            let appGroupURL = FileManager.default.containerURL(
+            // Debug: Check if App Group is accessible
+            guard let appGroupURL = FileManager.default.containerURL(
                 forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared"
-            )!
+            ) else {
+                fatalError("App Group container URL not found. Check entitlements for group.com.vocabdict.shared")
+            }
+            
+            print("App Group URL: \(appGroupURL)")
+            
+            // Create directory if needed
+            try FileManager.default.createDirectory(at: appGroupURL, withIntermediateDirectories: true)
+            
             let storeURL = appGroupURL.appendingPathComponent("VocabDict.store")
+            print("Store URL: \(storeURL)")
             
             let schema = Schema([
                 VocabularyList.self,
@@ -42,8 +52,17 @@ class DataController {
             )
             
             modelContext = ModelContext(modelContainer)
+            print("DataController initialized successfully")
             
         } catch {
+            print("Error type: \(type(of: error))")
+            print("Error description: \(error)")
+            print("Error localized: \(error.localizedDescription)")
+            if let nsError = error as NSError? {
+                print("Error domain: \(nsError.domain)")
+                print("Error code: \(nsError.code)")
+                print("Error userInfo: \(nsError.userInfo)")
+            }
             fatalError("Could not create ModelContainer: \(error)")
         }
     }

@@ -17,7 +17,7 @@ final class ReviewSession {
     var currentWordIndex: Int = 0
     var lastModified: Date = Date()
     
-    @Relationship
+    @Relationship(inverse: \Word.reviewSessions)
     var sessionWords: [Word]? = []
     
     init() {
