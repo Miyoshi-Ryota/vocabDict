@@ -185,7 +185,6 @@
 		2DAE97232E5459AC004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				CloudKitSyncManager.swift,
 				DataController.swift,
 				Models/ReviewHistory.swift,
 				Models/ReviewSession.swift,
@@ -198,7 +197,6 @@
 		2DAE97242E5459AC004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				CloudKitSyncManager.swift,
 				DataController.swift,
 				Models/ReviewHistory.swift,
 				Models/ReviewSession.swift,
