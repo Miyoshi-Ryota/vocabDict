@@ -7,32 +7,12 @@
 
 import SafariServices
 import SwiftData
-import os.log
 
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     
-    lazy var modelContainer: ModelContainer = {
-        let appGroupURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared"
-        )!
-        let storeURL = appGroupURL.appendingPathComponent("VocabDict.store")
-        
-        let schema = Schema([
-            VocabularyList.self,
-            Word.self,
-            ReviewHistory.self,
-            Settings.self,
-            ReviewSession.self
-        ])
-        
-        let config = ModelConfiguration(
-            schema: schema,
-            url: storeURL,
-            cloudKitDatabase: .automatic
-        )
-        
-        return try! ModelContainer(for: schema, configurations: [config])
-    }()
+    var modelContainer: ModelContainer {
+        return DataController.shared.modelContainer
+    }
 
     func beginRequest(with context: NSExtensionContext) {
         let request = context.inputItems.first as? NSExtensionItem
@@ -51,7 +31,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             message = request?.userInfo?["message"]
         }
 
-        os_log(.default, "Received message from browser.runtime.sendNativeMessage: %@ (profile: %@)", String(describing: message), profile?.uuidString ?? "none")
         
         guard let messageDict = message as? [String: Any],
               let action = messageDict["action"] as? String else {
@@ -155,6 +134,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         
         do {
             try modelContext.save()
+            DataController.shared.save()
             
             let sharedDefaults = UserDefaults(suiteName: "group.com.vocabdict.shared")
             sharedDefaults?.set(true, forKey: "pendingSync")

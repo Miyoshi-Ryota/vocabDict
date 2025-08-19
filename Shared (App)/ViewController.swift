@@ -25,9 +25,6 @@ class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMess
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Test: Create sample data for CloudKit sync
-        createTestDataIfNeeded()
 
         self.webView.navigationDelegate = self
 
@@ -80,44 +77,6 @@ class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMess
             }
         }
 #endif
-    }
-    
-    private func createTestDataIfNeeded() {
-        let dataController = DataController.shared
-        let context = dataController.modelContext
-        
-        // Check if we already have data
-        let descriptor = FetchDescriptor<VocabularyList>()
-        
-        do {
-            let existingLists = try context.fetch(descriptor)
-            if existingLists.isEmpty {
-                print("Creating test data for CloudKit...")
-                
-                // Create a test vocabulary list
-                let testList = VocabularyList(name: "Test Vocabulary", isDefault: true)
-                context.insert(testList)
-                
-                // Create a test word
-                let testWord = Word(word: "Hello", normalizedWord: "hello")
-                testWord.difficulty = "easy"
-                testWord.customNotes = "A common greeting"
-                testWord.list = testList
-                context.insert(testWord)
-                
-                // Create test settings
-                let settings = Settings()
-                context.insert(settings)
-                
-                // Save to trigger CloudKit sync
-                try context.save()
-                print("Test data created and saved!")
-            } else {
-                print("Data already exists: \(existingLists.count) lists found")
-            }
-        } catch {
-            print("Error creating test data: \(error)")
-        }
     }
 
 }
