@@ -10,13 +10,9 @@
 		2DA2901F2E2B9B2800263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DA290292E2B9B2900263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DAE96F72E5415AC004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; };
-		2DAE96F82E5415AC004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2DAE96FB2E5415C7004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; };
-		2DAE96FC2E5415C7004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2DAE97002E5415DB004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; };
-		2DAE97012E5415DB004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2DAE97042E5415E8004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; };
-		2DAE97052E5415E8004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,29 +61,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				2DAE96F82E5415AC004BFC68 /* CloudKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2DAE96FD2E5415C7004BFC68 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				2DAE96FC2E5415C7004BFC68 /* CloudKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2DAE97022E5415DB004BFC68 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				2DAE97012E5415DB004BFC68 /* CloudKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,7 +71,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				2DAE97052E5415E8004BFC68 /* CloudKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -122,6 +94,13 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
+				CloudKitSyncManager.swift,
+				DataController.swift,
+				Models/ReviewHistory.swift,
+				Models/ReviewSession.swift,
+				Models/Settings.swift,
+				Models/VocabularyList.swift,
+				Models/Word.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -148,6 +127,13 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
+				CloudKitSyncManager.swift,
+				DataController.swift,
+				Models/ReviewHistory.swift,
+				Models/ReviewSession.swift,
+				Models/Settings.swift,
+				Models/VocabularyList.swift,
+				Models/Word.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -196,6 +182,32 @@
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
 		};
+		2DAE97232E5459AC004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CloudKitSyncManager.swift,
+				DataController.swift,
+				Models/ReviewHistory.swift,
+				Models/ReviewSession.swift,
+				Models/Settings.swift,
+				Models/VocabularyList.swift,
+				Models/Word.swift,
+			);
+			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
+		};
+		2DAE97242E5459AC004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CloudKitSyncManager.swift,
+				DataController.swift,
+				Models/ReviewHistory.swift,
+				Models/ReviewSession.swift,
+				Models/Settings.swift,
+				Models/VocabularyList.swift,
+				Models/Word.swift,
+			);
+			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -204,6 +216,8 @@
 			exceptions = (
 				2DA2904D2E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (iOS)" target */,
 				2DA290572E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (macOS)" target */,
+				2DAE97232E5459AC004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */,
+				2DAE97242E5459AC004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */,
 			);
 			path = "Shared (App)";
 			sourceTree = "<group>";
@@ -384,7 +398,6 @@
 				2DA2901A2E2B9B2800263BCA /* Sources */,
 				2DA2901B2E2B9B2800263BCA /* Frameworks */,
 				2DA2901C2E2B9B2800263BCA /* Resources */,
-				2DAE97022E5415DB004BFC68 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -407,7 +420,6 @@
 				2DA290242E2B9B2900263BCA /* Sources */,
 				2DA290252E2B9B2900263BCA /* Frameworks */,
 				2DA290262E2B9B2900263BCA /* Resources */,
-				2DAE96FD2E5415C7004BFC68 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -556,7 +568,7 @@
 				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "vocabDict Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -588,7 +600,7 @@
 				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "vocabDict Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -627,7 +639,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -665,7 +677,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -706,7 +718,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -742,7 +754,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -777,7 +789,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -812,7 +824,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",

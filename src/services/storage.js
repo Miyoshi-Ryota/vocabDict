@@ -53,16 +53,16 @@ class StorageManager {
 
     try {
       const oldLists = await this.get('vocab_lists_cache') || [];
-      
+
       for (const list of lists) {
         const oldList = oldLists.find(l => l.id === list.id);
-        
+
         if (!oldList || JSON.stringify(oldList) !== JSON.stringify(list)) {
           const words = list.words || {};
-          
+
           for (const [normalizedWord, wordData] of Object.entries(words)) {
             const oldWord = oldList?.words?.[normalizedWord];
-            
+
             if (!oldWord || JSON.stringify(oldWord) !== JSON.stringify(wordData)) {
               await browser.runtime.sendNativeMessage({
                 action: 'addWord',
@@ -81,7 +81,7 @@ class StorageManager {
           }
         }
       }
-      
+
       await browser.storage.local.set({ vocab_lists_cache: lists });
       return { success: true };
     } catch (error) {
@@ -96,16 +96,16 @@ class StorageManager {
    */
   static async syncFromNative() {
     if (this._syncInProgress || !this._useNativeSync) return;
-    
+
     this._syncInProgress = true;
     try {
       const [listsResponse, settingsResponse] = await Promise.all([
         browser.runtime.sendNativeMessage({ action: 'getVocabularyLists' }),
         browser.runtime.sendNativeMessage({ action: 'getSettings' })
       ]);
-      
+
       if (listsResponse && listsResponse.vocab_lists) {
-        await browser.storage.local.set({ 
+        await browser.storage.local.set({
           vocab_lists: listsResponse.vocab_lists,
           vocab_lists_cache: listsResponse.vocab_lists
         });
@@ -113,7 +113,7 @@ class StorageManager {
       if (settingsResponse && settingsResponse.settings) {
         await browser.storage.local.set({ settings: settingsResponse.settings });
       }
-      
+
       this._lastSyncTime = Date.now();
     } catch (error) {
       console.error('Sync from native failed:', error);
@@ -130,7 +130,7 @@ class StorageManager {
     if (now - this._lastSyncTime < this._syncDebounceMs) {
       return;
     }
-    
+
     this._lastSyncTime = now;
     setTimeout(() => {
       if (this._useNativeSync) {
@@ -158,7 +158,7 @@ class StorageManager {
         console.error('Failed to fetch from native:', error);
       }
     }
-    
+
     if (key === 'settings' && this._useNativeSync) {
       try {
         const response = await browser.runtime.sendNativeMessage({
@@ -172,7 +172,7 @@ class StorageManager {
         console.error('Failed to fetch settings from native:', error);
       }
     }
-    
+
     const result = await browser.storage.local.get(key);
     return result[key];
   }
@@ -185,12 +185,12 @@ class StorageManager {
    */
   static async set(key, value) {
     await browser.storage.local.set({ [key]: value });
-    
+
     if (key === 'vocab_lists' && this._useNativeSync) {
       await this.syncVocabularyListsToNative(value);
       this.triggerDebouncedSync();
     }
-    
+
     if (key === 'settings' && this._useNativeSync) {
       try {
         await browser.runtime.sendNativeMessage({

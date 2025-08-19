@@ -67,32 +67,35 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         
         let modelContext = ModelContext(modelContainer)
         
-        switch action {
-        case "getVocabularyLists":
-            fetchVocabularyLists(modelContext: modelContext, context: context)
-        case "addWord":
-            addWord(message: messageDict, modelContext: modelContext, context: context)
-        case "getSettings":
-            fetchSettings(modelContext: modelContext, context: context)
-        case "updateSettings":
-            updateSettings(message: messageDict, modelContext: modelContext, context: context)
-        case "getReviewSession":
-            fetchReviewSession(modelContext: modelContext, context: context)
-        case "syncData":
-            triggerSync(context: context)
-        default:
-            let response = NSExtensionItem()
-            if #available(iOS 15.0, macOS 11.0, *) {
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]
-            } else {
-                response.userInfo = [ "message": [ "error": "Unknown action: \(action)" ] ]
+        // Use Task to handle @MainActor methods
+        Task { @MainActor in
+            switch action {
+            case "getVocabularyLists":
+                await fetchVocabularyLists(modelContext: modelContext, context: context)
+            case "addWord":
+                await addWord(message: messageDict, modelContext: modelContext, context: context)
+            case "getSettings":
+                await fetchSettings(modelContext: modelContext, context: context)
+            case "updateSettings":
+                await updateSettings(message: messageDict, modelContext: modelContext, context: context)
+            case "getReviewSession":
+                await fetchReviewSession(modelContext: modelContext, context: context)
+            case "syncData":
+                triggerSync(context: context)
+            default:
+                let response = NSExtensionItem()
+                if #available(iOS 15.0, macOS 11.0, *) {
+                    response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]
+                } else {
+                    response.userInfo = [ "message": [ "error": "Unknown action: \(action)" ] ]
+                }
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
             }
-            context.completeRequest(returningItems: [ response ], completionHandler: nil)
         }
     }
     
     @MainActor
-    private func fetchVocabularyLists(modelContext: ModelContext, context: NSExtensionContext) {
+    private func fetchVocabularyLists(modelContext: ModelContext, context: NSExtensionContext) async {
         let descriptor = FetchDescriptor<VocabularyList>(
             sortBy: [SortDescriptor(\.created, order: .reverse)]
         )
@@ -109,7 +112,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     }
     
     @MainActor
-    private func addWord(message: [String: Any], modelContext: ModelContext, context: NSExtensionContext) {
+    private func addWord(message: [String: Any], modelContext: ModelContext, context: NSExtensionContext) async {
         guard let wordText = message["word"] as? String else {
             sendError(NSError(domain: "VocabDict", code: 1, userInfo: [NSLocalizedDescriptionKey: "Word text is required"]), to: context)
             return
@@ -164,9 +167,10 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     }
     
     @MainActor
-    private func fetchSettings(modelContext: ModelContext, context: NSExtensionContext) {
+    private func fetchSettings(modelContext: ModelContext, context: NSExtensionContext) async {
+        let singletonID = Settings.singletonID
         let descriptor = FetchDescriptor<Settings>(
-            predicate: #Predicate { $0.id == Settings.singletonID }
+            predicate: #Predicate { $0.id == singletonID }
         )
         
         do {
@@ -191,14 +195,15 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     }
     
     @MainActor
-    private func updateSettings(message: [String: Any], modelContext: ModelContext, context: NSExtensionContext) {
+    private func updateSettings(message: [String: Any], modelContext: ModelContext, context: NSExtensionContext) async {
         guard let settingsData = message["settings"] as? [String: Any] else {
             sendError(NSError(domain: "VocabDict", code: 1, userInfo: [NSLocalizedDescriptionKey: "Settings data is required"]), to: context)
             return
         }
         
+        let singletonID = Settings.singletonID
         let descriptor = FetchDescriptor<Settings>(
-            predicate: #Predicate { $0.id == Settings.singletonID }
+            predicate: #Predicate { $0.id == singletonID }
         )
         
         do {
@@ -235,7 +240,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     }
     
     @MainActor
-    private func fetchReviewSession(modelContext: ModelContext, context: NSExtensionContext) {
+    private func fetchReviewSession(modelContext: ModelContext, context: NSExtensionContext) async {
         let descriptor = FetchDescriptor<ReviewSession>(
             predicate: #Predicate { $0.endTime == nil },
             sortBy: [SortDescriptor(\.startTime, order: .reverse)]
