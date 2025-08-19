@@ -9,6 +9,14 @@
 /* Begin PBXBuildFile section */
 		2DA2901F2E2B9B2800263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DA290292E2B9B2900263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DAE96F72E5415AC004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; };
+		2DAE96F82E5415AC004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2DAE96FB2E5415C7004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; };
+		2DAE96FC2E5415C7004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96F52E5415A0004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2DAE97002E5415DB004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; };
+		2DAE97012E5415DB004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2DAE97042E5415E8004BFC68 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; };
+		2DAE97052E5415E8004BFC68 /* CloudKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +59,50 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2DAE96F92E5415AC004BFC68 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2DAE96F82E5415AC004BFC68 /* CloudKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DAE96FD2E5415C7004BFC68 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2DAE96FC2E5415C7004BFC68 /* CloudKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DAE97022E5415DB004BFC68 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2DAE97012E5415DB004BFC68 /* CloudKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2DAE97062E5415E8004BFC68 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2DAE97052E5415E8004BFC68 /* CloudKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +110,10 @@
 		2DA290122E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DAE96F22E541408004BFC68 /* vocabDict (iOS).entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "vocabDict (iOS).entitlements"; sourceTree = "<group>"; };
+		2DAE96F32E54152A004BFC68 /* vocabDict Extension (iOS).entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "vocabDict Extension (iOS).entitlements"; sourceTree = "<group>"; };
+		2DAE96F52E5415A0004BFC68 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/System/Library/Frameworks/CloudKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -201,6 +257,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DAE97042E5415E8004BFC68 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,6 +265,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DAE96F72E5415AC004BFC68 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,6 +273,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DAE97002E5415DB004BFC68 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,6 +281,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2DAE96FB2E5415C7004BFC68 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -231,12 +291,15 @@
 		2DA28FE32E2B9B2700263BCA = {
 			isa = PBXGroup;
 			children = (
+				2DAE96F32E54152A004BFC68 /* vocabDict Extension (iOS).entitlements */,
+				2DAE96F22E541408004BFC68 /* vocabDict (iOS).entitlements */,
 				2DA28FE82E2B9B2700263BCA /* Shared (App) */,
 				2DA28FF12E2B9B2800263BCA /* Shared (Extension) */,
 				2DA290022E2B9B2800263BCA /* iOS (App) */,
 				2DA290132E2B9B2800263BCA /* macOS (App) */,
 				2DA290222E2B9B2800263BCA /* iOS (Extension) */,
 				2DA2902C2E2B9B2900263BCA /* macOS (Extension) */,
+				2DAE96F42E541592004BFC68 /* Frameworks */,
 				2DA290012E2B9B2800263BCA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -252,6 +315,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		2DAE96F42E541592004BFC68 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2DAE96FE2E5415DA004BFC68 /* CloudKit.framework */,
+				2DAE96F52E5415A0004BFC68 /* CloudKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -263,6 +335,7 @@
 				2DA28FFD2E2B9B2800263BCA /* Frameworks */,
 				2DA28FFE2E2B9B2800263BCA /* Resources */,
 				2DA290522E2B9B2900263BCA /* Embed Foundation Extensions */,
+				2DAE97062E5415E8004BFC68 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -287,6 +360,7 @@
 				2DA2900F2E2B9B2800263BCA /* Frameworks */,
 				2DA290102E2B9B2800263BCA /* Resources */,
 				2DA2905C2E2B9B2900263BCA /* Embed Foundation Extensions */,
+				2DAE96F92E5415AC004BFC68 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -310,6 +384,7 @@
 				2DA2901A2E2B9B2800263BCA /* Sources */,
 				2DA2901B2E2B9B2800263BCA /* Frameworks */,
 				2DA2901C2E2B9B2800263BCA /* Resources */,
+				2DAE97022E5415DB004BFC68 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -332,6 +407,7 @@
 				2DA290242E2B9B2900263BCA /* Sources */,
 				2DA290252E2B9B2900263BCA /* Frameworks */,
 				2DA290262E2B9B2900263BCA /* Resources */,
+				2DAE96FD2E5415C7004BFC68 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -472,8 +548,10 @@
 		2DA2904F2E2B9B2900263BCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "vocabDict Extension (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "vocabDict Extension";
@@ -489,7 +567,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -502,8 +580,10 @@
 		2DA290502E2B9B2900263BCA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "vocabDict Extension (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "vocabDict Extension";
@@ -519,7 +599,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -535,8 +615,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "vocabDict (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (App)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -557,7 +639,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -571,8 +653,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "vocabDict (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (App)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -593,7 +677,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -607,8 +691,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/vocabDict.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
@@ -625,8 +712,10 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -638,8 +727,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/vocabDict.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
@@ -656,8 +748,10 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -673,6 +767,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/vocabDict.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -690,7 +785,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -707,6 +802,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/vocabDict.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -724,7 +820,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
