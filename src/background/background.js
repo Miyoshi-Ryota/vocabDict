@@ -51,7 +51,7 @@ browser.runtime.onInstalled.addListener(async () => {
   await initializeServices();
 
   // Initialize default vocabulary list if none exists
-  const lists = await storage.get('vocab_lists');
+  const lists = await browser.sendMessage({ type: 'get_lists' }).data;
   if (!lists || lists.length === 0) {
     const VocabularyList = require('../services/vocabulary-list');
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);

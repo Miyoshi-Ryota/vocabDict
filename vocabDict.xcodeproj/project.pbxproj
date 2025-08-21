@@ -58,6 +58,8 @@
 		2DA290122E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DAE97F12E56B309004BFC68 /* vocabDict Extension (iOS).entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "vocabDict Extension (iOS).entitlements"; sourceTree = "<group>"; };
+		2DAE98042E56CFEE004BFC68 /* vocabDict (iOS).entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "vocabDict (iOS).entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -66,6 +68,8 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
+				CloudKitStore.swift,
+				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -92,6 +96,8 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
+				CloudKitStore.swift,
+				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -140,6 +146,22 @@
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
 		};
+		2DAE98022E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CloudKitStore.swift,
+				Models.swift,
+			);
+			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
+		};
+		2DAE98032E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CloudKitStore.swift,
+				Models.swift,
+			);
+			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -148,6 +170,8 @@
 			exceptions = (
 				2DA2904D2E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (iOS)" target */,
 				2DA290572E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (macOS)" target */,
+				2DAE98022E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */,
+				2DAE98032E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */,
 			);
 			path = "Shared (App)";
 			sourceTree = "<group>";
@@ -231,6 +255,8 @@
 		2DA28FE32E2B9B2700263BCA = {
 			isa = PBXGroup;
 			children = (
+				2DAE98042E56CFEE004BFC68 /* vocabDict (iOS).entitlements */,
+				2DAE97F12E56B309004BFC68 /* vocabDict Extension (iOS).entitlements */,
 				2DA28FE82E2B9B2700263BCA /* Shared (App) */,
 				2DA28FF12E2B9B2800263BCA /* Shared (Extension) */,
 				2DA290022E2B9B2800263BCA /* iOS (App) */,
@@ -472,8 +498,10 @@
 		2DA2904F2E2B9B2900263BCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "vocabDict Extension (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "vocabDict Extension";
@@ -489,7 +517,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -502,8 +530,10 @@
 		2DA290502E2B9B2900263BCA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "vocabDict Extension (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "vocabDict Extension";
@@ -519,7 +549,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -535,8 +565,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "vocabDict (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (App)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -557,7 +589,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -571,8 +603,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "vocabDict (iOS).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (App)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -593,7 +627,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -609,6 +643,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/vocabDict.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
@@ -619,14 +654,15 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -640,6 +676,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/vocabDict.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
@@ -650,14 +687,15 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict.extension;
 				PRODUCT_NAME = "vocabDict Extension";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -673,6 +711,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/vocabDict.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -682,7 +721,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -690,7 +729,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -707,6 +746,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/vocabDict.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
@@ -716,7 +756,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -724,7 +764,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.miyoshi.ryota.vocabDict;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabdict;
 				PRODUCT_NAME = vocabDict;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;

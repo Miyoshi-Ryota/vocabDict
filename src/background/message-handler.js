@@ -69,7 +69,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Word not found in dictionary' };
         }
 
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const listIndex = lists.findIndex(l => l.id === message.listId);
 
         if (listIndex === -1) {
@@ -91,8 +92,8 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_LISTS: {
-        const lists = await storage.get('vocab_lists') || [];
-        return { success: true, data: lists };
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        return { success: true, data: response.vocabularyLists || [] };
       }
 
       case MessageTypes.GET_LIST_WORDS: {
@@ -100,7 +101,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'ListId is required' };
         }
 
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const listData = lists.find(l => l.id === message.listId);
 
         if (!listData) {
@@ -151,7 +153,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'List name cannot be empty' };
         }
 
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const newList = new VocabularyList(trimmedName, dictionary);
 
         lists.push(newList.toJSON());
@@ -165,7 +168,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'ListId, word, and updates are required' };
         }
 
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const listIndex = lists.findIndex(l => l.id === message.listId);
 
         if (listIndex === -1) {
@@ -186,7 +190,8 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_REVIEW_QUEUE: {
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const maxWords = message.maxWords || 30;
 
         // Collect all words from all lists
@@ -216,7 +221,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'ListId, word, and reviewResult are required' };
         }
 
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const listIndex = lists.findIndex(l => l.id === message.listId);
 
         if (listIndex === -1) {
@@ -272,7 +278,8 @@ async function handleMessage(message, services) {
       }
 
       case 'get_review_queue': {
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const SpacedRepetition = require('../services/spaced-repetition');
 
         // Collect all words from all lists that need review
@@ -314,7 +321,8 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Word and result are required' };
         }
 
-        const lists = await storage.get('vocab_lists') || [];
+        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const lists = response.vocabularyLists || [];
         const listIndex = lists.findIndex(l => l.id === listId);
 
         if (listIndex === -1) {
