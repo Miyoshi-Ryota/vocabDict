@@ -55,6 +55,20 @@ class StorageManager {
       const oldLists = await this.get('vocab_lists_cache') || [];
 
       for (const list of lists) {
+        if (!oldLists.find(l => l.id === list.id)) {
+          console.log('Creating new vocabulary list in native:', list);
+          await browser.runtime.sendNativeMessage({
+            action: 'createVocabularyList',
+            listId: list.id,
+            name: list.name,
+            description: list.description,
+            dateCreated: list.dateCreated,
+            dateModified: list.dateModified
+          });
+        }
+      }
+      
+      for (const list of lists) {
         const oldList = oldLists.find(l => l.id === list.id);
 
         if (!oldList || JSON.stringify(oldList) !== JSON.stringify(list)) {
@@ -64,6 +78,7 @@ class StorageManager {
             const oldWord = oldList?.words?.[normalizedWord];
 
             if (!oldWord || JSON.stringify(oldWord) !== JSON.stringify(wordData)) {
+              console.log('Adding/updating word in native:', normalizedWord, wordData);
               await browser.runtime.sendNativeMessage({
                 action: 'addWord',
                 word: wordData.word,

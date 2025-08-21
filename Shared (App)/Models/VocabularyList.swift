@@ -19,9 +19,12 @@ final class VocabularyList {
     @Relationship(deleteRule: .cascade)
     var words: [Word]? = []
     
-    init(name: String, isDefault: Bool = false) {
+    init(name: String, isDefault: Bool = false, id: UUID? = nil) {
         self.name = name
         self.isDefault = isDefault
         self.lastModified = Date()
+        if let id = id {
+            self.id = id
+        }
     }
 }

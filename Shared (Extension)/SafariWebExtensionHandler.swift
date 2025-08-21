@@ -10,11 +10,8 @@ import SwiftData
 
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     
-    var modelContainer: ModelContainer {
-        return DataController.shared.modelContainer
-    }
-
     func beginRequest(with context: NSExtensionContext) {
+        print("hogeeeee")
         let request = context.inputItems.first as? NSExtensionItem
 
         let profile: UUID?
@@ -44,13 +41,17 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             return
         }
         
-        let modelContext = ModelContext(modelContainer)
+        let modelContext = DataController.shared.modelContext
+        
+        print("MIYO DEBG beginRequest: messageDict=\(messageDict)")
         
         // Use Task to handle @MainActor methods
         Task { @MainActor in
             switch action {
             case "getVocabularyLists":
                 await fetchVocabularyLists(modelContext: modelContext, context: context)
+            case "createVocabularyList":
+                await createVocabularyList(message: messageDict, modelContext: modelContext, context: context)
             case "addWord":
                 await addWord(message: messageDict, modelContext: modelContext, context: context)
             case "getSettings":
@@ -146,6 +147,39 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
     }
     
+    @MainActor
+    private func createVocabularyList(message: [String: Any], modelContext: ModelContext, context: NSExtensionContext) async {
+        print("MIYO DEBG createVocabularyList called with message: \(message)")
+        guard let listName = message["name"] as? String else {
+            sendError(NSError(domain: "VocabDict", code: 1, userInfo: [NSLocalizedDescriptionKey: "List name is required"]), to: context)
+            return
+        }
+        
+        let isDefault = message["isDefault"] as? Bool ?? false
+        let id: UUID? = {
+            if let idString = message["id"] as? String, let uuid = UUID(uuidString: idString) {
+                return uuid
+            }
+            return nil
+        }()
+
+        let newList = VocabularyList(name: listName, isDefault: isDefault, id: id)
+        print("createVocaburary with \(newList)")
+        modelContext.insert(newList)
+
+        do {
+            try modelContext.save()
+            DataController.shared.save()
+            
+            let sharedDefaults = UserDefaults(suiteName: "group.com.vocabdict.shared")
+            sharedDefaults?.set(true, forKey: "pendingSync")
+            sharedDefaults?.set(Date(), forKey: "lastModified")
+            sendResponse(["success": true, "listId": newList.id.uuidString], to: context)
+        } catch {
+            sendError(error, to: context)
+        }
+    }
+
     @MainActor
     private func fetchSettings(modelContext: ModelContext, context: NSExtensionContext) async {
         let singletonID = Settings.singletonID
