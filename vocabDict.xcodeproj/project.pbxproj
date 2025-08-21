@@ -94,7 +94,6 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
-				CloudKitSyncManager.swift,
 				DataController.swift,
 				Models/ReviewHistory.swift,
 				Models/ReviewSession.swift,
@@ -127,7 +126,6 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
-				CloudKitSyncManager.swift,
 				DataController.swift,
 				Models/ReviewHistory.swift,
 				Models/ReviewSession.swift,

@@ -60,8 +60,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 await updateSettings(message: messageDict, modelContext: modelContext, context: context)
             case "getReviewSession":
                 await fetchReviewSession(modelContext: modelContext, context: context)
-            case "syncData":
-                triggerSync(context: context)
             default:
                 let response = NSExtensionItem()
                 if #available(iOS 15.0, macOS 11.0, *) {
@@ -137,10 +135,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             try modelContext.save()
             DataController.shared.save()
             
-            let sharedDefaults = UserDefaults(suiteName: "group.com.vocabdict.shared")
-            sharedDefaults?.set(true, forKey: "pendingSync")
-            sharedDefaults?.set(Date(), forKey: "lastModified")
-            
             sendResponse(["success": true, "wordId": word.id.uuidString], to: context)
         } catch {
             sendError(error, to: context)
@@ -171,9 +165,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             try modelContext.save()
             DataController.shared.save()
             
-            let sharedDefaults = UserDefaults(suiteName: "group.com.vocabdict.shared")
-            sharedDefaults?.set(true, forKey: "pendingSync")
-            sharedDefaults?.set(Date(), forKey: "lastModified")
             sendResponse(["success": true, "listId": newList.id.uuidString], to: context)
         } catch {
             sendError(error, to: context)
@@ -244,9 +235,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             
             try modelContext.save()
             
-            let sharedDefaults = UserDefaults(suiteName: "group.com.vocabdict.shared")
-            sharedDefaults?.set(true, forKey: "pendingSync")
-            
             sendResponse(["success": true], to: context)
         } catch {
             sendError(error, to: context)
@@ -275,14 +263,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         } catch {
             sendError(error, to: context)
         }
-    }
-    
-    private func triggerSync(context: NSExtensionContext) {
-        let sharedDefaults = UserDefaults(suiteName: "group.com.vocabdict.shared")
-        sharedDefaults?.set(true, forKey: "pendingSync")
-        sharedDefaults?.set(Date(), forKey: "lastSyncRequest")
-        
-        sendResponse(["success": true, "message": "Sync triggered"], to: context)
     }
     
     private func sendResponse(_ response: Any, to context: NSExtensionContext) {

@@ -13,15 +13,8 @@ class StorageManager {
    * @returns {Promise<boolean>}
    */
   static async isNativeMessagingAvailable() {
-    try {
-      const response = await browser.runtime.sendNativeMessage({
-        action: 'syncData'
-      });
-      return response && response.success;
-    } catch (error) {
-      console.log('Native messaging not available:', error);
-      return false;
-    }
+    // Check if sendNativeMessage API exists
+    return typeof browser.runtime.sendNativeMessage === 'function';
   }
 
   /**
