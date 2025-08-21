@@ -37,8 +37,10 @@ const services = {
  * Initialize services
  */
 async function initializeServices() {
+  await StorageManager.initialize();
   await dictionary.loadLookupStatistics();
   console.log('Dictionary lookup statistics loaded');
+  console.log('StorageManager initialized with native sync:', StorageManager._useNativeSync);
 }
 
 /**

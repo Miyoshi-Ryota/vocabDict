@@ -6,6 +6,7 @@
 //
 
 import WebKit
+import SwiftData
 
 #if os(iOS)
 import UIKit
