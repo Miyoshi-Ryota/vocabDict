@@ -92,7 +92,9 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_LISTS: {
+        console.log("Fetching vocabulary lists from native messaging");
         const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        console.log("Received vocabulary lists:", response);
         return { success: true, data: response.vocabularyLists || [] };
       }
 
@@ -153,14 +155,17 @@ async function handleMessage(message, services) {
           return { success: false, error: 'List name cannot be empty' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const newList = new VocabularyList(trimmedName, dictionary);
+        const response = await browser.runtime.sendNativeMessage({ 
+          action: "createVocabularyList",
+          name: trimmedName,
+          isDefault: message.isDefault || false
+        });
+        
+        if (response.error) {
+          return { success: false, error: response.error };
+        }
 
-        lists.push(newList.toJSON());
-        await storage.set('vocab_lists', lists);
-
-        return { success: true, data: newList.toJSON() };
+        return { success: true, data: response.vocabularyList };
       }
 
       case MessageTypes.UPDATE_WORD: {

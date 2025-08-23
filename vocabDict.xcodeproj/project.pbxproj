@@ -68,8 +68,6 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
-				CloudKitStore.swift,
-				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -96,8 +94,6 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
-				CloudKitStore.swift,
-				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -115,6 +111,8 @@
 		2DA290602E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CloudKitStore.swift,
+				Models.swift,
 				Resources/_locales,
 				Resources/background.js,
 				Resources/content.css,
@@ -132,6 +130,8 @@
 		2DA290612E2B9B2900263BCA /* Exceptions for "Shared (Extension)" folder in "vocabDict Extension (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CloudKitStore.swift,
+				Models.swift,
 				Resources/_locales,
 				Resources/background.js,
 				Resources/content.css,
@@ -146,22 +146,6 @@
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
 		};
-		2DAE98022E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Models.swift,
-			);
-			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
-		};
-		2DAE98032E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Models.swift,
-			);
-			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -170,8 +154,6 @@
 			exceptions = (
 				2DA2904D2E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (iOS)" target */,
 				2DA290572E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (macOS)" target */,
-				2DAE98022E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */,
-				2DAE98032E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */,
 			);
 			path = "Shared (App)";
 			sourceTree = "<group>";
