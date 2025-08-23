@@ -13,6 +13,8 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     let cloudKitStore = CloudKitStore.shared
     
     func beginRequest(with context: NSExtensionContext) {
+        os_log(.default, "MIYO DBG SafariWebExtensionHandler beginRequest with context: %@", context)
+
         let request = context.inputItems.first as? NSExtensionItem
         
         let profile: UUID?
@@ -47,6 +49,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         
         switch action {
         case "getVocabularyLists":
+            // Debug: Check sync status when fetching lists
+            cloudKitStore.checkCloudKitSyncStatus()
+
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
             
@@ -72,6 +77,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             
             let isDefault = messageDict["isDefault"] as? Bool ?? false
             let newList = cloudKitStore.createVocabularyList(name: name, isDefault: isDefault)
+            
+            // Debug: Check sync status after creating a list
+            cloudKitStore.checkCloudKitSyncStatus()
             
             let response = NSExtensionItem()
             if #available(iOS 15.0, macOS 11.0, *) {

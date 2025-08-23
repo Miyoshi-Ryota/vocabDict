@@ -16,7 +16,7 @@ import SafariServices
 typealias PlatformViewController = NSViewController
 #endif
 
-let extensionBundleIdentifier = "com.miyoshi.ryota.vocabDict.Extension"
+let extensionBundleIdentifier = "com.ryota.miyoshi.vocabdict.extension"
 
 class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMessageHandler {
 

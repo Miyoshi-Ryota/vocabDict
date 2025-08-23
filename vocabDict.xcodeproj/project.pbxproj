@@ -54,6 +54,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2D2CBA612E59869E001BEC7C /* vocabDict--macOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "vocabDict--macOS--Info.plist"; sourceTree = "<group>"; };
 		2DA290002E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290122E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,13 +64,27 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2D2CBA652E5B063F001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CloudKitStore.swift,
+				Models.swift,
+			);
+			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
+		};
+		2D2CBA662E5B063F001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CloudKitStore.swift,
+				Models.swift,
+			);
+			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
+		};
 		2DA2904D2E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
-				CloudKitStore.swift,
-				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -96,8 +111,6 @@
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
-				CloudKitStore.swift,
-				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
@@ -146,22 +159,6 @@
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
 		};
-		2DAE98022E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Models.swift,
-			);
-			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
-		};
-		2DAE98032E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Models.swift,
-			);
-			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -170,8 +167,8 @@
 			exceptions = (
 				2DA2904D2E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (iOS)" target */,
 				2DA290572E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (macOS)" target */,
-				2DAE98022E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */,
-				2DAE98032E56BBFE004BFC68 /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */,
+				2D2CBA652E5B063F001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */,
+				2D2CBA662E5B063F001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */,
 			);
 			path = "Shared (App)";
 			sourceTree = "<group>";
@@ -255,6 +252,7 @@
 		2DA28FE32E2B9B2700263BCA = {
 			isa = PBXGroup;
 			children = (
+				2D2CBA612E59869E001BEC7C /* vocabDict--macOS--Info.plist */,
 				2DAE98042E56CFEE004BFC68 /* vocabDict (iOS).entitlements */,
 				2DAE97F12E56B309004BFC68 /* vocabDict Extension (iOS).entitlements */,
 				2DA28FE82E2B9B2700263BCA /* Shared (App) */,
@@ -406,6 +404,8 @@
 			);
 			mainGroup = 2DA28FE32E2B9B2700263BCA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2DA290012E2B9B2800263BCA /* Products */;
 			projectDirPath = "";
@@ -714,6 +714,7 @@
 				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "vocabDict--macOS--Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -749,6 +750,7 @@
 				DEVELOPMENT_TEAM = AG7XP5M288;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "vocabDict--macOS--Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = vocabDict;
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
