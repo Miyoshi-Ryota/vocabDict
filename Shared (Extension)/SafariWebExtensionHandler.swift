@@ -17,30 +17,16 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
 
         let request = context.inputItems.first as? NSExtensionItem
         
-        let profile: UUID?
-        if #available(iOS 17.0, macOS 14.0, *) {
-            profile = request?.userInfo?[SFExtensionProfileKey] as? UUID
-        } else {
-            profile = request?.userInfo?["profile"] as? UUID
-        }
+        let profile = request?.userInfo?[SFExtensionProfileKey] as? UUID
         
-        let message: Any?
-        if #available(iOS 15.0, macOS 11.0, *) {
-            message = request?.userInfo?[SFExtensionMessageKey]
-        } else {
-            message = request?.userInfo?["message"]
-        }
+        let message: Any? = request?.userInfo?[SFExtensionMessageKey]
         
         os_log(.default, "Received message from browser.runtime.sendNativeMessage: %@ (profile: %@)", String(describing: message), profile?.uuidString ?? "none")
 
         guard let messageDict = message as? [String: Any],
               let action = messageDict["action"] as? String else {
             let response = NSExtensionItem()
-            if #available(iOS 15.0, macOS 11.0, *) {
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid message format" ] ]
-            } else {
-                response.userInfo = [ "message": [ "error": "Invalid message format" ] ]
-            }
+            response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid message format" ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             return
         }
@@ -56,21 +42,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             let listsData = lists.map { $0.toDictionary() }
             
             let response = NSExtensionItem()
-            if #available(iOS 15.0, macOS 11.0, *) {
-                response.userInfo = [ SFExtensionMessageKey: [ "vocabularyLists": listsData ] ]
-            } else {
-                response.userInfo = [ "message": [ "vocabularyLists": listsData ] ]
-            }
+            response.userInfo = [ SFExtensionMessageKey: [ "vocabularyLists": listsData ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "createVocabularyList":
             guard let name = messageDict["name"] as? String else {
                 let response = NSExtensionItem()
-                if #available(iOS 15.0, macOS 11.0, *) {
-                    response.userInfo = [ SFExtensionMessageKey: [ "error": "Name is required" ] ]
-                } else {
-                    response.userInfo = [ "message": [ "error": "Name is required" ] ]
-                }
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Name is required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -82,11 +60,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             cloudKitStore.checkCloudKitSyncStatus()
             
             let response = NSExtensionItem()
-            if #available(iOS 15.0, macOS 11.0, *) {
-                response.userInfo = [ SFExtensionMessageKey: [ "vocabularyList": newList.toDictionary() ] ]
-            } else {
-                response.userInfo = [ "message": [ "vocabularyList": newList.toDictionary() ] ]
-            }
+            response.userInfo = [ SFExtensionMessageKey: [ "vocabularyList": newList.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "addWordsToVocabularyList":
@@ -94,11 +68,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                   let listUUID = UUID(uuidString: listId),
                   let wordsDict = messageDict["words"] as? [String: [String: Any]] else {
                 let response = NSExtensionItem()
-                if #available(iOS 15.0, macOS 11.0, *) {
-                    response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters" ] ]
-                } else {
-                    response.userInfo = [ "message": [ "error": "Invalid parameters" ] ]
-                }
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -116,20 +86,12 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             cloudKitStore.addWordsToVocabularyList(words: words, to: listUUID)
             
             let response = NSExtensionItem()
-            if #available(iOS 15.0, macOS 11.0, *) {
-                response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
-            } else {
-                response.userInfo = [ "message": [ "success": true ] ]
-            }
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         default:
             let response = NSExtensionItem()
-            if #available(iOS 15.0, macOS 11.0, *) {
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]
-            } else {
-                response.userInfo = [ "message": [ "error": "Unknown action: \(action)" ] ]
-            }
+            response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
         }
     }
