@@ -39,57 +39,21 @@ UI(Popup, Content Script Context Menu) -- メッセージパッシング (browse
 
 ## 変更後のアーキテクチャ
 このデータ永続化をSwiftData+CloudKitに置き換えます。これによりbrowser.storage.localの制限を回避し、iOSとmacOSのデータの共有も可能になります。
-UI(Popup, Content Script Context Menu) -- メッセージパッシング (browser.runtime.sendMessage) --> Background.js(Message Handler) -- メッセージパッシング(browser.runtime.sendNativeMessage) --> SafariWebExtensionHandler.swift --> CloudKitStore.swiftという流れでデータの永続化に変更します。
-
-
-┌──────────────────────────────────────────────────────┐
-│                 ユーザーインターフェース                │
-│  ┌────────────┐  ┌──────────────┐  ┌─────────────┐ │
-│  │   Popup    │  │Content Script│  │Context Menu │ │
-│  │  (400x600) │  │  (iOS button)│  │   (macOS)   │ │
-│  └────────────┘  └──────────────┘  └─────────────┘ │
-└──────────────────────────────────────────────────────┘
-                            │
-                    メッセージパッシング
-                    (browser.runtime.sendMessage)
-                            ▼
-┌──────────────────────────────────────────────────────┐
-│              Background Service Worker               │
-│  ┌──────────────────────────────────────────────┐    │
-│  │            Message Handler                   │    │
-│  │                                              │    │
-│  └──────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────┘
-                            │
-                    メッセージパッシング
-                    (browser.runtime.sendNativeMessage)
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────┐
-│                  SafariWebExtensionHandler.swift     │
-│              　　　　　　　　　　　　　　　               │
-└──────────────────────────────────────────────────────┘
-                            │
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────┐
-│                  CloudKitStore.swift                 │
-│                                                      │  
-└──────────────────────────────────────────────────────┘
+変更後のアーキテクチャの詳細はdocs/db-architecture.mdを参照してください。
 
 
 
 ## 現状のステータス
-* VocabularyListの取得についてはCloudKitStoreに移行済みで動作確認中です。（データの作成を完遂していないので、確認用のデータの作成もできず現状動作確認できていません。）
-* VocabularyListの作成や単語の追加などについては少しだけ着手されているものの完成はしていません。既存の実装についても特に動作確認もしていないのでバグなどもあるかもしれません。
+* VocabularyListの取得・作成についてはCloudKit + SwiftDataに移行済みで動作確認済みです。（
+* VocabularyListへの単語の追加については少しだけ着手されているものの完成はしていません。既存の実装についても特に動作確認もしていないのでバグなどもあるかもしれません。
 
 ## 依頼
-さて、とりあえずはVocabularyListの作成や更新、削除などの機能をSwiftData+CloudKitで実装して欲しいのでプランニングお願いします。
+さて、とりあえずはVocabularyListへの単語の追加について、SwiftData+CloudKitへ移行して欲しいのでプランニングお願いします。
 
 * message-handler.jsのMessageTypeなどが参考になるかもしれません。
-* それらのデータをSwiftData+CloudKitで永続化するためのプランニングを行なってください。既存のVocabularyListの取得に関する実装を参考にしてください。
+* それらのデータをSwiftData+CloudKitで永続化するためのプランニングを行なってください。既存のVocabularyListの取得に関する実装やdocs/db-architecture.mdを参考にしてください。
 ※ mainブランチとのdiffなども参考になるかもです。
-* 一つの機能ずつ最後まで実装をお願いします。つまり全部のModelsを作って・・・次に・・・と進めるのではなく、VocabularyListの作成を実装して動作確認を行い、次にVocabularyListの更新を実装して動作確認を行うというように一つずつ進めてください。
+
 
 ## 依頼
 * データの永続化が必要なものを洗い出してください。既存でStorageManagerで実装されているものが対象です。RecentSearchは重要度が低いので一旦除外で良いです。
