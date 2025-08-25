@@ -11,7 +11,8 @@ import os
 
 class CloudKitStore {
     static let shared = CloudKitStore()
-    private let modelContext: ModelContext
+    let modelContext: ModelContext
+    let modelContainer: ModelContainer
 
     private init() {
         do {
@@ -35,7 +36,7 @@ class CloudKitStore {
                 cloudKitDatabase: .automatic
             )
 
-            let modelContainer = try ModelContainer(
+            modelContainer = try ModelContainer(
                 for: schema,
                 configurations: [modelConfiguration]
             )

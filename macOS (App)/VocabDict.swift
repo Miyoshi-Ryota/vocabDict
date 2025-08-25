@@ -6,13 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct VocabDict: App {
+    
     var body: some Scene {
         WindowGroup {
             VocabDictView()
         }
+        .modelContainer(CloudKitStore.shared.modelContainer)
     }
 }
 
