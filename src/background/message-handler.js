@@ -69,23 +69,20 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Word not found in dictionary' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const listIndex = lists.findIndex(l => l.id === message.listId);
-
-        if (listIndex === -1) {
-          return { success: false, error: 'List not found' };
-        }
-
-        // Recreate VocabularyList instance
-        const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
-
         try {
-          const wordEntry = await list.addWord(message.word, message.metadata);
-          lists[listIndex] = list.toJSON();
-          await storage.set('vocab_lists', lists);
+          // Send to native handler to add word to SwiftData/CloudKit
+          const response = await browser.runtime.sendNativeMessage({ 
+            action: "addWordToList",
+            listId: message.listId,
+            word: message.word,
+            metadata: message.metadata || {}
+          });
 
-          return { success: true, data: wordEntry };
+          if (response.error) {
+            return { success: false, error: response.error };
+          }
+
+          return { success: true, data: response.data };
         } catch (error) {
           return { success: false, error: error.message };
         }

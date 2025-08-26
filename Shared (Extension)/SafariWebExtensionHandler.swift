@@ -35,9 +35,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         
         switch action {
         case "getVocabularyLists":
-            // Debug: Check sync status when fetching lists
-            cloudKitStore.checkCloudKitSyncStatus()
-
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
             
@@ -56,38 +53,36 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             let isDefault = messageDict["isDefault"] as? Bool ?? false
             let newList = cloudKitStore.createVocabularyList(name: name, isDefault: isDefault)
             
-            // Debug: Check sync status after creating a list
-            cloudKitStore.checkCloudKitSyncStatus()
-            
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "vocabularyList": newList.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
-        case "addWordsToVocabularyList":
+        case "addWordToList":
             guard let listId = messageDict["listId"] as? String,
                   let listUUID = UUID(uuidString: listId),
-                  let wordsDict = messageDict["words"] as? [String: [String: Any]] else {
+                  let word = messageDict["word"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters: listId and word are required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            var words: [String: UserSpecificData] = [:]
-            for (word, data) in wordsDict {
-                let userData = UserSpecificData(
-                    word: word,
-                    difficulty: data["difficulty"] as? String ?? "medium",
-                    customNotes: data["customNotes"] as? String ?? "",
-                )
-                words[word] = userData
+            // Extract optional metadata
+            let metadata = messageDict["metadata"] as? [String: String] ?? [:]
+            
+            // Add word to list
+            if let wordEntry = cloudKitStore.addWordToVocabularyList(word: word, metadata: metadata, to: listUUID) {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ 
+                    "success": true, 
+                    "data": wordEntry.toDictionary() 
+                ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            } else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Failed to add word to list" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
             }
-            
-            cloudKitStore.addWordsToVocabularyList(words: words, to: listUUID)
-            
-            let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
-            context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         default:
             let response = NSExtensionItem()

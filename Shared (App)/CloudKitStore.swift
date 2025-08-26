@@ -7,7 +7,7 @@
 
 import CloudKit
 import SwiftData
-import os
+import os.log
 
 class CloudKitStore {
     static let shared = CloudKitStore()
@@ -54,7 +54,7 @@ class CloudKitStore {
                 try modelContext.save()
             }
         } catch {
-            print("Failed to save context: \(error)")
+            os_log(.default, "Failed to save context: \(error)")
         }
     }
 
@@ -62,7 +62,7 @@ class CloudKitStore {
         do {
             return try modelContext.fetch(FetchDescriptor<VocabularyList>())
         } catch {
-            print("Failed to fetch vocabulary lists: \(error)")
+            os_log(.default, "Failed to fetch vocabulary lists: \(error)")
             return []
         }
     }
@@ -76,7 +76,7 @@ class CloudKitStore {
             descriptor.fetchLimit = 1
             return try self.modelContext.fetch(descriptor).first
         } catch {
-            print("Failed to fetch: \(error)")
+            os_log(.default, "Failed to fetch: \(error)")
             return nil
         }
     }
@@ -84,33 +84,38 @@ class CloudKitStore {
     func createVocabularyList(name: String, isDefault: Bool = false) -> VocabularyList {
         let vocabularyList = VocabularyList(name: name, isDefault: isDefault)
         modelContext.insert(vocabularyList)
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to save context: \(error)");
-        }
+        save()
         return vocabularyList
     }
     
-    func addWordsToVocabularyList(words: [String: UserSpecificData], to vocabularyListId: UUID) {
+    func addWordToVocabularyList(word: String, metadata: [String: String], to vocabularyListId: UUID) -> UserSpecificData? {
         guard let vocabularyList = getVocabularyList(id: vocabularyListId) else {
-            print("Vocabulary list with ID \(vocabularyListId) not found")
-            return
+            os_log(.default, "Vocabulary list with ID \(vocabularyListId.uuidString) not found")
+            return nil
         }
-
-
-        for (word, userData) in words {
-            if vocabularyList.words[word] != nil {
-                print("Word '\(word)' already exists. Skipping...")
-                continue
-            }
-            vocabularyList.words[word] = userData
+        
+        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check if word already exists
+        if vocabularyList.words[normalizedWord] != nil {
+            os_log(.default, "Word '\(normalizedWord)' already exists in list")
+            return nil
         }
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to save context: \(error)");
-        }
+        
+        // Create new UserSpecificData with automatic values
+        let userData = UserSpecificData(
+            word: word,
+            dateAdded: Date(),
+            difficulty: metadata["difficulty"] ?? "medium",
+            customNotes: metadata["customNotes"] ?? "",
+            lastReviewed: nil,
+            nextReviewDate: Date(timeIntervalSinceNow: 86400),  // Tomorrow
+            reviewHistory: []
+        )
+        
+        vocabularyList.words[normalizedWord] = userData
+        save()
+        return userData
     }
     
     // CloudKit sync status check
@@ -192,22 +197,6 @@ class CloudKitStore {
         os_log(.default, "MIYODBG 2. Create some data and wait a few minutes")
         os_log(.default, "MIYODBG 3. Check CloudKit Dashboard at https://icloud.developer.apple.com/")
         os_log(.default, "MIYODBG 4. Look for 'iCloud.com.vocabdict.sync' container")
-    }
-    
-    // Debug method to clear all local data
-    func clearAllLocalData() {
-        print("MIYO DBG Clearing all local SwiftData")
-        do {
-            let lists = try modelContext.fetch(FetchDescriptor<VocabularyList>())
-            for list in lists {
-                print("MIYO DBG Deleting list: \(list.name) (id: \(list.id))")
-                modelContext.delete(list)
-            }
-            try modelContext.save()
-            print("MIYO DBG All local data cleared")
-        } catch {
-            print("MIYO DBG Failed to clear local data: \(error)")
-        }
     }
 }
 
