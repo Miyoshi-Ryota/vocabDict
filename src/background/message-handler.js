@@ -7,7 +7,7 @@ const MessageTypes = {
   GET_LISTS: 'get_lists',
   GET_LIST_WORDS: 'get_list_words',
   CREATE_LIST: 'create_list',
-  UPDATE_WORD: 'update_word',
+  UPDATE_WORD: 'update_word',  // どこでも使われてないかも？不要？
   GET_REVIEW_QUEUE: 'get_review_queue',
   SUBMIT_REVIEW: 'submit_review',
   GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',

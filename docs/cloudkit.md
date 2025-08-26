@@ -44,20 +44,11 @@ UI(Popup, Content Script Context Menu) -- メッセージパッシング (browse
 
 
 ## 現状のステータス
-* VocabularyListの取得・作成についてはCloudKit + SwiftDataに移行済みで動作確認済みです。（
-* VocabularyListへの単語の追加については少しだけ着手されているものの完成はしていません。既存の実装についても特に動作確認もしていないのでバグなどもあるかもしれません。
-
-## 依頼
-さて、とりあえずはVocabularyListへの単語の追加について、SwiftData+CloudKitへ移行して欲しいのでプランニングお願いします。
-
-* message-handler.jsのMessageTypeなどが参考になるかもしれません。
-* それらのデータをSwiftData+CloudKitで永続化するためのプランニングを行なってください。既存のVocabularyListの取得に関する実装やdocs/db-architecture.mdを参考にしてください。
-※ mainブランチとのdiffなども参考になるかもです。
-
+* VocabularyListの取得・作成, VocabularyListへの単語の追加についてはCloudKit + SwiftDataに移行済みで動作確認済みです。
 
 ## 依頼
 * データの永続化が必要なものを洗い出してください。既存でStorageManagerで実装されているものが対象です。RecentSearchは重要度が低いので一旦除外で良いです。
-* 操作の種類についても既存で実装されているものだけで一旦良いです。message-handler.jsのMessageTypeなどが参考になるかもしれません。
-* それらのデータをSwiftData+CloudKitで永続化するためのプランニングを行なってください。既存のVocabularyListの取得に関する実装を参考にしてください。
 ※ mainブランチとのdiffなども参考になるかもです。
-* 一つの機能ずつ最後まで実装をお願いします。つまり全部のModelsを作って・・・次に・・・と進めるのではなく、VocabularyListの作成を実装して動作確認を行い、次にVocabularyListの更新を実装して動作確認を行うというように一つずつ進めてください。
+* 操作の種類についても既存で実装されているものだけで一旦良いです。message-handler.jsのMessageTypeなどが参考になるかもしれません。
+* それらのデータをSwiftData+CloudKitで永続化するためのプランニングを行なってください。既存のVocabularyListの取得に関する実装やdocs/db-architecture.mdを参考にしてください。
+* 一つの機能ずつ最後まで実装をお願いします。つまり全部のModelsを作って・・・次に・・・とソースコード毎に順に作成するのではなく、１機能のmodelを作って・・・・1機能の全てを完遂させてから次の機能に行ってください。

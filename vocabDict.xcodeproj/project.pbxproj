@@ -12,6 +12,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2D2CBAD02E5E16E9001BEC7C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2DA28FE42E2B9B2700263BCA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2DA290112E2B9B2800263BCA;
+			remoteInfo = "vocabDict (macOS)";
+		};
 		2DA290202E2B9B2800263BCA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2DA28FE42E2B9B2700263BCA /* Project object */;
@@ -54,6 +61,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2D2CBACC2E5E16E9001BEC7C /* vocabDictTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = vocabDictTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290002E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290122E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -217,6 +225,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2D2CBAC92E5E16E9001BEC7C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DA28FFD2E2B9B2800263BCA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -268,6 +283,7 @@
 				2DA290122E2B9B2800263BCA /* vocabDict.app */,
 				2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */,
 				2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */,
+				2D2CBACC2E5E16E9001BEC7C /* vocabDictTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -275,6 +291,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2D2CBACB2E5E16E9001BEC7C /* vocabDictTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D2CBAD22E5E16E9001BEC7C /* Build configuration list for PBXNativeTarget "vocabDictTests" */;
+			buildPhases = (
+				2D2CBAC82E5E16E9001BEC7C /* Sources */,
+				2D2CBAC92E5E16E9001BEC7C /* Frameworks */,
+				2D2CBACA2E5E16E9001BEC7C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2D2CBAD12E5E16E9001BEC7C /* PBXTargetDependency */,
+			);
+			name = vocabDictTests;
+			packageProductDependencies = (
+			);
+			productName = vocabDictTests;
+			productReference = 2D2CBACC2E5E16E9001BEC7C /* vocabDictTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		2DA28FFF2E2B9B2800263BCA /* vocabDict (iOS) */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2DA290532E2B9B2900263BCA /* Build configuration list for PBXNativeTarget "vocabDict (iOS)" */;
@@ -374,9 +410,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1630;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
+					2D2CBACB2E5E16E9001BEC7C = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 2DA290112E2B9B2800263BCA;
+					};
 					2DA28FFF2E2B9B2800263BCA = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -411,11 +451,19 @@
 				2DA290112E2B9B2800263BCA /* vocabDict (macOS) */,
 				2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */,
 				2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */,
+				2D2CBACB2E5E16E9001BEC7C /* vocabDictTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2D2CBACA2E5E16E9001BEC7C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DA28FFE2E2B9B2800263BCA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -447,6 +495,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2D2CBAC82E5E16E9001BEC7C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2DA28FFC2E2B9B2800263BCA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -478,6 +533,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2D2CBAD12E5E16E9001BEC7C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2DA290112E2B9B2800263BCA /* vocabDict (macOS) */;
+			targetProxy = 2D2CBAD02E5E16E9001BEC7C /* PBXContainerItemProxy */;
+		};
 		2DA290212E2B9B2800263BCA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
@@ -491,6 +551,52 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2D2CBAD32E5E16E9001BEC7C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabDictTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/vocabDict.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/vocabDict";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		2D2CBAD42E5E16E9001BEC7C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AG7XP5M288;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryota.miyoshi.vocabDictTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/vocabDict.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/vocabDict";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
 		2DA2904F2E2B9B2900263BCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -886,6 +992,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2D2CBAD22E5E16E9001BEC7C /* Build configuration list for PBXNativeTarget "vocabDictTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2D2CBAD32E5E16E9001BEC7C /* Debug */,
+				2D2CBAD42E5E16E9001BEC7C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2DA28FE72E2B9B2700263BCA /* Build configuration list for PBXProject "vocabDict" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
