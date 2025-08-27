@@ -122,25 +122,26 @@ async function handleMessage(message, services) {
           words = await list.filterBy('difficulty', message.filterBy);
         }
 
-        // Apply sorting to the filtered results by creating a temporary list
-        if (message.sortBy && words.length > 0) {
+        // Enhance words with lookup count data BEFORE sorting
+        const enhancedWords = await Promise.all(words.map(async word => ({
+          ...word,
+          lookupCount: await dictionary.getLookupCount(word.word)
+        })));
+
+        // Apply sorting to the filtered and enhanced results
+        if (message.sortBy && enhancedWords.length > 0) {
           const sortOrder = message.sortOrder || 'asc';
 
-          // Create a temporary list with only the filtered words
+          // Create a temporary list with the enhanced words
           const tempList = new VocabularyList('temp', dictionary);
-          words.forEach(word => {
+          enhancedWords.forEach(word => {
             tempList.words[word.word] = word;
           });
 
           // Sort using the temporary list
-          words = await tempList.sortBy(message.sortBy, sortOrder);
+          const sortedWords = await tempList.sortBy(message.sortBy, sortOrder);
+          return { success: true, data: sortedWords };
         }
-
-        // Enhance words with lookup count data for UI display
-        const enhancedWords = words.map(word => ({
-          ...word,
-          lookupCount: dictionary.getLookupCount(word.word)
-        }));
 
         return { success: true, data: enhancedWords };
       }

@@ -4,7 +4,7 @@ const { handleMessage } = require('./message-handler');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
-const dictionary = new DictionaryService(dictionaryData, StorageManager);
+const dictionary = new DictionaryService(dictionaryData);
 const storage = StorageManager;
 
 // Popup word state management
@@ -34,29 +34,26 @@ const services = {
 };
 
 /**
- * Initialize services
- */
-async function initializeServices() {
-  await dictionary.loadLookupStatistics();
-  console.log('Dictionary lookup statistics loaded');
-}
-
-/**
  * Handle installation event
  */
 browser.runtime.onInstalled.addListener(async () => {
   console.log('VocabDict extension installed');
 
-  // Initialize services
-  await initializeServices();
-
   // Initialize default vocabulary list if none exists
-  const lists = await browser.sendMessage({ type: 'get_lists' }).data;
-  if (!lists || lists.length === 0) {
-    const VocabularyList = require('../services/vocabulary-list');
-    const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
-    await storage.set('vocab_lists', [defaultList.toJSON()]);
-    console.log('Created default vocabulary list');
+  try {
+    const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+    const lists = response.vocabularyLists || [];
+    if (lists.length === 0) {
+      // Create default list via native message
+      await browser.runtime.sendNativeMessage({
+        action: "createVocabularyList",
+        name: "My Vocabulary",
+        isDefault: true
+      });
+      console.log('Created default vocabulary list');
+    }
+  } catch (error) {
+    console.error('Error initializing default vocabulary list:', error);
   }
 
   // Create context menu for macOS
@@ -132,8 +129,6 @@ browser.runtime.onConnect.addListener((port) => {
   });
 });
 
-// Initialize services on startup
-initializeServices().catch(console.error);
 
 // Export for testing
 module.exports = {

@@ -1,29 +1,10 @@
 class DictionaryService {
-  constructor(dictionaryData, storageManager = null) {
+  constructor(dictionaryData) {
     this.data = {};
     // Normalize all keys to lowercase for case-insensitive lookup
     Object.keys(dictionaryData).forEach(key => {
       this.data[key.toLowerCase()] = dictionaryData[key];
     });
-
-    this.storageManager = storageManager;
-    this.lookupStatistics = new Map();
-  }
-
-  /**
-   * Load lookup statistics from storage
-   */
-  async loadLookupStatistics() {
-    if (!this.storageManager) return;
-
-    try {
-      const stats = await this.storageManager.get('dictionary_lookup_stats');
-      if (stats) {
-        this.lookupStatistics = new Map(Object.entries(stats));
-      }
-    } catch (error) {
-      console.error('Failed to load lookup statistics:', error);
-    }
   }
 
   /**
@@ -56,31 +37,16 @@ class DictionaryService {
    * @param {string} normalizedWord - The normalized word to increment
    */
   async incrementLookupCount(normalizedWord) {
-    if (!this.storageManager) return;
-
-    const current = this.lookupStatistics.get(normalizedWord) || {
-      count: 0,
-      firstLookup: null,
-      lastLookup: null
-    };
-
-    const now = new Date().toISOString();
-
-    current.count++;
-    current.lastLookup = now;
-    if (!current.firstLookup) {
-      current.firstLookup = now;
-    }
-
-    this.lookupStatistics.set(normalizedWord, current);
-
-    // Persist to storage
+    // Send to native storage
     try {
-      await this.storageManager.set('dictionary_lookup_stats',
-        Object.fromEntries(this.lookupStatistics)
-      );
+      if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendNativeMessage) {
+        await browser.runtime.sendNativeMessage({
+          action: "incrementLookupCount",
+          word: normalizedWord
+        });
+      }
     } catch (error) {
-      console.error('Failed to persist lookup statistics:', error);
+      console.error('Failed to increment lookup count:', error);
     }
   }
 
@@ -104,16 +70,28 @@ class DictionaryService {
   /**
    * Get lookup count for a word
    * @param {string} word - The word to get count for
-   * @returns {number} The lookup count (0 if never looked up)
+   * @returns {Promise<number>} The lookup count (0 if never looked up)
    */
-  getLookupCount(word) {
+  async getLookupCount(word) {
     if (!word || typeof word !== 'string') {
       return 0;
     }
 
     const normalizedWord = word.trim().toLowerCase();
-    const stats = this.lookupStatistics.get(normalizedWord);
-    return stats ? stats.count : 0;
+    
+    try {
+      if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendNativeMessage) {
+        const response = await browser.runtime.sendNativeMessage({
+          action: "getLookupCount",
+          word: normalizedWord
+        });
+        return response.count || 0;
+      }
+    } catch (error) {
+      console.error('Failed to get lookup count:', error);
+    }
+    
+    return 0;
   }
 
   /**

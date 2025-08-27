@@ -136,7 +136,7 @@ global.browser = {
 const DictionaryService = require('../src/services/dictionary-service');
 const StorageManager = require('../src/services/storage');
 const dictionaryData = require('../src/data/dictionary.json');
-const dictionary = new DictionaryService(dictionaryData, StorageManager);
+const dictionary = new DictionaryService(dictionaryData);
 
 // Load message handler and background modules
 // These modules can now safely use browser API during initialization

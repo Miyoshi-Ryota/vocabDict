@@ -30,6 +30,7 @@ class CloudKitStore {
                 VocabularyList.self,
                 RecentSearchHistory.self,
                 UserSettings.self,
+                DictionaryLookupStats.self,
             ])
 
             let modelConfiguration = ModelConfiguration(
@@ -202,6 +203,75 @@ class CloudKitStore {
         settings.update(from: updates)
         save()
         return settings
+    }
+    
+    // MARK: - Dictionary Lookup Stats
+    
+    func incrementLookupCount(for word: String) {
+        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        do {
+            let predicate = #Predicate<DictionaryLookupStats> { stats in
+                stats.word == normalizedWord
+            }
+            let descriptor = FetchDescriptor(predicate: predicate)
+            
+            if let existingStats = try modelContext.fetch(descriptor).first {
+                // Update existing stats
+                existingStats.count += 1
+                existingStats.lastLookup = Date()
+            } else {
+                // Create new stats entry
+                let newStats = DictionaryLookupStats(
+                    word: normalizedWord,
+                    count: 1,
+                    firstLookup: Date(),
+                    lastLookup: Date()
+                )
+                modelContext.insert(newStats)
+            }
+            
+            save()
+        } catch {
+            os_log(.default, "Failed to increment lookup count: \(error)")
+        }
+    }
+    
+    func getLookupStats() -> [String: [String: Any]] {
+        do {
+            let descriptor = FetchDescriptor<DictionaryLookupStats>()
+            let allStats = try modelContext.fetch(descriptor)
+            
+            var statsDict: [String: [String: Any]] = [:]
+            for stat in allStats {
+                statsDict[stat.word] = stat.toDictionary()
+            }
+            
+            return statsDict
+        } catch {
+            os_log(.default, "Failed to fetch lookup stats: \(error)")
+            return [:]
+        }
+    }
+    
+    func getLookupCount(for word: String) -> Int {
+        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        do {
+            let predicate = #Predicate<DictionaryLookupStats> { stats in
+                stats.word == normalizedWord
+            }
+            let descriptor = FetchDescriptor(predicate: predicate)
+            
+            if let stats = try modelContext.fetch(descriptor).first {
+                return stats.count
+            }
+            
+            return 0
+        } catch {
+            os_log(.default, "Failed to get lookup count: \(error)")
+            return 0
+        }
     }
 }
 

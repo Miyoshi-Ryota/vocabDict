@@ -122,6 +122,38 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [ SFExtensionMessageKey: [ "settings": updatedSettings.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
+        case "incrementLookupCount":
+            guard let word = messageDict["word"] as? String else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Word is required" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            cloudKitStore.incrementLookupCount(for: word)
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
+        case "getLookupStats":
+            let stats = cloudKitStore.getLookupStats()
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "stats": stats ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
+        case "getLookupCount":
+            guard let word = messageDict["word"] as? String else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Word is required" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            let count = cloudKitStore.getLookupCount(for: word)
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "count": count ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
         default:
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]

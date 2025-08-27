@@ -83,6 +83,33 @@ final class RecentSearchHistory {
 }
 
 @Model
+final class DictionaryLookupStats {
+    var id: UUID = UUID()
+    var word: String = ""
+    var count: Int = 0
+    var firstLookup: Date = Date()
+    var lastLookup: Date = Date()
+    
+    init(id: UUID = UUID(), word: String = "", count: Int = 0, firstLookup: Date = Date(), lastLookup: Date = Date()) {
+        self.id = id
+        self.word = word
+        self.count = count
+        self.firstLookup = firstLookup
+        self.lastLookup = lastLookup
+    }
+    
+    func toDictionary() -> [String: Any] {
+        let formatter = ISO8601DateFormatter()
+        return [
+            "word": word,
+            "count": count,
+            "firstLookup": formatter.string(from: firstLookup),
+            "lastLookup": formatter.string(from: lastLookup)
+        ]
+    }
+}
+
+@Model
 final class UserSettings {
     var id: UUID = UUID()
     var theme: String = "dark"
