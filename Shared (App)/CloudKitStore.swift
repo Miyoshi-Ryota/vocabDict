@@ -29,6 +29,7 @@ class CloudKitStore {
             let schema = Schema([
                 VocabularyList.self,
                 RecentSearchHistory.self,
+                UserSettings.self,
             ])
 
             let modelConfiguration = ModelConfiguration(
@@ -173,6 +174,34 @@ class CloudKitStore {
             os_log(.default, "Failed to fetch recent searches: \(error)")
             return []
         }
+    }
+    
+    // MARK: - User Settings
+    
+    func getSettings() -> UserSettings {
+        do {
+            let descriptor = FetchDescriptor<UserSettings>()
+            if let settings = try modelContext.fetch(descriptor).first {
+                return settings
+            }
+            
+            // Create default settings if none exist
+            let defaultSettings = UserSettings()
+            modelContext.insert(defaultSettings)
+            save()
+            return defaultSettings
+        } catch {
+            os_log(.default, "Failed to fetch settings: \(error)")
+            // Return default settings on error
+            return UserSettings()
+        }
+    }
+    
+    func updateSettings(_ updates: [String: Any]) -> UserSettings {
+        let settings = getSettings()
+        settings.update(from: updates)
+        save()
+        return settings
     }
 }
 

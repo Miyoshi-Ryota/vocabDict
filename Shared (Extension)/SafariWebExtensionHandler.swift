@@ -103,6 +103,25 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [ SFExtensionMessageKey: [ "recentSearches": searches ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
+        case "getSettings":
+            let settings = cloudKitStore.getSettings()
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "settings": settings.toDictionary() ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
+        case "updateSettings":
+            guard let updates = messageDict["settings"] as? [String: Any] else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Settings updates are required" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            let updatedSettings = cloudKitStore.updateSettings(updates)
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "settings": updatedSettings.toDictionary() ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
         default:
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]

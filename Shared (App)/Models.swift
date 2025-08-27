@@ -83,6 +83,58 @@ final class RecentSearchHistory {
 }
 
 @Model
+final class UserSettings {
+    var id: UUID = UUID()
+    var theme: String = "dark"
+    var autoPlayPronunciation: Bool = false
+    var showExampleSentences: Bool = true
+    var textSelectionMode: String = "inline"
+    var autoAddLookups: Bool = false
+    
+    init(id: UUID = UUID(), 
+         theme: String = "dark",
+         autoPlayPronunciation: Bool = false,
+         showExampleSentences: Bool = true,
+         textSelectionMode: String = "inline",
+         autoAddLookups: Bool = false) {
+        self.id = id
+        self.theme = theme
+        self.autoPlayPronunciation = autoPlayPronunciation
+        self.showExampleSentences = showExampleSentences
+        self.textSelectionMode = textSelectionMode
+        self.autoAddLookups = autoAddLookups
+    }
+    
+    func toDictionary() -> [String: Any] {
+        return [
+            "theme": theme,
+            "autoPlayPronunciation": autoPlayPronunciation,
+            "showExampleSentences": showExampleSentences,
+            "textSelectionMode": textSelectionMode,
+            "autoAddLookups": autoAddLookups
+        ]
+    }
+    
+    func update(from dict: [String: Any]) {
+        if let theme = dict["theme"] as? String {
+            self.theme = theme
+        }
+        if let autoPlay = dict["autoPlayPronunciation"] as? Bool {
+            self.autoPlayPronunciation = autoPlay
+        }
+        if let showExamples = dict["showExampleSentences"] as? Bool {
+            self.showExampleSentences = showExamples
+        }
+        if let textMode = dict["textSelectionMode"] as? String {
+            self.textSelectionMode = textMode
+        }
+        if let autoAdd = dict["autoAddLookups"] as? Bool {
+            self.autoAddLookups = autoAdd
+        }
+    }
+}
+
+@Model
 final class VocabularyList {
     var id: UUID = UUID()
     var name: String = ""

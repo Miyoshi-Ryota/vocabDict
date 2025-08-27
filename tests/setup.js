@@ -75,6 +75,22 @@ function createBasicRuntimeMock() {
           }
         });
       }
+      if (message.action === 'getSettings') {
+        return Promise.resolve({ 
+          settings: {
+            theme: 'dark',
+            autoPlayPronunciation: false,
+            showExampleSentences: true,
+            textSelectionMode: 'inline',
+            autoAddLookups: false
+          }
+        });
+      }
+      if (message.action === 'updateSettings') {
+        return Promise.resolve({ 
+          settings: message.settings
+        });
+      }
       return Promise.resolve({ success: true });
     }),
     onMessage: {

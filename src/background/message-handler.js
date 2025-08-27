@@ -393,13 +393,26 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_SETTINGS: {
-        const settings = await storage.get('settings') || {
-          theme: 'dark',
-          autoPlayPronunciation: false,
-          showExampleSentences: true,
-          textSelectionMode: 'inline'
-        };
-        return { success: true, data: settings };
+        try {
+          const response = await browser.runtime.sendNativeMessage({
+            action: "getSettings"
+          });
+          return { success: true, data: response.settings || {
+            theme: 'dark',
+            autoPlayPronunciation: false,
+            showExampleSentences: true,
+            textSelectionMode: 'inline'
+          }};
+        } catch (error) {
+          console.error('Failed to get settings:', error);
+          // Return default settings on error
+          return { success: true, data: {
+            theme: 'dark',
+            autoPlayPronunciation: false,
+            showExampleSentences: true,
+            textSelectionMode: 'inline'
+          }};
+        }
       }
 
       case MessageTypes.UPDATE_SETTINGS: {
@@ -407,11 +420,16 @@ async function handleMessage(message, services) {
           return { success: false, error: 'Settings object is required' };
         }
 
-        const currentSettings = await storage.get('settings') || {};
-        const updatedSettings = { ...currentSettings, ...message.settings };
-        await storage.set('settings', updatedSettings);
-
-        return { success: true, data: updatedSettings };
+        try {
+          const response = await browser.runtime.sendNativeMessage({
+            action: "updateSettings",
+            settings: message.settings
+          });
+          return { success: true, data: response.settings };
+        } catch (error) {
+          console.error('Failed to update settings:', error);
+          return { success: false, error: error.message };
+        }
       }
 
       case MessageTypes.OPEN_POPUP_WITH_WORD: {
