@@ -47,8 +47,13 @@ UI(Popup, Content Script Context Menu) -- メッセージパッシング (browse
 * VocabularyListの取得・作成, VocabularyListへの単語の追加についてはCloudKit + SwiftDataに移行済みで動作確認済みです。
 
 ## 依頼
-* データの永続化が必要なものを洗い出してください。既存でStorageManagerで実装されているものが対象です。RecentSearchは重要度が低いので一旦除外で良いです。
+* データの永続化が必要なものを洗い出してください。既存でStorageManagerで実装されているものが対象です。
 ※ mainブランチとのdiffなども参考になるかもです。
 * 操作の種類についても既存で実装されているものだけで一旦良いです。message-handler.jsのMessageTypeなどが参考になるかもしれません。
 * それらのデータをSwiftData+CloudKitで永続化するためのプランニングを行なってください。既存のVocabularyListの取得に関する実装やdocs/db-architecture.mdを参考にしてください。
 * 一つの機能ずつ最後まで実装をお願いします。つまり全部のModelsを作って・・・次に・・・とソースコード毎に順に作成するのではなく、１機能のmodelを作って・・・・1機能の全てを完遂させてから次の機能に行ってください。
+
+## 背景・前提
+JavaScriptのコードはバンバン消したい
+StorageManagerは全部消す。
+他のロジック類もどんどんSwiftに写していって、JSはただメッセージングするだけにしていく。

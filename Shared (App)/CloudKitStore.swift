@@ -28,6 +28,7 @@ class CloudKitStore {
             // Online storage setup
             let schema = Schema([
                 VocabularyList.self,
+                RecentSearchHistory.self,
             ])
 
             let modelConfiguration = ModelConfiguration(
@@ -116,6 +117,62 @@ class CloudKitStore {
         vocabularyList.words[normalizedWord] = userData
         save()
         return userData
+    }
+    
+    // MARK: - Recent Search History
+    
+    func addRecentSearch(word: String) {
+        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // First, remove any existing entry for the same word
+        do {
+            let predicate = #Predicate<RecentSearchHistory> { search in
+                search.word == normalizedWord
+            }
+            let existingSearches = try modelContext.fetch(FetchDescriptor(predicate: predicate))
+            for search in existingSearches {
+                modelContext.delete(search)
+            }
+        } catch {
+            os_log(.default, "Failed to check for existing searches: \(error)")
+        }
+        
+        // Add the new search
+        let newSearch = RecentSearchHistory(word: normalizedWord, searchedAt: Date())
+        modelContext.insert(newSearch)
+        
+        // Keep only the most recent 10 searches
+        do {
+            var descriptor = FetchDescriptor<RecentSearchHistory>(
+                sortBy: [SortDescriptor(\.searchedAt, order: .reverse)]
+            )
+            let allSearches = try modelContext.fetch(descriptor)
+            
+            if allSearches.count > 10 {
+                // Delete the older searches
+                for i in 10..<allSearches.count {
+                    modelContext.delete(allSearches[i])
+                }
+            }
+        } catch {
+            os_log(.default, "Failed to limit recent searches: \(error)")
+        }
+        
+        save()
+    }
+    
+    func getRecentSearches() -> [String] {
+        do {
+            var descriptor = FetchDescriptor<RecentSearchHistory>(
+                sortBy: [SortDescriptor(\.searchedAt, order: .reverse)]
+            )
+            descriptor.fetchLimit = 10
+            let searches = try modelContext.fetch(descriptor)
+            return searches.map { $0.word }
+        } catch {
+            os_log(.default, "Failed to fetch recent searches: \(error)")
+            return []
+        }
     }
 }
 

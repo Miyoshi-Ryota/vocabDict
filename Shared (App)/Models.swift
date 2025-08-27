@@ -62,6 +62,27 @@ final class ReviewHistoryEntry: Codable {
 }
 
 @Model
+final class RecentSearchHistory {
+    var id: UUID = UUID()
+    var word: String = ""
+    var searchedAt: Date = Date()
+    
+    init(id: UUID = UUID(), word: String = "", searchedAt: Date = Date()) {
+        self.id = id
+        self.word = word
+        self.searchedAt = searchedAt
+    }
+    
+    func toDictionary() -> [String: Any] {
+        return [
+            "id": id.uuidString,
+            "word": word,
+            "searchedAt": ISO8601DateFormatter().string(from: searchedAt)
+        ]
+    }
+}
+
+@Model
 final class VocabularyList {
     var id: UUID = UUID()
     var name: String = ""

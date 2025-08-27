@@ -44,6 +44,39 @@ function createStorageMock() {
 function createBasicRuntimeMock() {
   return {
     sendMessage: jest.fn(),
+    sendNativeMessage: jest.fn((message) => {
+      // Mock responses for native messages
+      if (message.action === 'getRecentSearches') {
+        return Promise.resolve({ recentSearches: [] });
+      }
+      if (message.action === 'addRecentSearch') {
+        return Promise.resolve({ success: true });
+      }
+      if (message.action === 'getVocabularyLists') {
+        return Promise.resolve({ vocabularyLists: [] });
+      }
+      if (message.action === 'createVocabularyList') {
+        return Promise.resolve({ 
+          vocabularyList: {
+            id: 'test-list-id',
+            name: message.name,
+            created: new Date().toISOString(),
+            isDefault: message.isDefault || false,
+            words: {}
+          }
+        });
+      }
+      if (message.action === 'addWordToList') {
+        return Promise.resolve({ 
+          success: true,
+          data: {
+            word: message.word,
+            dateAdded: new Date().toISOString()
+          }
+        });
+      }
+      return Promise.resolve({ success: true });
+    }),
     onMessage: {
       addListener: jest.fn()
     },

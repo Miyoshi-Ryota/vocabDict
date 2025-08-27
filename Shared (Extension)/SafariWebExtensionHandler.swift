@@ -84,6 +84,25 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
             }
             
+        case "addRecentSearch":
+            guard let word = messageDict["word"] as? String else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Word is required" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            cloudKitStore.addRecentSearch(word: word)
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
+        case "getRecentSearches":
+            let searches = cloudKitStore.getRecentSearches()
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "recentSearches": searches ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
         default:
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]

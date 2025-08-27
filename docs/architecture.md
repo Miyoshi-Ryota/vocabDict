@@ -103,3 +103,15 @@ src/                          webpack                    Xcode
 - **iOS**: テキスト選択ボタンUI
 - **macOS**: コンテキストメニュー統合
 - プラットフォーム固有機能を持つ共有コードベース
+
+
+## Directory Design
+
+* iOS (App)
+  * VocabDict.swift
+* macOS (App)
+  * VocabDict.swift
+* Shared (App)
+  * db
+  * model
+  * service

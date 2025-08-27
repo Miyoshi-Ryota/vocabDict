@@ -36,11 +36,14 @@ async function handleMessage(message, services) {
         const result = await dictionary.lookup(message.word);
         if (result) {
           // Add to recent searches automatically on successful lookup
-          let searches = await storage.get('recentSearches') || [];
-          searches = searches.filter(s => s !== message.word);
-          searches.unshift(message.word);
-          searches = searches.slice(0, 10);
-          await storage.set('recentSearches', searches);
+          try {
+            await browser.runtime.sendNativeMessage({
+              action: "addRecentSearch",
+              word: message.word
+            });
+          } catch (error) {
+            console.error('Failed to add recent search:', error);
+          }
 
           return { success: true, data: result };
         }
@@ -378,8 +381,15 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_RECENT_SEARCHES: {
-        const searches = await storage.get('recentSearches') || [];
-        return { success: true, data: searches };
+        try {
+          const response = await browser.runtime.sendNativeMessage({
+            action: "getRecentSearches"
+          });
+          return { success: true, data: response.recentSearches || [] };
+        } catch (error) {
+          console.error('Failed to get recent searches:', error);
+          return { success: true, data: [] };
+        }
       }
 
       case MessageTypes.GET_SETTINGS: {
