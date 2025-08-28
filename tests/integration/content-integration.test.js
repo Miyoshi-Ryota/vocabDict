@@ -239,8 +239,10 @@ describe('Content Script User Flow Integration Tests', () => {
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
 
-      // Wait a bit to ensure no button appears
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Poll for a lookup button that shouldn't appear
+      await expect(
+        waitFor(() => document.querySelector('.vocabdict-lookup-button'), 500)
+      ).rejects.toThrow(/Timeout/);
 
       const lookupButton = document.querySelector('.vocabdict-lookup-button');
       expect(lookupButton).toBeNull();
@@ -271,8 +273,10 @@ describe('Content Script User Flow Integration Tests', () => {
 
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Poll for a lookup button that shouldn't appear
+      await expect(
+        waitFor(() => document.querySelector('.vocabdict-lookup-button'), 500)
+      ).rejects.toThrow(/Timeout/);
 
       const lookupButton = document.querySelector('.vocabdict-lookup-button');
       expect(lookupButton).toBeNull();
@@ -302,8 +306,10 @@ describe('Content Script User Flow Integration Tests', () => {
 
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Poll for a lookup button that shouldn't appear
+      await expect(
+        waitFor(() => document.querySelector('.vocabdict-lookup-button'), 500)
+      ).rejects.toThrow(/Timeout/);
 
       const lookupButton = document.querySelector('.vocabdict-lookup-button');
       expect(lookupButton).toBeNull();
