@@ -188,15 +188,30 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         // Given - createVocabularyList without name
         let message: [String: Any] = ["action": "createVocabularyList"]
         mockContext.setupInputItem(with: message)
-        
+
         // When
         handler.beginRequest(with: mockContext)
-        
+
         // Then
         XCTAssertNotNil(mockContext.completedItems)
         if let response = mockContext.extractResponse() {
             XCTAssertNotNil(response["error"])
             XCTAssertEqual(response["error"] as? String, "Name is required")
+        }
+    }
+
+    func testUnknownActionMessage() {
+        // Given - unsupported action
+        let message: [String: Any] = ["action": "unknownAction"]
+        mockContext.setupInputItem(with: message)
+
+        // When
+        handler.beginRequest(with: mockContext)
+
+        // Then
+        XCTAssertNotNil(mockContext.completedItems)
+        if let response = mockContext.extractResponse() {
+            XCTAssertEqual(response["error"] as? String, "Unknown action: unknownAction")
         }
     }
     
