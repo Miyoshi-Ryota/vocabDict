@@ -209,52 +209,55 @@ class CloudKitStoreTests: XCTestCase {
     }
     
     // MARK: - Lookup Statistics Tests
-    
+
     func testIncrementLookupCount() {
         // Given
         let word = "hello"
-        let stats = DictionaryLookupStats(word: word)
-        modelContext.insert(stats)
-        
+
         // When
-        stats.count += 1
-        stats.lastLookup = Date()
-        
+        cloudKitStore.incrementLookupCount(for: word)
+
+        // Then - fetch stats via model context
+        let predicate = #Predicate<DictionaryLookupStats> { $0.word == word }
+        let descriptor = FetchDescriptor(predicate: predicate)
         do {
-            try modelContext.save()
+            let stats = try modelContext.fetch(descriptor).first
+            XCTAssertEqual(stats?.count, 1)
+            XCTAssertNotNil(stats?.firstLookup)
+            XCTAssertNotNil(stats?.lastLookup)
         } catch {
-            XCTFail("Failed to save: \(error)")
+            XCTFail("Failed to fetch: \(error)")
         }
-        
-        // Then
-        XCTAssertEqual(stats.count, 1)
-        XCTAssertNotNil(stats.lastLookup)
-        // First lookup and last lookup might have tiny time differences, so just check they exist
-        XCTAssertNotNil(stats.firstLookup)
     }
-    
+
     func testMultipleLookups() {
         // Given
         let word = "hello"
-        let stats = DictionaryLookupStats(word: word)
-        let firstLookupTime = stats.firstLookup
-        modelContext.insert(stats)
-        
-        // When - Multiple lookups
-        for _ in 1...5 {
-            stats.count += 1
-            stats.lastLookup = Date()
+
+        // First lookup
+        cloudKitStore.incrementLookupCount(for: word)
+
+        // Capture first lookup time
+        let predicate = #Predicate<DictionaryLookupStats> { $0.word == word }
+        let descriptor = FetchDescriptor(predicate: predicate)
+        guard let initialStats = try? modelContext.fetch(descriptor).first else {
+            return XCTFail("Stats not created")
         }
-        
-        do {
-            try modelContext.save()
-        } catch {
-            XCTFail("Failed to save: \(error)")
+        let firstLookupTime = initialStats.firstLookup
+
+        // When - Multiple additional lookups
+        for _ in 1..<5 {
+            cloudKitStore.incrementLookupCount(for: word)
         }
-        
+
         // Then
-        XCTAssertEqual(stats.count, 5)
-        XCTAssertEqual(stats.firstLookup, firstLookupTime)
-        XCTAssertNotEqual(stats.firstLookup, stats.lastLookup)
+        do {
+            let stats = try modelContext.fetch(descriptor).first
+            XCTAssertEqual(stats?.count, 5)
+            XCTAssertEqual(stats?.firstLookup, firstLookupTime)
+            XCTAssertNotEqual(stats?.firstLookup, stats?.lastLookup)
+        } catch {
+            XCTFail("Failed to fetch: \(error)")
+        }
     }
 }
