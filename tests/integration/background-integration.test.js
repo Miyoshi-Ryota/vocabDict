@@ -134,9 +134,14 @@ describe('Background Service Integration Tests', () => {
         }, services);
       }
 
+      // Ensure words are due for review
+      Object.values(mockList.words).forEach(w => {
+        w.nextReview = new Date(Date.now() - 86400000).toISOString();
+      });
+
       // Mock getVocabularyLists to return list with words
-      browser.runtime.sendNativeMessage.mockImplementationOnce(() => 
-        Promise.resolve({ 
+      browser.runtime.sendNativeMessage.mockImplementationOnce(() =>
+        Promise.resolve({
           vocabularyLists: [mockList.toJSON()]
         })
       );
@@ -148,25 +153,26 @@ describe('Background Service Integration Tests', () => {
       }, services);
 
       expect(queueResponse.success).toBe(true);
-      // Words should be available for review (all have nextReview = tomorrow)
-      expect(queueResponse.data).toBeDefined();
+      expect(queueResponse.data).toHaveLength(words.length);
+      queueResponse.data.forEach(item => {
+        expect(words).toContain(item.word);
+        expect(item.listId).toBe(listId);
+        expect(item.nextReview).toBeDefined();
+      });
 
-      // 2. Submit review for each word
-      if (queueResponse.data.length > 0) {
-        const wordToReview = queueResponse.data[0];
-        
-        const reviewResponse = await handleMessage({
-          type: MessageTypes.SUBMIT_REVIEW,
-          listId: wordToReview.listId,
-          word: wordToReview.word,
-          reviewResult: 'known',
-          timeSpent: 15
-        }, services);
+      const wordToReview = queueResponse.data[0];
 
-        expect(reviewResponse.success).toBe(true);
-        expect(reviewResponse.data.nextReview).toBeDefined();
-        expect(reviewResponse.data.lastReviewed).toBeDefined();
-      }
+      const reviewResponse = await handleMessage({
+        type: MessageTypes.SUBMIT_REVIEW,
+        listId: wordToReview.listId,
+        word: wordToReview.word,
+        reviewResult: 'known',
+        timeSpent: 15
+      }, services);
+
+      expect(reviewResponse.success).toBe(true);
+      expect(reviewResponse.data.nextReview).toBeDefined();
+      expect(reviewResponse.data.lastReviewed).toBeDefined();
     });
   });
 
