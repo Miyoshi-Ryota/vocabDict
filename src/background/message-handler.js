@@ -20,11 +20,11 @@ const MessageTypes = {
 /**
  * Handle messages from popup or content script
  * @param {Object} message - Message object
- * @param {Object} services - Service instances (dictionary, storage)
+ * @param {Object} services - Service instances (dictionary, popupWordState)
  * @returns {Promise<Object>} Response object
  */
 async function handleMessage(message, services) {
-  const { dictionary, storage, popupWordState } = services;
+  const { dictionary, popupWordState } = services;
 
   try {
     switch (message.type) {

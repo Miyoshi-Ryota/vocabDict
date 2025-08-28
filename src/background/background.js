@@ -1,11 +1,9 @@
 const DictionaryService = require('../services/dictionary-service');
-const StorageManager = require('../services/storage');
 const { handleMessage } = require('./message-handler');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
 const dictionary = new DictionaryService(dictionaryData);
-const storage = StorageManager;
 
 // Popup word state management
 const popupWordState = {
@@ -29,7 +27,6 @@ const popupWordState = {
 // Service instances to pass to message handler
 const services = {
   dictionary,
-  storage,
   popupWordState
 };
 
@@ -134,7 +131,6 @@ browser.runtime.onConnect.addListener((port) => {
 module.exports = {
   services,
   dictionary,
-  storage,
   handleContextMenuClick,
   popupWordState
 };
