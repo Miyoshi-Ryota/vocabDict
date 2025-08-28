@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { TabNames } = require('../../src/utils/constants');
 
 describe('Popup UI Tests', () => {
   let popupHTML;
@@ -47,10 +48,10 @@ describe('Popup UI Tests', () => {
 
   describe('Tab Navigation Structure', () => {
     test('should have correct initial tab structure', () => {
-      const searchTab = document.querySelector('[data-tab="search"]');
-      const listsTab = document.querySelector('[data-tab="lists"]');
-      const searchPanel = document.getElementById('search-tab');
-      const listsPanel = document.getElementById('lists-tab');
+      const searchTab = document.querySelector(`[data-tab="${TabNames.SEARCH}"]`);
+      const listsTab = document.querySelector(`[data-tab="${TabNames.LISTS}"]`);
+      const searchPanel = document.getElementById(`${TabNames.SEARCH}-tab`);
+      const listsPanel = document.getElementById(`${TabNames.LISTS}-tab`);
 
       // Check initial state
       expect(searchTab).toBeTruthy();
@@ -71,10 +72,10 @@ describe('Popup UI Tests', () => {
     test('should have all required tabs with icons and labels', () => {
       const tabs = document.querySelectorAll('.tab-button');
       const expectedTabs = [
-        { name: 'search', icon: '🔍', label: 'Search' },
-        { name: 'lists', icon: '📚', label: 'Lists' },
-        { name: 'learn', icon: '🎓', label: 'Learn' },
-        { name: 'settings', icon: '⚙️', label: 'Settings' }
+        { name: TabNames.SEARCH, icon: '🔍', label: 'Search' },
+        { name: TabNames.LISTS, icon: '📚', label: 'Lists' },
+        { name: TabNames.LEARN, icon: '🎓', label: 'Learn' },
+        { name: TabNames.SETTINGS, icon: '⚙️', label: 'Settings' }
       ];
 
       expect(tabs).toHaveLength(4);
@@ -381,13 +382,13 @@ describe('Popup UI Tests', () => {
 
   describe('Learning Mode UI Structure', () => {
     test('should have proper Learn tab button structure', () => {
-      const learnTab = document.querySelector('[data-tab="learn"]');
+      const learnTab = document.querySelector(`[data-tab="${TabNames.LEARN}"]`);
       const icon = learnTab.querySelector('.tab-icon');
       const label = learnTab.querySelector('.tab-label');
 
       expect(learnTab).toBeTruthy();
       expect(learnTab.getAttribute('role')).toBe('tab');
-      expect(learnTab.getAttribute('aria-controls')).toBe('learn-tab');
+      expect(learnTab.getAttribute('aria-controls')).toBe(`${TabNames.LEARN}-tab`);
       expect(icon).toBeTruthy();
       expect(icon.textContent).toBe('🎓');
       expect(label).toBeTruthy();
@@ -395,7 +396,7 @@ describe('Popup UI Tests', () => {
     });
 
     test('should have Learn tab panel with correct accessibility attributes', () => {
-      const learnPanel = document.getElementById('learn-tab');
+      const learnPanel = document.getElementById(`${TabNames.LEARN}-tab`);
 
       expect(learnPanel).toBeTruthy();
       expect(learnPanel.classList.contains('tab-panel')).toBe(true);
@@ -403,8 +404,8 @@ describe('Popup UI Tests', () => {
     });
 
     test('should not have Learn tab active by default', () => {
-      const learnTab = document.querySelector('[data-tab="learn"]');
-      const learnPanel = document.getElementById('learn-tab');
+      const learnTab = document.querySelector(`[data-tab="${TabNames.LEARN}"]`);
+      const learnPanel = document.getElementById(`${TabNames.LEARN}-tab`);
 
       expect(learnTab.classList.contains('active')).toBe(false);
       expect(learnTab.getAttribute('aria-selected')).toBe('false');

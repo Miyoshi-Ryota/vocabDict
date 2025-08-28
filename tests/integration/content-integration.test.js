@@ -5,7 +5,6 @@
 const { waitFor, waitForElement } = require('../helpers/wait-helpers');
 const VocabularyList = require('../../src/services/vocabulary-list');
 const DictionaryService = require('../../src/services/dictionary-service');
-const StorageManager = require('../../src/services/storage');
 const dictionaryData = require('../../src/data/dictionary.json');
 
 describe('Content Script User Flow Integration Tests', () => {
@@ -22,10 +21,26 @@ describe('Content Script User Flow Integration Tests', () => {
       </article>
     `;
 
-    // Initialize with default vocabulary list
+    // Mock native message response for vocabulary lists
     const dictionary = new DictionaryService(dictionaryData);
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
-    await StorageManager.set('vocab_lists', [defaultList.toJSON()]);
+    browser.runtime.sendNativeMessage.mockImplementation((message) => {
+      if (message.action === 'getVocabularyLists') {
+        return Promise.resolve({ 
+          vocabularyLists: [defaultList.toJSON()]
+        });
+      }
+      if (message.action === 'addWordToList') {
+        return Promise.resolve({ 
+          success: true,
+          data: {
+            word: message.word,
+            dateAdded: new Date().toISOString()
+          }
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
 
     // Load the content script
     require('../../src/content/content.js');
@@ -224,8 +239,10 @@ describe('Content Script User Flow Integration Tests', () => {
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
 
-      // Wait a bit to ensure no button appears
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Poll for a lookup button that shouldn't appear
+      await expect(
+        waitFor(() => document.querySelector('.vocabdict-lookup-button'), 500)
+      ).rejects.toThrow(/Timeout/);
 
       const lookupButton = document.querySelector('.vocabdict-lookup-button');
       expect(lookupButton).toBeNull();
@@ -256,8 +273,10 @@ describe('Content Script User Flow Integration Tests', () => {
 
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Poll for a lookup button that shouldn't appear
+      await expect(
+        waitFor(() => document.querySelector('.vocabdict-lookup-button'), 500)
+      ).rejects.toThrow(/Timeout/);
 
       const lookupButton = document.querySelector('.vocabdict-lookup-button');
       expect(lookupButton).toBeNull();
@@ -287,8 +306,10 @@ describe('Content Script User Flow Integration Tests', () => {
 
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
-
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Poll for a lookup button that shouldn't appear
+      await expect(
+        waitFor(() => document.querySelector('.vocabdict-lookup-button'), 500)
+      ).rejects.toThrow(/Timeout/);
 
       const lookupButton = document.querySelector('.vocabdict-lookup-button');
       expect(lookupButton).toBeNull();
@@ -392,11 +413,14 @@ describe('Content Script User Flow Integration Tests', () => {
   });
 
   describe('Text selection mode settings', () => {
-    test('should not show inline overlay when user clicks lookup button in popup mode', async () => {
-      // Set text selection mode to popup
-      await browser.runtime.sendMessage({
-        type: 'update_settings',
-        settings: { textSelectionMode: 'popup' }
+    test('should open popup window with selected word when user clicks lookup button in popup mode', async () => {
+      // Mock get_settings to return popup mode
+      const originalSendMessage = browser.runtime.sendMessage;
+      browser.runtime.sendMessage = jest.fn((message) => {
+        if (message.type === 'get_settings') {
+          return Promise.resolve({ success: true, data: { textSelectionMode: 'popup' } });
+        }
+        return originalSendMessage(message);
       });
 
       // User selects "hello"
@@ -423,35 +447,24 @@ describe('Content Script User Flow Integration Tests', () => {
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
 
-      // Wait for lookup button to appear
+      // Wait for lookup button to appear and click it
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
-
-      // User clicks the lookup button
       lookupButton.click();
 
-      // Wait a bit for async operations to complete
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Wait for popup to open via background action
+      await waitFor(() => browser.action.openPopup.mock.calls.length > 0);
 
-      // Verify that no inline overlay is shown (user visible behavior)
-      const overlay = document.querySelector('.vocabdict-overlay');
-      expect(overlay).toBeNull();
-
-      // Verify that lookup button is removed (user visible feedback)
-      expect(document.querySelector('.vocabdict-lookup-button')).toBeNull();
-
-      // Note: Popupウィンドウが実際に開くことは、ブラウザ環境でないと確認できないため、
-      // メッセージが正しく送信されたことを確認する（実装の詳細だが、他に方法がない）
-      await waitFor(() => {
-        const calls = browser.runtime.sendMessage.mock.calls;
-        return calls.some(call => call[0].type === 'open_popup_with_word');
-      });
-
+      // Verify message to open popup with selected word
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'open_popup_with_word',
           word: 'hello'
         })
       );
+
+      // Verify no inline overlay was created
+      const overlay = document.querySelector('.vocabdict-overlay');
+      expect(overlay).toBeNull();
     });
 
     test('should show inline overlay with selected word definition when user clicks lookup button in inline mode', async () => {

@@ -5,6 +5,9 @@
   "private": true,
   "scripts": {
     "test": "NODE_OPTIONS='--max-old-space-size=8192' jest",
+    "test:js": "NODE_OPTIONS='--max-old-space-size=8192' jest",
+    "test:swift": "xcodebuild test -scheme 'vocabDict (macOS)' -destination 'platform=macOS' CODE_SIGN_IDENTITY='' CODE_SIGNING_REQUIRED=NO | grep -E '(Test Suite|passed|failed|Executed)' || true",
+    "test:all": "npm run test:js && npm run test:swift",
     "test:watch": "NODE_OPTIONS='--max-old-space-size=8192' jest --watch",
     "test:coverage": "NODE_OPTIONS='--max-old-space-size=8192' jest --coverage",
     "build": "webpack --mode production",

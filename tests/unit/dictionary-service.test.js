@@ -1,18 +1,15 @@
 const DictionaryService = require('../../src/services/dictionary-service');
-const StorageManager = require('../../src/services/storage');
 const dictionaryData = require('../../src/data/dictionary.json');
 
 describe('DictionaryService', () => {
   let dictionary;
-  let storageManager;
 
-  beforeEach(async () => {
-    // Clear storage before each test
-    await browser.storage.local.clear();
-
-    storageManager = StorageManager;
-    dictionary = new DictionaryService(dictionaryData, storageManager);
-    await dictionary.loadLookupStatistics();
+  beforeEach(() => {
+    // Clear mocks before each test
+    jest.clearAllMocks();
+    
+    // Create new dictionary instance
+    dictionary = new DictionaryService(dictionaryData);
   });
 
   describe('constructor', () => {
@@ -205,129 +202,98 @@ describe('DictionaryService', () => {
   });
 
   describe('lookup statistics', () => {
-    test('should initialize with empty lookup statistics', () => {
-      expect(dictionary.lookupStatistics).toBeDefined();
-      expect(dictionary.lookupStatistics.size).toBe(0);
-    });
-
-    test('should increment lookup count when word is looked up', async () => {
-      // Initial count should be 0
-      expect(dictionary.getLookupCount('hello')).toBe(0);
-
+    test('should send increment message to native when word is looked up', async () => {
       // Look up the word
       const result = await dictionary.lookup('hello');
       expect(result).toBeDefined();
 
-      // Count should now be 1
-      expect(dictionary.getLookupCount('hello')).toBe(1);
+      // Check that incrementLookupCount was called via sendNativeMessage
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'incrementLookupCount',
+        word: 'hello'
+      });
     });
 
-    test('should increment lookup count on multiple lookups', async () => {
+    test('should send increment message on multiple lookups', async () => {
       // Look up word multiple times
       await dictionary.lookup('hello');
       await dictionary.lookup('hello');
       await dictionary.lookup('hello');
 
-      // Count should be 3
-      expect(dictionary.getLookupCount('hello')).toBe(3);
+      // Should have been called 3 times
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledTimes(3);
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'incrementLookupCount',
+        word: 'hello'
+      });
     });
 
-    test('should handle case-insensitive lookup counts', async () => {
+    test('should normalize word before sending to native', async () => {
       await dictionary.lookup('HELLO');
       await dictionary.lookup('hello');
       await dictionary.lookup('Hello');
 
-      // All should count towards the same normalized word
-      expect(dictionary.getLookupCount('hello')).toBe(3);
-      expect(dictionary.getLookupCount('HELLO')).toBe(3);
+      // All should send the same normalized word
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledTimes(3);
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'incrementLookupCount',
+        word: 'hello'
+      });
     });
 
-    test('should not increment count for failed lookups', async () => {
+    test('should not send increment message for failed lookups', async () => {
       // Try to look up non-existent word
       const result = await dictionary.lookup('nonexistentword');
       expect(result).toBeNull();
 
-      // Count should remain 0
-      expect(dictionary.getLookupCount('nonexistentword')).toBe(0);
+      // Should not have called sendNativeMessage
+      expect(browser.runtime.sendNativeMessage).not.toHaveBeenCalled();
     });
 
-    test('should persist lookup statistics to storage', async () => {
-      // Look up a word
-      await dictionary.lookup('hello');
-
-      // Check if data was persisted
-      const stored = await storageManager.get('dictionary_lookup_stats');
-      expect(stored).toBeDefined();
-      expect(stored.hello).toBeDefined();
-      expect(stored.hello.count).toBe(1);
-      expect(stored.hello.firstLookup).toBeDefined();
-      expect(stored.hello.lastLookup).toBeDefined();
+    test('should handle trimmed and whitespace words', async () => {
+      await dictionary.lookup('  hello  ');
+      
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'incrementLookupCount',
+        word: 'hello'
+      });
     });
 
-    test('should load lookup statistics from storage', async () => {
-      // Manually set storage data
-      await storageManager.set('dictionary_lookup_stats', {
-        hello: { count: 5, firstLookup: '2025-01-01T10:00:00Z', lastLookup: '2025-01-03T15:30:00Z' },
-        eloquent: { count: 2, firstLookup: '2025-01-02T14:00:00Z', lastLookup: '2025-01-02T16:00:00Z' }
+    test('should get lookup count from native', async () => {
+      // Mock the response for getLookupCount
+      browser.runtime.sendNativeMessage.mockImplementation((message) => {
+        if (message.action === 'getLookupCount') {
+          return Promise.resolve({ count: 5 });
+        }
+        return Promise.resolve({ success: true });
       });
 
-      // Create new dictionary instance and load stats
-      const newDictionary = new DictionaryService(dictionaryData, storageManager);
-      await newDictionary.loadLookupStatistics();
-
-      // Verify loaded counts
-      expect(newDictionary.getLookupCount('hello')).toBe(5);
-      expect(newDictionary.getLookupCount('eloquent')).toBe(2);
+      const count = await dictionary.getLookupCount('hello');
+      expect(count).toBe(5);
+      
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'getLookupCount',
+        word: 'hello'
+      });
     });
 
-    test('should track first and last lookup times', async () => {
-      const beforeLookup = new Date().toISOString();
+    test('should return 0 for words never looked up', async () => {
+      // Mock the response for getLookupCount
+      browser.runtime.sendNativeMessage.mockImplementation((message) => {
+        if (message.action === 'getLookupCount') {
+          return Promise.resolve({ count: 0 });
+        }
+        return Promise.resolve({ success: true });
+      });
 
-      // Look up word
-      await dictionary.lookup('hello');
-
-      const afterLookup = new Date().toISOString();
-
-      // Check stored data
-      const stored = await storageManager.get('dictionary_lookup_stats');
-      const helloStats = stored.hello;
-
-      expect(helloStats.firstLookup).toBeDefined();
-      expect(helloStats.lastLookup).toBeDefined();
-      expect(helloStats.firstLookup).toEqual(helloStats.lastLookup); // Same for first lookup
-      expect(helloStats.firstLookup >= beforeLookup).toBe(true);
-      expect(helloStats.lastLookup <= afterLookup).toBe(true);
+      const count = await dictionary.getLookupCount('neverlookedup');
+      expect(count).toBe(0);
     });
 
-    test('should update last lookup time on subsequent lookups', async () => {
-      // First lookup
-      await dictionary.lookup('hello');
-      const stored1 = await storageManager.get('dictionary_lookup_stats');
-      const firstTime = stored1.hello.lastLookup;
-
-      // Wait a bit and lookup again
-      await new Promise(resolve => setTimeout(resolve, 10));
-      await dictionary.lookup('hello');
-
-      const stored2 = await storageManager.get('dictionary_lookup_stats');
-      const secondTime = stored2.hello.lastLookup;
-
-      // Times should be different
-      expect(secondTime > firstTime).toBe(true);
-      expect(stored2.hello.count).toBe(2);
-      expect(stored2.hello.firstLookup).toBe(firstTime); // First time unchanged
-    });
-
-    test('should handle trimmed and whitespace words in lookup statistics', async () => {
-      await dictionary.lookup('  hello  ');
-      expect(dictionary.getLookupCount('hello')).toBe(1);
-      expect(dictionary.getLookupCount('  hello  ')).toBe(1);
-    });
-
-    test('should return 0 for words never looked up', () => {
-      expect(dictionary.getLookupCount('neverlookedup')).toBe(0);
-      expect(dictionary.getLookupCount('')).toBe(0);
-      expect(dictionary.getLookupCount(null)).toBe(0);
+    test('should return 0 for invalid input', async () => {
+      expect(await dictionary.getLookupCount('')).toBe(0);
+      expect(await dictionary.getLookupCount(null)).toBe(0);
+      expect(await dictionary.getLookupCount(undefined)).toBe(0);
     });
   });
 });

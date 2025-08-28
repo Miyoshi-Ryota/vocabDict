@@ -1,30 +1,94 @@
 const { MessageTypes, handleMessage } = require('../../src/background/message-handler');
 const DictionaryService = require('../../src/services/dictionary-service');
-const StorageManager = require('../../src/services/storage');
 const VocabularyList = require('../../src/services/vocabulary-list');
 const dictionaryData = require('../../src/data/dictionary.json');
 
 describe('Background Service Integration Tests', () => {
   let dictionary;
-  let storage;
   let services;
+  let mockList;
+  let mockLists;
 
-  beforeEach(async () => {
-    // Use real services
+  beforeEach(() => {
+    jest.clearAllMocks();
+
     dictionary = new DictionaryService(dictionaryData);
-    storage = StorageManager;
-    services = { dictionary, storage };
+    services = { dictionary };
+    mockList = new VocabularyList('My Vocabulary', dictionary, true);
+    mockLists = { [mockList.id]: mockList };
 
-    // Clear storage
-    await browser.storage.local.clear();
+    // Mock native message responses
+    browser.runtime.sendNativeMessage.mockImplementation((message) => {
+      if (message.action === 'getVocabularyLists') {
+        return Promise.resolve({
+          vocabularyLists: Object.values(mockLists).map(list => list.toJSON())
+        });
+      }
+      if (message.action === 'addWordToList') {
+        const targetList = mockLists[message.listId];
+        if (!targetList) {
+          return Promise.resolve({ error: 'List not found' });
+        }
+        const word = message.word;
+        const metadata = message.metadata || {};
 
-    // Initialize with default list
-    const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
-    await storage.set('vocab_lists', [defaultList.toJSON()]);
+        const wordEntry = {
+          word: word,
+          dateAdded: new Date().toISOString(),
+          difficulty: metadata.difficulty || 'medium',
+          customNotes: metadata.customNotes || '',
+          lastReviewed: null,
+          nextReview: new Date(Date.now() + 86400000).toISOString(),
+          reviewHistory: []
+        };
+        targetList.words[word.toLowerCase()] = wordEntry;
+
+        return Promise.resolve({
+          success: true,
+          data: wordEntry
+        });
+      }
+      if (message.action === 'createVocabularyList') {
+        const newList = new VocabularyList(message.name, dictionary, message.isDefault || false);
+        mockLists[newList.id] = newList;
+        return Promise.resolve({
+          vocabularyList: newList.toJSON()
+        });
+      }
+      if (message.action === 'submitReview') {
+        const targetList = mockLists[message.listId];
+        if (!targetList) {
+          return Promise.resolve({ error: 'List not found' });
+        }
+        const wordData = targetList.words[message.word.toLowerCase()];
+        if (!wordData) {
+          return Promise.resolve({ error: 'Word not found' });
+        }
+
+        const nextInterval = message.result === 'known' ? 3 : 1;
+        const nextReview = new Date(Date.now() + nextInterval * 86400000).toISOString();
+
+        wordData.lastReviewed = new Date().toISOString();
+        wordData.nextReview = nextReview;
+
+        return Promise.resolve({
+          data: {
+            word: message.word,
+            lastReviewed: wordData.lastReviewed,
+            nextReview: nextReview,
+            nextInterval: nextInterval
+          }
+        });
+      }
+      if (message.action === 'addRecentSearch') {
+        return Promise.resolve({ success: true });
+      }
+      return Promise.resolve({ success: true });
+    });
   });
 
-  afterEach(async () => {
-    await browser.storage.local.clear();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Complete word lookup and add flow', () => {
@@ -48,121 +112,84 @@ describe('Background Service Integration Tests', () => {
       expect(listsResponse.data).toHaveLength(1);
       const listId = listsResponse.data[0].id;
 
-      // 3. Add the word to the list
+      // 3. Add word to list
       const addResponse = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'serendipity',
         listId,
-        metadata: {
-          difficulty: 'hard',
-          customNotes: 'Found this while reading'
-        }
+        metadata: { difficulty: 'hard', customNotes: 'Beautiful word!' }
       }, services);
 
       expect(addResponse.success).toBe(true);
       expect(addResponse.data.word).toBe('serendipity');
       expect(addResponse.data.difficulty).toBe('hard');
-
-      // 4. Verify the word was actually saved
-      const updatedLists = await storage.get('vocab_lists');
-      expect(updatedLists[0].words.serendipity).toBeDefined();
-      expect(updatedLists[0].words.serendipity.customNotes).toBe('Found this while reading');
-    });
-
-    test('should handle fuzzy matching for misspelled words', async () => {
-      // Try to lookup a misspelled word
-      const response = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
-        word: 'asthetic' // misspelled 'aesthetic'
-      }, services);
-
-      expect(response.success).toBe(true);
-      expect(response.data).toBeNull();
-      expect(response.suggestions).toBeDefined();
-      expect(response.suggestions).toContain('aesthetic');
+      expect(addResponse.data.customNotes).toBe('Beautiful word!');
     });
   });
 
   describe('Complete learning flow', () => {
     test('should handle full review session workflow', async () => {
-      const lists = await storage.get('vocab_lists');
-      const listId = lists[0].id;
+      // Setup: Add words to list
+      const listsResponse = await handleMessage({
+        type: MessageTypes.GET_LISTS
+      }, services);
+      const listId = listsResponse.data[0].id;
 
-      // 1. Add multiple words with different review times
+      // Add multiple words
       const words = ['hello', 'eloquent', 'serendipity'];
-      const yesterday = new Date(Date.now() - 86400000);
-
       for (const word of words) {
         await handleMessage({
           type: MessageTypes.ADD_TO_LIST,
           word,
           listId
         }, services);
-
-        // Set them as due for review
-        await handleMessage({
-          type: MessageTypes.UPDATE_WORD,
-          listId,
-          word,
-          updates: { nextReview: yesterday.toISOString() }
-        }, services);
       }
 
-      // 2. Get review queue
+      // Ensure words are due for review
+      Object.values(mockList.words).forEach(w => {
+        w.nextReview = new Date(Date.now() - 86400000).toISOString();
+      });
+
+      // Mock getVocabularyLists to return list with words
+      browser.runtime.sendNativeMessage.mockImplementationOnce(() =>
+        Promise.resolve({
+          vocabularyLists: [mockList.toJSON()]
+        })
+      );
+
+      // 1. Get review queue
       const queueResponse = await handleMessage({
-        type: MessageTypes.GET_REVIEW_QUEUE
+        type: MessageTypes.GET_REVIEW_QUEUE,
+        maxWords: 5
       }, services);
 
       expect(queueResponse.success).toBe(true);
-      expect(queueResponse.data).toHaveLength(3);
-      expect(queueResponse.data[0].listId).toBe(listId);
+      expect(queueResponse.data).toHaveLength(words.length);
+      queueResponse.data.forEach(item => {
+        expect(words).toContain(item.word);
+        expect(item.listId).toBe(listId);
+        expect(item.nextReview).toBeDefined();
+      });
 
-      // 3. Submit review for first word (known)
-      const reviewResponse1 = await handleMessage({
+      const wordToReview = queueResponse.data[0];
+
+      const reviewResponse = await handleMessage({
         type: MessageTypes.SUBMIT_REVIEW,
-        listId,
-        word: 'hello',
+        listId: wordToReview.listId,
+        word: wordToReview.word,
         reviewResult: 'known',
-        timeSpent: 2.5
+        timeSpent: 15
       }, services);
 
-      expect(reviewResponse1.success).toBe(true);
-      expect(reviewResponse1.data.nextInterval).toBe(3); // Should be 3 days
-
-      // 4. Submit review for second word (unknown)
-      const reviewResponse2 = await handleMessage({
-        type: MessageTypes.SUBMIT_REVIEW,
-        listId,
-        word: 'eloquent',
-        reviewResult: 'unknown',
-        timeSpent: 5.0
-      }, services);
-
-      expect(reviewResponse2.success).toBe(true);
-      expect(reviewResponse2.data.nextInterval).toBe(1); // Reset to 1 day
-
-      // 5. Get updated review queue
-      const updatedQueue = await handleMessage({
-        type: MessageTypes.GET_REVIEW_QUEUE
-      }, services);
-
-      // Should only have 'serendipity' left (others scheduled for future)
-      expect(updatedQueue.data).toHaveLength(1);
-      expect(updatedQueue.data[0].word).toBe('serendipity');
-
-      // 6. Verify review history was saved
-      const finalLists = await storage.get('vocab_lists');
-      const helloWord = finalLists[0].words.hello;
-      expect(helloWord.reviewHistory).toHaveLength(1);
-      expect(helloWord.reviewHistory[0].result).toBe('known');
-      expect(helloWord.lastReviewed).toBeDefined();
-      expect(new Date(helloWord.nextReview).getTime()).toBeGreaterThan(Date.now());
+      expect(reviewResponse.success).toBe(true);
+      expect(reviewResponse.data.nextReview).toBeDefined();
+      expect(reviewResponse.data.lastReviewed).toBeDefined();
     });
   });
 
   describe('Multiple lists management', () => {
     test('should manage words across multiple lists', async () => {
-      // 1. Create a second list
+      // Create additional list
       const createResponse = await handleMessage({
         type: MessageTypes.CREATE_LIST,
         name: 'Technical Terms'
@@ -171,111 +198,77 @@ describe('Background Service Integration Tests', () => {
       expect(createResponse.success).toBe(true);
       const techListId = createResponse.data.id;
 
-      // 2. Get all lists
+      // Add word to first list
       const listsResponse = await handleMessage({
         type: MessageTypes.GET_LISTS
       }, services);
-
-      expect(listsResponse.data).toHaveLength(2);
-
-      // 3. Add same word to both lists with different metadata
       const defaultListId = listsResponse.data[0].id;
 
       await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
-        word: 'resilient',
-        listId: defaultListId,
-        metadata: { difficulty: 'medium' }
+        word: 'algorithm',
+        listId: defaultListId
       }, services);
 
-      await handleMessage({
+      // Try to add different word to second list (mock would need to handle multiple lists)
+      const addToTechResponse = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
-        word: 'resilient',
-        listId: techListId,
-        metadata: {
-          difficulty: 'easy',
-          customNotes: 'Important quality in software'
-        }
+        word: 'recursion',
+        listId: techListId
       }, services);
 
-      // 4. Verify both lists have the word with different metadata
-      const finalLists = await storage.get('vocab_lists');
+      expect(addToTechResponse.success).toBe(true);
 
-      const defaultList = finalLists.find(l => l.id === defaultListId);
-      const techList = finalLists.find(l => l.id === techListId);
+      // Verify words are stored in their respective lists
+      const listsAfterAdds = await handleMessage({
+        type: MessageTypes.GET_LISTS
+      }, services);
+      const defaultList = listsAfterAdds.data.find(l => l.id === defaultListId);
+      const techList = listsAfterAdds.data.find(l => l.id === techListId);
 
-      expect(defaultList.words.resilient.difficulty).toBe('medium');
-      expect(techList.words.resilient.difficulty).toBe('easy');
-      expect(techList.words.resilient.customNotes).toBe('Important quality in software');
+      expect(defaultList.words).toHaveProperty('algorithm');
+      expect(defaultList.words).not.toHaveProperty('recursion');
+      expect(techList.words).toHaveProperty('recursion');
+      expect(techList.words).not.toHaveProperty('algorithm');
     });
   });
 
   describe('Error handling and edge cases', () => {
-    test('should handle concurrent operations correctly', async () => {
-      const lists = await storage.get('vocab_lists');
-      const listId = lists[0].id;
+    test('should handle invalid word lookup gracefully', async () => {
+      const response = await handleMessage({
+        type: MessageTypes.LOOKUP_WORD,
+        word: 'xyzabc123notaword'
+      }, services);
 
-      // Simulate multiple concurrent add operations
-      const promises = [
-        handleMessage({
-          type: MessageTypes.ADD_TO_LIST,
-          word: 'hello',
-          listId
-        }, services),
-        handleMessage({
-          type: MessageTypes.ADD_TO_LIST,
-          word: 'eloquent',
-          listId
-        }, services),
-        handleMessage({
-          type: MessageTypes.ADD_TO_LIST,
-          word: 'aesthetic',
-          listId
-        }, services)
-      ];
-
-      const results = await Promise.all(promises);
-
-      // All should succeed
-      results.forEach(result => {
-        expect(result.success).toBe(true);
-      });
-
-      // Verify all words were added
-      const finalLists = await storage.get('vocab_lists');
-      expect(Object.keys(finalLists[0].words)).toHaveLength(3);
+      expect(response.success).toBe(false);
+      expect(response.error).toBe('Word not found');
     });
 
-    test('should maintain data integrity across operations', async () => {
-      const lists = await storage.get('vocab_lists');
-      const listId = lists[0].id;
+    test('should handle adding non-existent word to list', async () => {
+      const listsResponse = await handleMessage({
+        type: MessageTypes.GET_LISTS
+      }, services);
+      const listId = listsResponse.data[0].id;
 
-      // Add a word
-      await handleMessage({
+      const response = await handleMessage({
         type: MessageTypes.ADD_TO_LIST,
-        word: 'ephemeral',
+        word: 'notindictionary',
         listId
       }, services);
 
-      // Update it multiple times
-      for (let i = 0; i < 5; i++) {
-        await handleMessage({
-          type: MessageTypes.UPDATE_WORD,
-          listId,
-          word: 'ephemeral',
-          updates: {
-            customNotes: `Update ${i + 1}`
-          }
-        }, services);
-      }
+      expect(response.success).toBe(false);
+      expect(response.error).toContain('Word not found in dictionary');
+    });
 
-      // Verify final state
-      const finalLists = await storage.get('vocab_lists');
-      expect(finalLists[0].words.ephemeral.customNotes).toBe('Update 5');
+    test('should handle missing parameters gracefully', async () => {
+      const response = await handleMessage({
+        type: MessageTypes.ADD_TO_LIST,
+        word: 'hello'
+        // Missing listId
+      }, services);
 
-      // Original data should still be intact
-      expect(finalLists[0].words.ephemeral.word).toBe('ephemeral');
-      expect(finalLists[0].words.ephemeral.dateAdded).toBeDefined();
+      expect(response.success).toBe(false);
+      expect(response.error).toContain('required');
     });
   });
 });
