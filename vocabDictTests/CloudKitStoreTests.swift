@@ -11,45 +11,17 @@ import SwiftData
 
 class CloudKitStoreTests: XCTestCase {
     
-    var modelContainer: ModelContainer!
-    var modelContext: ModelContext!
     var cloudKitStore: CloudKitStore!
+    var modelContext: ModelContext!
     
     override func setUp() {
         super.setUp()
         
-        // Create in-memory container for testing
-        do {
-            let schema = Schema([
-                VocabularyList.self,
-                RecentSearchHistory.self,
-                UserSettings.self,
-                DictionaryLookupStats.self
-            ])
-            
-            let modelConfiguration = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: true,
-                cloudKitDatabase: .none  // No CloudKit sync in tests
-            )
-            
-            modelContainer = try ModelContainer(
-                for: schema,
-                configurations: [modelConfiguration]
-            )
-            
-            modelContext = ModelContext(modelContainer)
-            
-            // Create test instance of CloudKitStore with test container
-            // Note: In real implementation, we'd need to inject the container
-            // For now, this is a conceptual test structure
-        } catch {
-            XCTFail("Failed to create ModelContainer: \(error)")
-        }
+        cloudKitStore = CloudKitStore(inMemory: true)
+        modelContext = cloudKitStore.modelContext
     }
     
     override func tearDown() {
-        modelContainer = nil
         modelContext = nil
         cloudKitStore = nil
         super.tearDown()
@@ -58,20 +30,8 @@ class CloudKitStoreTests: XCTestCase {
     // MARK: - VocabularyList Tests
     
     func testCreateVocabularyList() {
-        // Given
         let name = "Test Vocabulary"
-        
-        // When
-        let list = VocabularyList(name: name, isDefault: false)
-        modelContext.insert(list)
-        
-        do {
-            try modelContext.save()
-        } catch {
-            XCTFail("Failed to save: \(error)")
-        }
-        
-        // Then
+        let list = cloudKitStore.createVocabularyList(name: name, isDefault: false)
         XCTAssertEqual(list.name, name)
         XCTAssertFalse(list.isDefault)
         XCTAssertNotNil(list.id)
@@ -80,179 +40,80 @@ class CloudKitStoreTests: XCTestCase {
     
     func testAddWordToVocabularyList() {
         // Given
-        let list = VocabularyList(name: "Test List", isDefault: false)
-        modelContext.insert(list)
-        
-        // When
-        let word = "hello"
+        let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
         let metadata = ["difficulty": "medium", "customNotes": "greeting"]
-        
-        let normalizedWord = word.lowercased()
-        let userData = UserSpecificData(
-            word: word,
-            dateAdded: Date(),
-            difficulty: metadata["difficulty"] ?? "medium",
-            customNotes: metadata["customNotes"] ?? "",
-            lastReviewed: nil,
-            nextReview: Date(timeIntervalSinceNow: 86400),
-            reviewHistory: []
-        )
-        
-        list.words[normalizedWord] = userData
-        
-        do {
-            try modelContext.save()
-        } catch {
-            XCTFail("Failed to save: \(error)")
-        }
-        
-        // Then
-        XCTAssertNotNil(list.words[normalizedWord])
-        XCTAssertEqual(list.words[normalizedWord]?.word, word)
-        XCTAssertEqual(list.words[normalizedWord]?.difficulty, "medium")
-        XCTAssertEqual(list.words[normalizedWord]?.customNotes, "greeting")
+        let userData = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: metadata, to: list.id)
+        XCTAssertNotNil(userData)
+        XCTAssertEqual(userData?.word, "hello")
+        XCTAssertEqual(userData?.difficulty, "medium")
+        XCTAssertEqual(userData?.customNotes, "greeting")
     }
     
     func testPreventDuplicateWords() {
         // Given
-        let list = VocabularyList(name: "Test List", isDefault: false)
-        modelContext.insert(list)
-        
-        let word = "hello"
-        let userData = UserSpecificData(
-            word: word,
-            dateAdded: Date(),
-            difficulty: "medium",
-            customNotes: "",
-            lastReviewed: nil,
-            nextReview: Date(timeIntervalSinceNow: 86400),
-            reviewHistory: []
-        )
-        list.words[word] = userData
-        
-        // When - Try to add same word again
-        let shouldBeNil = list.words[word] != nil ? nil : userData
-        
-        // Then
-        XCTAssertNil(shouldBeNil, "Should not add duplicate word")
+        let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
+        _ = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: [:], to: list.id)
+        let duplicate = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: [:], to: list.id)
+        XCTAssertNil(duplicate, "Should not add duplicate word")
     }
-    
+
+    func testUpdateWord() {
+        let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
+        _ = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: ["difficulty": "medium", "customNotes": "note"], to: list.id)
+        let updates: [String: Any] = ["difficulty": "hard", "customNotes": "updated"]
+        let updated = cloudKitStore.updateWord(word: "hello", updates: updates, in: list.id)
+        XCTAssertEqual(updated?.difficulty, "hard")
+        XCTAssertEqual(updated?.customNotes, "updated")
+    }
+
     // MARK: - Spaced Repetition Tests
-    
-    func testCalculateNextInterval() {
-        // Test interval progression
-        // 1 -> 3 -> 7 -> 14 -> 30 -> 60
-        
-        // Given known result
-        let knownTests: [(current: Int, expected: Int?)] = [
-            (1, 3),
-            (3, 7),
-            (7, 14),
-            (14, 30),
-            (30, 60),
-            (60, 120)  // Should double after 60
-        ]
-        
-        for test in knownTests {
-            // This tests the logic that should be in calculateNextInterval
-            // In actual implementation, we'd call the method
-            let result: Int?
-            if test.current == 1 {
-                result = 3
-            } else if test.current == 3 {
-                result = 7
-            } else if test.current == 7 {
-                result = 14
-            } else if test.current == 14 {
-                result = 30
-            } else if test.current == 30 {
-                result = 60
-            } else {
-                result = test.current * 2
-            }
-            
-            XCTAssertEqual(result, test.expected, "Interval \(test.current) should progress to \(test.expected ?? 0)")
-        }
-        
-        // Test mastered (should return nil)
-        let masteredResult: Int? = nil
-        XCTAssertNil(masteredResult, "Mastered should return nil interval")
-        
-        // Test unknown (should reset to 1)
-        let unknownResult = 1
-        XCTAssertEqual(unknownResult, 1, "Unknown should reset to interval 1")
+
+    func testSubmitReviewCalculatesNextInterval() {
+        let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
+        _ = cloudKitStore.addWordToVocabularyList(word: "knownWord", metadata: [:], to: list.id)
+        _ = cloudKitStore.addWordToVocabularyList(word: "unknownWord", metadata: [:], to: list.id)
+        _ = cloudKitStore.addWordToVocabularyList(word: "masteredWord", metadata: [:], to: list.id)
+
+        let knownResponse = cloudKitStore.submitReview(word: "knownWord", result: "known", timeSpent: 10, in: list.id)
+        let knownData = knownResponse["data"] as? [String: Any]
+        XCTAssertEqual(knownData?["nextInterval"] as? Int, 3)
+
+        let unknownResponse = cloudKitStore.submitReview(word: "unknownWord", result: "unknown", timeSpent: 5, in: list.id)
+        let unknownData = unknownResponse["data"] as? [String: Any]
+        XCTAssertEqual(unknownData?["nextInterval"] as? Int, 1)
+
+        let masteredResponse = cloudKitStore.submitReview(word: "masteredWord", result: "mastered", timeSpent: 5, in: list.id)
+        let masteredData = masteredResponse["data"] as? [String: Any]
+        XCTAssertNil(masteredData?["nextInterval"] as? Int)
+        let nextReviewString = masteredData?["nextReview"] as? String
+        let nextReviewDate = nextReviewString.flatMap { ISO8601DateFormatter().date(from: $0) }
+        XCTAssertEqual(nextReviewDate, Date.distantFuture)
     }
     
     func testSubmitReview() {
         // Given
-        let list = VocabularyList(name: "Test List", isDefault: false)
-        modelContext.insert(list)
-        
-        let word = "hello"
-        let userData = UserSpecificData(
-            word: word,
-            dateAdded: Date(),
-            difficulty: "medium",
-            customNotes: "",
-            lastReviewed: nil,
-            nextReview: Date(timeIntervalSinceNow: 86400),
-            reviewHistory: []
-        )
-        list.words[word] = userData
-        
-        // When - Submit a "known" review
-        let reviewEntry = ReviewHistoryEntry(
-            date: Date(),
-            result: "known",
-            timeSpent: 15.5
-        )
-        userData.reviewHistory.append(reviewEntry)
-        userData.lastReviewed = Date()
-        userData.nextReview = Date(timeIntervalSinceNow: 3 * 86400) // 3 days later
-        
-        do {
-            try modelContext.save()
-        } catch {
-            XCTFail("Failed to save: \(error)")
-        }
-        
-        // Then
-        XCTAssertEqual(userData.reviewHistory.count, 1)
-        XCTAssertNotNil(userData.lastReviewed)
-        XCTAssertNotNil(userData.nextReview)
-        XCTAssertEqual(userData.reviewHistory.first?.result, "known")
+        let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
+        _ = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: [:], to: list.id)
+        let response = cloudKitStore.submitReview(word: "hello", result: "known", timeSpent: 15.5, in: list.id)
+        let data = response["data"] as? [String: Any]
+        let wordData = data?["word"] as? [String: Any]
+        let history = wordData?["reviewHistory"] as? [[String: Any]]
+        XCTAssertEqual(history?.count, 1)
+        XCTAssertNotNil(wordData?["lastReviewed"])
+        XCTAssertNotNil(wordData?["nextReview"])
+        XCTAssertEqual(history?.first?["result"] as? String, "known")
     }
     
     func testMasteredWordHandling() {
         // Given
-        let list = VocabularyList(name: "Test List", isDefault: false)
-        modelContext.insert(list)
-        
-        let word = "hello"
-        let userData = UserSpecificData(
-            word: word,
-            dateAdded: Date(),
-            difficulty: "easy",
-            customNotes: "",
-            lastReviewed: Date(),
-            nextReview: Date(timeIntervalSinceNow: 86400),
-            reviewHistory: []
-        )
-        list.words[word] = userData
-        
-        // When - Mark as mastered
-        let reviewEntry = ReviewHistoryEntry(
-            date: Date(),
-            result: "mastered",
-            timeSpent: 5.0
-        )
-        userData.reviewHistory.append(reviewEntry)
-        userData.lastReviewed = Date()
-        userData.nextReview = Date.distantFuture  // No more reviews needed
-        
-        // Then
-        XCTAssertEqual(userData.nextReview, Date.distantFuture)
-        XCTAssertEqual(userData.reviewHistory.last?.result, "mastered")
+        let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
+        _ = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: [:], to: list.id)
+        let response = cloudKitStore.submitReview(word: "hello", result: "mastered", timeSpent: 5.0, in: list.id)
+        let data = response["data"] as? [String: Any]
+        XCTAssertNil(data?["nextInterval"] as? Int)
+        let nextReviewString = data?["nextReview"] as? String
+        let nextReviewDate = nextReviewString.flatMap { ISO8601DateFormatter().date(from: $0) }
+        XCTAssertEqual(nextReviewDate, Date.distantFuture)
     }
     
     // MARK: - Settings Tests
