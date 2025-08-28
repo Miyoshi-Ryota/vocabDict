@@ -14,18 +14,8 @@ class CloudKitStore {
     let modelContext: ModelContext
     let modelContainer: ModelContainer
 
-    private init() {
+    init(inMemory: Bool = false) {
         do {
-            // Local storage setup
-            guard let appGroupURL = FileManager.default.containerURL(
-                forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared"
-            ) else {
-                fatalError("App Group container URL not found")
-            }
-            try FileManager.default.createDirectory(at: appGroupURL, withIntermediateDirectories: true)
-            let storeURL = appGroupURL.appendingPathComponent("VocabDict.store")
-
-            // Online storage setup
             let schema = Schema([
                 VocabularyList.self,
                 RecentSearchHistory.self,
@@ -33,11 +23,27 @@ class CloudKitStore {
                 DictionaryLookupStats.self,
             ])
 
-            let modelConfiguration = ModelConfiguration(
-                schema: schema,
-                url: storeURL,
-                cloudKitDatabase: .automatic
-            )
+            let modelConfiguration: ModelConfiguration
+            if inMemory {
+                modelConfiguration = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: true,
+                    cloudKitDatabase: .none
+                )
+            } else {
+                guard let appGroupURL = FileManager.default.containerURL(
+                    forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared"
+                ) else {
+                    fatalError("App Group container URL not found")
+                }
+                try FileManager.default.createDirectory(at: appGroupURL, withIntermediateDirectories: true)
+                let storeURL = appGroupURL.appendingPathComponent("VocabDict.store")
+                modelConfiguration = ModelConfiguration(
+                    schema: schema,
+                    url: storeURL,
+                    cloudKitDatabase: .automatic
+                )
+            }
 
             modelContainer = try ModelContainer(
                 for: schema,
