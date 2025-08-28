@@ -45,7 +45,7 @@ function createBasicRuntimeMock() {
   return {
     sendMessage: jest.fn(),
     sendNativeMessage: jest.fn((message) => {
-      // Mock responses for native messages
+      // Mock responses for native messages matching Swift implementation
       if (message.action === 'getRecentSearches') {
         return Promise.resolve({ recentSearches: [] });
       }
@@ -71,7 +71,37 @@ function createBasicRuntimeMock() {
           success: true,
           data: {
             word: message.word,
-            dateAdded: new Date().toISOString()
+            dateAdded: new Date().toISOString(),
+            difficulty: message.metadata?.difficulty || 'medium',
+            customNotes: message.metadata?.customNotes || '',
+            lastReviewed: null,
+            nextReview: new Date(Date.now() + 86400000).toISOString(),
+            reviewHistory: []
+          }
+        });
+      }
+      if (message.action === 'updateWord') {
+        return Promise.resolve({ 
+          success: true,
+          data: {
+            word: message.word,
+            ...message.updates
+          }
+        });
+      }
+      if (message.action === 'submitReview') {
+        const nextInterval = message.result === 'mastered' ? null : 
+                           message.result === 'unknown' ? 1 :
+                           message.result === 'known' ? 3 : 1;
+        const nextReview = nextInterval ? 
+          new Date(Date.now() + nextInterval * 86400000).toISOString() : 
+          null;
+        return Promise.resolve({ 
+          data: {
+            word: message.word,
+            lastReviewed: new Date().toISOString(),
+            nextReview: nextReview,
+            nextInterval: nextInterval
           }
         });
       }
@@ -90,6 +120,15 @@ function createBasicRuntimeMock() {
         return Promise.resolve({ 
           settings: message.settings
         });
+      }
+      if (message.action === 'incrementLookupCount') {
+        return Promise.resolve({ success: true });
+      }
+      if (message.action === 'getLookupCount') {
+        return Promise.resolve({ count: 0 });
+      }
+      if (message.action === 'getLookupStats') {
+        return Promise.resolve({ stats: {} });
       }
       return Promise.resolve({ success: true });
     }),
@@ -134,7 +173,6 @@ global.browser = {
 
 // Load dependencies
 const DictionaryService = require('../src/services/dictionary-service');
-const StorageManager = require('../src/services/storage');
 const dictionaryData = require('../src/data/dictionary.json');
 const dictionary = new DictionaryService(dictionaryData);
 
@@ -167,10 +205,9 @@ function setupBrowserMock() {
     runtime: {
       ...createBasicRuntimeMock(),
       sendMessage: jest.fn((message) => {
-        // Use real message handler with StorageManager
+        // Use real message handler
         const services = {
           dictionary,
-          storage: StorageManager,
           popupWordState
         };
 
@@ -198,9 +235,6 @@ function setupBrowserMock() {
 
 // Reset and re-setup before each test
 beforeEach(() => {
-  // Reset DictionaryService lookup statistics to prevent accumulation between tests
-  dictionary.lookupStatistics.clear();
-
   // Always re-setup browser mock for complete isolation
   setupBrowserMock();
 });
@@ -215,7 +249,6 @@ afterEach(() => {
   // Reset all Jest modules for complete isolation
   jest.resetModules();
 
-  // Clear storage and dictionary lookup statistics
+  // Clear storage
   Object.keys(inMemoryStorage).forEach(key => delete inMemoryStorage[key]);
-  dictionary.lookupStatistics.clear();
 });

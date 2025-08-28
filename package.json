@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "test": "NODE_OPTIONS='--max-old-space-size=8192' jest",
+    "test:js": "NODE_OPTIONS='--max-old-space-size=8192' jest",
     "test:watch": "NODE_OPTIONS='--max-old-space-size=8192' jest --watch",
     "test:coverage": "NODE_OPTIONS='--max-old-space-size=8192' jest --coverage",
     "build": "webpack --mode production",

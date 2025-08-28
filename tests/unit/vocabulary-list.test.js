@@ -1,20 +1,17 @@
 const VocabularyList = require('../../src/services/vocabulary-list');
 const DictionaryService = require('../../src/services/dictionary-service');
-const StorageManager = require('../../src/services/storage');
 const dictionaryData = require('../../src/data/dictionary.json');
 
 describe('VocabularyList', () => {
   let list;
   let dictionary;
-  let storageManager;
 
-  beforeEach(async () => {
-    // Clear storage before each test
-    await browser.storage.local.clear();
-
-    storageManager = StorageManager;
-    dictionary = new DictionaryService(dictionaryData, storageManager);
-    await dictionary.loadLookupStatistics();
+  beforeEach(() => {
+    // Clear mocks before each test
+    jest.clearAllMocks();
+    
+    // Create instances
+    dictionary = new DictionaryService(dictionaryData);
     list = new VocabularyList('Test List', dictionary);
   });
 
@@ -248,15 +245,22 @@ describe('VocabularyList', () => {
     });
 
     test('should sort by lookup count', async () => {
-      // Set up lookup counts in dictionary
-      await dictionary.lookup('zealous'); // 1 lookup
-      await dictionary.lookup('aesthetic'); // 1 lookup
-      await dictionary.lookup('aesthetic'); // 2 lookups
-      await dictionary.lookup('aesthetic'); // 3 lookups
-      await dictionary.lookup('brevity'); // 1 lookup
-      await dictionary.lookup('brevity'); // 2 lookups
+      // Note: In the new architecture, lookup counts are stored in Swift/CloudKit
+      // For this test, we'll pre-populate the lookupCount property on words
+      const words = await list.getWords();
+      
+      // Manually set lookup counts for testing
+      words.find(w => w.word === 'zealous').lookupCount = 1;
+      words.find(w => w.word === 'aesthetic').lookupCount = 3;
+      words.find(w => w.word === 'brevity').lookupCount = 2;
 
-      const sorted = await list.sortBy('lookupCount', 'desc');
+      // Create a new list with these pre-populated counts
+      const tempList = new VocabularyList('temp', dictionary);
+      words.forEach(word => {
+        tempList.words[word.word.toLowerCase()] = word;
+      });
+
+      const sorted = await tempList.sortBy('lookupCount', 'desc');
       expect(sorted[0].word).toBe('aesthetic'); // 3 lookups
       expect(sorted[1].word).toBe('brevity'); // 2 lookups
       expect(sorted[2].word).toBe('zealous'); // 1 lookup
