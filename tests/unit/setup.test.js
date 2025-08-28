@@ -1,8 +1,4 @@
 describe('Test Setup', () => {
-  test('Jest is configured correctly', () => {
-    expect(true).toBe(true);
-  });
-
   test('Browser API mocks are available', () => {
     expect(browser).toBeDefined();
     expect(browser.storage).toBeDefined();
