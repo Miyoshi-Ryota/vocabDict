@@ -182,14 +182,18 @@ describe('Background Message Handler', () => {
     });
 
     test('should handle list not found', async () => {
-      const result = await handleMessage({
+      browser.runtime.sendNativeMessage
+        .mockImplementationOnce(() => Promise.resolve({})) // incrementLookupCount
+        .mockImplementationOnce(() => Promise.resolve({ error: 'List not found' }));
+
+      await expect(handleMessage({
         type: MessageTypes.ADD_TO_LIST,
         word: 'hello',
         listId: 'non-existent-id'
-      }, { dictionary });
-
-      // Since we're using native messaging, the error comes from the native side
-      expect(result.success).toBe(true); // Native mock returns success for unknown actions
+      }, { dictionary })).resolves.toEqual({
+        success: false,
+        error: 'List not found'
+      });
     });
   });
 
