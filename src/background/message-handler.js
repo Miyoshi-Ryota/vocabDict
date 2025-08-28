@@ -1,5 +1,4 @@
 const VocabularyList = require('../services/vocabulary-list');
-const SpacedRepetition = require('../services/spaced-repetition');
 
 const MessageTypes = {
   LOOKUP_WORD: 'lookup_word',
@@ -10,6 +9,7 @@ const MessageTypes = {
   UPDATE_WORD: 'update_word',  // どこでも使われてないかも？不要？
   GET_REVIEW_QUEUE: 'get_review_queue',
   SUBMIT_REVIEW: 'submit_review',
+  PROCESS_REVIEW: 'process_review',  // 追加
   GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',
   GET_RECENT_SEARCHES: 'get_recent_searches',
   GET_SETTINGS: 'get_settings',
@@ -174,31 +174,29 @@ async function handleMessage(message, services) {
           return { success: false, error: 'ListId, word, and updates are required' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const listIndex = lists.findIndex(l => l.id === message.listId);
+        try {
+          const response = await browser.runtime.sendNativeMessage({
+            action: "updateWord",
+            listId: message.listId,
+            word: message.word,
+            updates: message.updates
+          });
 
-        if (listIndex === -1) {
-          return { success: false, error: 'List not found' };
+          if (response.error) {
+            return { success: false, error: response.error };
+          }
+
+          return { success: true, data: response.data };
+        } catch (error) {
+          return { success: false, error: error.message };
         }
-
-        const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
-        const updated = list.updateWord(message.word, message.updates);
-
-        if (!updated) {
-          return { success: false, error: 'Word not found in list' };
-        }
-
-        lists[listIndex] = list.toJSON();
-        await storage.set('vocab_lists', lists);
-
-        return { success: true, data: updated };
       }
 
       case MessageTypes.GET_REVIEW_QUEUE: {
         const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
         const lists = response.vocabularyLists || [];
         const maxWords = message.maxWords || 30;
+        const now = new Date();
 
         // Collect all words from all lists
         const allWords = [];
@@ -216,160 +214,80 @@ async function handleMessage(message, services) {
           }
         }
 
-        // Use SpacedRepetition service to get review queue
-        const queue = SpacedRepetition.getReviewQueue(allWords, maxWords);
+        // Filter words that are due for review
+        const queue = allWords.filter(word => {
+          return word.nextReview && 
+                 word.nextReview !== null && 
+                 new Date(word.nextReview) <= now;
+        }).sort((a, b) => {
+          // Sort by nextReview date (oldest first)
+          return new Date(a.nextReview) - new Date(b.nextReview);
+        }).slice(0, maxWords);
 
         return { success: true, data: queue };
       }
 
       case MessageTypes.SUBMIT_REVIEW: {
+
         if (!message.listId || !message.word || !message.reviewResult) {
           return { success: false, error: 'ListId, word, and reviewResult are required' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const listIndex = lists.findIndex(l => l.id === message.listId);
+        try {
+          // Simply forward to native submitReview
+          const reviewResponse = await browser.runtime.sendNativeMessage({
+            action: "submitReview",
+            listId: message.listId,
+            word: message.word,
+            result: message.reviewResult,
+            timeSpent: message.timeSpent || 0.0
+          });
 
-        if (listIndex === -1) {
-          return { success: false, error: 'List not found' };
-        }
 
-        const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
-        const wordData = list.getWord(message.word);
+          if (reviewResponse.error) {
+            return { success: false, error: reviewResponse.error };
+          }
 
-        if (!wordData) {
-          return { success: false, error: 'Word not found in list' };
-        }
-
-        // Calculate intervals using SpacedRepetition service
-        const currentInterval = SpacedRepetition.getCurrentInterval(wordData.lastReviewed);
-        const nextInterval = SpacedRepetition.calculateNextReview(currentInterval, message.reviewResult);
-
-        // Handle mastered words
-        if (nextInterval === null) {
-          // Remove from active reviews by setting nextReview to null
-          const updates = {
-            lastReviewed: new Date().toISOString(),
-            nextReview: null,
-            reviewHistory: [...(wordData.reviewHistory || []), {
-              date: new Date().toISOString(),
-              result: message.reviewResult,
-              timeSpent: message.timeSpent || 0
-            }]
+          return { 
+            success: true, 
+            data: reviewResponse.data 
           };
-
-          list.updateWord(message.word, updates);
-        } else {
-          // Calculate next review date
-          const nextReviewDate = SpacedRepetition.getNextReviewDate(nextInterval);
-
-          const updates = {
-            lastReviewed: new Date().toISOString(),
-            nextReview: nextReviewDate.toISOString(),
-            reviewHistory: [...(wordData.reviewHistory || []), {
-              date: new Date().toISOString(),
-              result: message.reviewResult,
-              timeSpent: message.timeSpent || 0
-            }]
-          };
-
-          list.updateWord(message.word, updates);
+        } catch (error) {
+          console.error('Submit review error:', error);
+          return { success: false, error: error.message };
         }
-
-        lists[listIndex] = list.toJSON();
-        await storage.set('vocab_lists', lists);
-
-        return { success: true, data: { nextInterval } };
       }
 
-      case 'get_review_queue': {
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const SpacedRepetition = require('../services/spaced-repetition');
-
-        // Collect all words from all lists that need review
-        let allWords = [];
-
-        for (const listData of lists) {
-          const list = VocabularyList.fromJSON(listData, dictionary);
-          const listWords = await list.getWords();
-
-          // Add list ID to each word for reference
-          const wordsWithListId = listWords.map(word => ({
-            ...word,
-            listId: listData.id
-          }));
-
-          allWords = allWords.concat(wordsWithListId);
-        }
-
-        // Get words due for review using SpacedRepetition service
-        const dueWords = SpacedRepetition.getReviewQueue(allWords);
-
-        // Enhance with dictionary data
-        const enhancedWords = dueWords.map(word => {
-          const dictEntry = dictionary.lookup(word.word);
-          return {
-            ...word,
-            ...dictEntry // Merge in pronunciation, definitions, synonyms, etc.
-          };
-        }).filter(word => word.word); // Filter out words not found in dictionary
-
-        return { success: true, data: enhancedWords };
-      }
-
-      case 'process_review': {
+      case MessageTypes.PROCESS_REVIEW: {
         const { word, result, listId } = message;
-        const SpacedRepetition = require('../services/spaced-repetition');
 
-        if (!word || !result) {
-          return { success: false, error: 'Word and result are required' };
+        if (!word || !result || !listId) {
+          return { success: false, error: 'Word, result, and listId are required' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const listIndex = lists.findIndex(l => l.id === listId);
+        try {
+          // Simply forward to native submitReview
+          const reviewResponse = await browser.runtime.sendNativeMessage({
+            action: "submitReview",
+            listId: listId,
+            word: word,
+            result: result,
+            timeSpent: 0.0
+          });
 
-        if (listIndex === -1) {
-          return { success: false, error: 'List not found' };
+
+          if (reviewResponse.error) {
+            return { success: false, error: reviewResponse.error };
+          }
+
+          return { 
+            success: true, 
+            data: reviewResponse.data 
+          };
+        } catch (error) {
+          console.error('Process review error:', error);
+          return { success: false, error: error.message };
         }
-
-        const list = VocabularyList.fromJSON(lists[listIndex], dictionary);
-        const wordData = list.getWord(word);
-
-        if (!wordData) {
-          return { success: false, error: 'Word not found in list' };
-        }
-
-        // Calculate next review interval
-        const currentInterval = SpacedRepetition.getCurrentInterval(wordData.lastReviewed);
-        const nextInterval = SpacedRepetition.calculateNextReview(currentInterval, result);
-
-        // Update word data
-        const now = new Date().toISOString();
-        const updates = {
-          lastReviewed: now,
-          reviewHistory: [...(wordData.reviewHistory || []), {
-            date: now,
-            result,
-            timeSpent: 0 // Could be enhanced to track actual time
-          }]
-        };
-
-        // Set next review date
-        if (nextInterval !== null) {
-          updates.nextReview = SpacedRepetition.getNextReviewDate(nextInterval).toISOString();
-        } else {
-          // Mastered - remove from review queue
-          updates.nextReview = null;
-        }
-
-        list.updateWord(word, updates);
-        lists[listIndex] = list.toJSON();
-        await storage.set('vocab_lists', lists);
-
-        return { success: true, data: { nextInterval, nextReview: updates.nextReview } };
       }
 
       case MessageTypes.GET_PENDING_CONTEXT_SEARCH: {

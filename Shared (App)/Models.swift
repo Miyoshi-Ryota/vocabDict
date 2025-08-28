@@ -14,16 +14,16 @@ final class UserSpecificData: Codable {
     var difficulty: String
     var customNotes: String
     var lastReviewed: Date?
-    var nextReviewDate: Date
+    var nextReview: Date
     var reviewHistory: [ReviewHistoryEntry]
     
-    init(word: String, dateAdded: Date = Date(), difficulty: String = "medium", customNotes: String = "", lastReviewed: Date? = nil, nextReviewDate: Date = Date(timeIntervalSinceNow: 86400), reviewHistory: [ReviewHistoryEntry] = []) {
+    init(word: String, dateAdded: Date = Date(), difficulty: String = "medium", customNotes: String = "", lastReviewed: Date? = nil, nextReview: Date = Date(timeIntervalSinceNow: 86400), reviewHistory: [ReviewHistoryEntry] = []) {
         self.word = word
         self.dateAdded = dateAdded
         self.difficulty = difficulty
         self.customNotes = customNotes
         self.lastReviewed = lastReviewed
-        self.nextReviewDate = nextReviewDate
+        self.nextReview = nextReview
         self.reviewHistory = reviewHistory
     }
     
@@ -35,7 +35,7 @@ final class UserSpecificData: Codable {
             "difficulty": difficulty,
             "customNotes": customNotes,
             "lastReviewed": lastReviewed != nil ? formatter.string(from: lastReviewed!) : NSNull(),
-            "nextReviewDate": formatter.string(from: nextReviewDate),
+            "nextReview": formatter.string(from: nextReview),
             "reviewHistory": reviewHistory.map { $0.toDictionary() }
         ]
     }

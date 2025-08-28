@@ -154,6 +154,54 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [ SFExtensionMessageKey: [ "count": count ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
+        case "submitReview":
+            guard let listId = messageDict["listId"] as? String,
+                  let listUUID = UUID(uuidString: listId),
+                  let word = messageDict["word"] as? String,
+                  let result = messageDict["result"] as? String else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters: listId, word, and result are required" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            let timeSpent = (messageDict["timeSpent"] as? Double) ?? 0.0
+            
+            let reviewResponse = cloudKitStore.submitReview(
+                word: word,
+                result: result,
+                timeSpent: timeSpent,
+                in: listUUID
+            )
+            
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: reviewResponse ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            
+        case "updateWord":
+            guard let listId = messageDict["listId"] as? String,
+                  let listUUID = UUID(uuidString: listId),
+                  let word = messageDict["word"] as? String,
+                  let updates = messageDict["updates"] as? [String: Any] else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters: listId, word, and updates are required" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            if let updatedWord = cloudKitStore.updateWord(word: word, updates: updates, in: listUUID) {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ 
+                    "success": true,
+                    "data": updatedWord.toDictionary()
+                ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            } else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "error": "Failed to update word" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            }
+            
         default:
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]
