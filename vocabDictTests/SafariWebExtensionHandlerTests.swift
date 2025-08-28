@@ -102,7 +102,72 @@ class SafariWebExtensionHandlerTests: XCTestCase {
             XCTAssertNotNil(response["data"])
         }
     }
-    
+
+    func testUpdateWordMessage() {
+        // Given - create list and add word
+        let createMessage: [String: Any] = [
+            "action": "createVocabularyList",
+            "name": "Test List"
+        ]
+        mockContext.setupInputItem(with: createMessage)
+        handler.beginRequest(with: mockContext)
+
+        guard let createResponse = mockContext.extractResponse(),
+              let list = createResponse["vocabularyList"] as? [String: Any],
+              let listId = list["id"] as? String else {
+            XCTFail("Failed to create list")
+            return
+        }
+
+        let addMessage: [String: Any] = [
+            "action": "addWordToList",
+            "listId": listId,
+            "word": "hello",
+            "metadata": ["difficulty": "easy", "customNotes": "note"]
+        ]
+
+        let addContext = MockExtensionContext()
+        addContext.setupInputItem(with: addMessage)
+        handler.beginRequest(with: addContext)
+
+        // When - Update word
+        let updateMessage: [String: Any] = [
+            "action": "updateWord",
+            "listId": listId,
+            "word": "hello",
+            "updates": ["difficulty": "hard", "customNotes": "updated"]
+        ]
+
+        let updateContext = MockExtensionContext()
+        updateContext.setupInputItem(with: updateMessage)
+        handler.beginRequest(with: updateContext)
+
+        // Then
+        XCTAssertNotNil(updateContext.completedItems)
+        if let response = updateContext.extractResponse() {
+            XCTAssertTrue(response["success"] as? Bool ?? false)
+            if let data = response["data"] as? [String: Any] {
+                XCTAssertEqual(data["difficulty"] as? String, "hard")
+                XCTAssertEqual(data["customNotes"] as? String, "updated")
+            }
+        }
+    }
+
+    func testUpdateWordMissingParameters() {
+        // Given - Missing required fields
+        let message: [String: Any] = ["action": "updateWord"]
+        mockContext.setupInputItem(with: message)
+
+        // When
+        handler.beginRequest(with: mockContext)
+
+        // Then
+        XCTAssertNotNil(mockContext.completedItems)
+        if let response = mockContext.extractResponse() {
+            XCTAssertEqual(response["error"] as? String, "Invalid parameters: listId, word, and updates are required")
+        }
+    }
+
     func testInvalidMessageFormat() {
         // Given - Message without action
         let message: [String: Any] = ["invalid": "data"]
@@ -324,6 +389,37 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         if let response = getContext.extractResponse() {
             XCTAssertNotNil(response["count"])
             XCTAssertGreaterThanOrEqual(response["count"] as? Int ?? 0, 1)
+        }
+    }
+
+    func testGetLookupStatsMessage() {
+        // Given - Increment lookup count for a word
+        let incrementMessage: [String: Any] = [
+            "action": "incrementLookupCount",
+            "word": "hello"
+        ]
+        mockContext.setupInputItem(with: incrementMessage)
+        handler.beginRequest(with: mockContext)
+
+        // When - Get lookup statistics
+        let statsMessage: [String: Any] = ["action": "getLookupStats"]
+        let statsContext = MockExtensionContext()
+        statsContext.setupInputItem(with: statsMessage)
+        handler.beginRequest(with: statsContext)
+
+        // Then
+        XCTAssertNotNil(statsContext.completedItems)
+        if let response = statsContext.extractResponse() {
+            XCTAssertNotNil(response["stats"])
+            if let stats = response["stats"] as? [String: Any],
+               let helloStats = stats["hello"] as? [String: Any] {
+                XCTAssertEqual(helloStats["word"] as? String, "hello")
+                XCTAssertNotNil(helloStats["count"])
+                XCTAssertNotNil(helloStats["firstLookup"])
+                XCTAssertNotNil(helloStats["lastLookup"])
+            } else {
+                XCTFail("Stats for word not found")
+            }
         }
     }
 }
