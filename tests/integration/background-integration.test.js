@@ -7,25 +7,31 @@ describe('Background Service Integration Tests', () => {
   let dictionary;
   let services;
   let mockList;
+  let mockLists;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     dictionary = new DictionaryService(dictionaryData);
     services = { dictionary };
     mockList = new VocabularyList('My Vocabulary', dictionary, true);
-    
+    mockLists = { [mockList.id]: mockList };
+
     // Mock native message responses
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'getVocabularyLists') {
-        return Promise.resolve({ 
-          vocabularyLists: [mockList.toJSON()]
+        return Promise.resolve({
+          vocabularyLists: Object.values(mockLists).map(list => list.toJSON())
         });
       }
       if (message.action === 'addWordToList') {
+        const targetList = mockLists[message.listId];
+        if (!targetList) {
+          return Promise.resolve({ error: 'List not found' });
+        }
         const word = message.word;
         const metadata = message.metadata || {};
-        
+
         const wordEntry = {
           word: word,
           dateAdded: new Date().toISOString(),
@@ -35,32 +41,37 @@ describe('Background Service Integration Tests', () => {
           nextReview: new Date(Date.now() + 86400000).toISOString(),
           reviewHistory: []
         };
-        mockList.words[word.toLowerCase()] = wordEntry;
-        
-        return Promise.resolve({ 
+        targetList.words[word.toLowerCase()] = wordEntry;
+
+        return Promise.resolve({
           success: true,
           data: wordEntry
         });
       }
       if (message.action === 'createVocabularyList') {
         const newList = new VocabularyList(message.name, dictionary, message.isDefault || false);
-        return Promise.resolve({ 
+        mockLists[newList.id] = newList;
+        return Promise.resolve({
           vocabularyList: newList.toJSON()
         });
       }
       if (message.action === 'submitReview') {
-        const wordData = mockList.words[message.word.toLowerCase()];
+        const targetList = mockLists[message.listId];
+        if (!targetList) {
+          return Promise.resolve({ error: 'List not found' });
+        }
+        const wordData = targetList.words[message.word.toLowerCase()];
         if (!wordData) {
           return Promise.resolve({ error: 'Word not found' });
         }
-        
+
         const nextInterval = message.result === 'known' ? 3 : 1;
         const nextReview = new Date(Date.now() + nextInterval * 86400000).toISOString();
-        
+
         wordData.lastReviewed = new Date().toISOString();
         wordData.nextReview = nextReview;
-        
-        return Promise.resolve({ 
+
+        return Promise.resolve({
           data: {
             word: message.word,
             lastReviewed: wordData.lastReviewed,
@@ -201,6 +212,18 @@ describe('Background Service Integration Tests', () => {
       }, services);
 
       expect(addToTechResponse.success).toBe(true);
+
+      // Verify words are stored in their respective lists
+      const listsAfterAdds = await handleMessage({
+        type: MessageTypes.GET_LISTS
+      }, services);
+      const defaultList = listsAfterAdds.data.find(l => l.id === defaultListId);
+      const techList = listsAfterAdds.data.find(l => l.id === techListId);
+
+      expect(defaultList.words).toHaveProperty('algorithm');
+      expect(defaultList.words).not.toHaveProperty('recursion');
+      expect(techList.words).toHaveProperty('recursion');
+      expect(techList.words).not.toHaveProperty('algorithm');
     });
   });
 
