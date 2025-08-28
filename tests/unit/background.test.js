@@ -6,12 +6,17 @@ const dictionaryData = require('../../src/data/dictionary.json');
 describe('Background Message Handler', () => {
   let dictionary;
   let mockList;
+  let popupWordState;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     dictionary = new DictionaryService(dictionaryData);
     mockList = new VocabularyList('My Vocabulary', dictionary, true);
+    popupWordState = {
+      getPendingSearch: jest.fn(),
+      setPendingSearch: jest.fn()
+    };
     
     // Setup comprehensive mock for native messages
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
@@ -85,12 +90,23 @@ describe('Background Message Handler', () => {
         });
       }
       if (message.action === 'updateSettings') {
-        return Promise.resolve({ 
+        return Promise.resolve({
           settings: message.settings
         });
       }
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
+      }
+      if (message.action === 'updateWord') {
+        if (message.word === 'errorWord') {
+          return Promise.resolve({ error: 'Update failed' });
+        }
+        return Promise.resolve({
+          data: {
+            word: message.word,
+            ...message.updates
+          }
+        });
       }
       return Promise.resolve({ success: true });
     });
@@ -319,6 +335,154 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('required');
+    });
+  });
+
+  describe('GET_LIST_WORDS message', () => {
+    test('should return filtered and sorted words', async () => {
+      await mockList.addWord('hello', { difficulty: 'medium' });
+      await mockList.addWord('world', { difficulty: 'medium' });
+      await mockList.addWord('apple', { difficulty: 'easy' });
+
+      dictionary.getLookupCount = jest.fn().mockImplementation(word => {
+        return word === 'hello' ? 5 : word === 'world' ? 2 : 0;
+      });
+
+      const result = await handleMessage({
+        type: MessageTypes.GET_LIST_WORDS,
+        listId: mockList.id,
+        filterBy: 'medium',
+        sortBy: 'lookupCount',
+        sortOrder: 'desc'
+      }, { dictionary });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].word).toBe('hello');
+      expect(result.data[1].word).toBe('world');
+      expect(dictionary.getLookupCount).toHaveBeenCalledWith('hello');
+    });
+
+    test('should require listId', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.GET_LIST_WORDS
+      }, { dictionary });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('ListId is required');
+    });
+  });
+
+  describe('UPDATE_WORD message', () => {
+    test('should update word in list', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.UPDATE_WORD,
+        listId: mockList.id,
+        word: 'hello',
+        updates: { difficulty: 'hard' }
+      }, { dictionary });
+
+      expect(result.success).toBe(true);
+      expect(result.data.difficulty).toBe('hard');
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'updateWord',
+        listId: mockList.id,
+        word: 'hello',
+        updates: { difficulty: 'hard' }
+      });
+    });
+
+    test('should handle native error', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.UPDATE_WORD,
+        listId: mockList.id,
+        word: 'errorWord',
+        updates: { difficulty: 'easy' }
+      }, { dictionary });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Update failed');
+    });
+  });
+
+  describe('PROCESS_REVIEW message', () => {
+    test('should forward review to native handler', async () => {
+      await mockList.addWord('hello', { difficulty: 'medium' });
+
+      const result = await handleMessage({
+        type: MessageTypes.PROCESS_REVIEW,
+        listId: mockList.id,
+        word: 'hello',
+        result: 'known'
+      }, { dictionary });
+
+      expect(result.success).toBe(true);
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'submitReview',
+        listId: mockList.id,
+        word: 'hello',
+        result: 'known',
+        timeSpent: 0.0
+      });
+    });
+
+    test('should require all parameters', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.PROCESS_REVIEW,
+        listId: mockList.id,
+        word: 'hello'
+      }, { dictionary });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('required');
+    });
+  });
+
+  describe('GET_PENDING_CONTEXT_SEARCH message', () => {
+    test('should return pending word when available', async () => {
+      popupWordState.getPendingSearch.mockReturnValue('queued');
+      const result = await handleMessage({
+        type: MessageTypes.GET_PENDING_CONTEXT_SEARCH
+      }, { dictionary, popupWordState });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe('queued');
+    });
+
+    test('should error when popupWordState missing', async () => {
+      const result = await handleMessage({
+        type: MessageTypes.GET_PENDING_CONTEXT_SEARCH
+      }, { dictionary });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Popup word state not available');
+    });
+  });
+
+  describe('OPEN_POPUP_WITH_WORD message', () => {
+    test('should store word and open popup', async () => {
+      browser.action.openPopup.mockResolvedValue();
+
+      const result = await handleMessage({
+        type: MessageTypes.OPEN_POPUP_WITH_WORD,
+        word: 'hello'
+      }, { dictionary, popupWordState });
+
+      expect(result.success).toBe(true);
+      expect(popupWordState.setPendingSearch).toHaveBeenCalledWith('hello');
+      expect(browser.action.openPopup).toHaveBeenCalled();
+    });
+
+    test('should handle popup open failure', async () => {
+      browser.action.openPopup.mockRejectedValue(new Error('fail'));
+
+      const result = await handleMessage({
+        type: MessageTypes.OPEN_POPUP_WITH_WORD,
+        word: 'hello'
+      }, { dictionary, popupWordState });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to open popup');
     });
   });
 
