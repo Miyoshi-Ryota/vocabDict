@@ -71,13 +71,23 @@ async function handleContextMenuClick(info, _tab) {
   if (info.menuItemId === 'lookup-vocabdict' && info.selectionText) {
     console.log('Context menu clicked:', info.selectionText);
 
-    // Use the messaging system for consistency
-    browser.runtime.sendMessage({
-      type: 'open_popup_with_word',
-      word: info.selectionText
-    }).catch(error => {
-      console.error('Error sending context menu message:', error);
-    });
+    // Directly handle the message instead of using sendMessage
+    // This avoids potential issues with Safari's message passing
+    try {
+      const response = await handleMessage({
+        type: 'open_popup_with_word',
+        word: info.selectionText
+      }, services);
+      
+      console.log('Context menu handled with response:', response);
+      
+      if (!response || !response.success) {
+        console.error('Failed to handle context menu click:', response?.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error handling context menu click:', error);
+      console.error('Error details:', error.message, error.stack);
+    }
   }
 }
 
@@ -90,6 +100,9 @@ if (browser.contextMenus && browser.contextMenus.onClicked) {
  */
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Received message:', message);
+  console.log('Message sender:', sender);
+  console.log('Sender URL:', sender?.url);
+  console.log('Sender tab:', sender?.tab);
 
   // Handle the message asynchronously
   handleMessage(message, services)
