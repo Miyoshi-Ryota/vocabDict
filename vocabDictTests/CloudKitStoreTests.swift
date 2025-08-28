@@ -196,8 +196,8 @@ class CloudKitStoreTests: XCTestCase {
             )
             let searches = try modelContext.fetch(descriptor)
             
-            // Then - Should have all 25, but in practice we'd limit to 20
-            XCTAssertEqual(searches.count, 25)
+            // Then - Should be trimmed to 20 most recent searches
+            XCTAssertEqual(searches.count, 20)
             
             // Verify they're sorted by most recent first
             if searches.count > 1 {
