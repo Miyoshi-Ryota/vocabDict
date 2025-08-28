@@ -44,6 +44,55 @@ function createStorageMock() {
 function createBasicRuntimeMock() {
   return {
     sendMessage: jest.fn(),
+    sendNativeMessage: jest.fn((message) => {
+      // Mock responses for native messages
+      if (message.action === 'getRecentSearches') {
+        return Promise.resolve({ recentSearches: [] });
+      }
+      if (message.action === 'addRecentSearch') {
+        return Promise.resolve({ success: true });
+      }
+      if (message.action === 'getVocabularyLists') {
+        return Promise.resolve({ vocabularyLists: [] });
+      }
+      if (message.action === 'createVocabularyList') {
+        return Promise.resolve({ 
+          vocabularyList: {
+            id: 'test-list-id',
+            name: message.name,
+            created: new Date().toISOString(),
+            isDefault: message.isDefault || false,
+            words: {}
+          }
+        });
+      }
+      if (message.action === 'addWordToList') {
+        return Promise.resolve({ 
+          success: true,
+          data: {
+            word: message.word,
+            dateAdded: new Date().toISOString()
+          }
+        });
+      }
+      if (message.action === 'getSettings') {
+        return Promise.resolve({ 
+          settings: {
+            theme: 'dark',
+            autoPlayPronunciation: false,
+            showExampleSentences: true,
+            textSelectionMode: 'inline',
+            autoAddLookups: false
+          }
+        });
+      }
+      if (message.action === 'updateSettings') {
+        return Promise.resolve({ 
+          settings: message.settings
+        });
+      }
+      return Promise.resolve({ success: true });
+    }),
     onMessage: {
       addListener: jest.fn()
     },
@@ -87,7 +136,7 @@ global.browser = {
 const DictionaryService = require('../src/services/dictionary-service');
 const StorageManager = require('../src/services/storage');
 const dictionaryData = require('../src/data/dictionary.json');
-const dictionary = new DictionaryService(dictionaryData, StorageManager);
+const dictionary = new DictionaryService(dictionaryData);
 
 // Load message handler and background modules
 // These modules can now safely use browser API during initialization

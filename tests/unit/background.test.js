@@ -503,8 +503,10 @@ describe('Background Message Handler', () => {
 
   describe('GET_RECENT_SEARCHES message', () => {
     test('should return recent searches', async () => {
-      // Set some recent searches
-      await storage.set('recentSearches', ['hello', 'world', 'test']);
+      // Mock native message response
+      browser.runtime.sendNativeMessage.mockResolvedValue({
+        recentSearches: ['hello', 'world', 'test']
+      });
 
       const result = await handleMessage({
         type: 'get_recent_searches'
@@ -512,9 +514,17 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(['hello', 'world', 'test']);
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'getRecentSearches'
+      });
     });
 
     test('should return empty array when no recent searches', async () => {
+      // Mock native message response
+      browser.runtime.sendNativeMessage.mockResolvedValue({
+        recentSearches: []
+      });
+
       const result = await handleMessage({
         type: 'get_recent_searches'
       }, { dictionary, storage });
@@ -601,8 +611,8 @@ describe('Background Message Handler', () => {
 
   describe('LOOKUP_WORD message with recent searches', () => {
     test('should automatically add successful searches to recent searches', async () => {
-      // Clear any existing recent searches
-      await storage.set('recentSearches', []);
+      // Mock native message response for adding recent search
+      browser.runtime.sendNativeMessage.mockResolvedValue({ success: true });
 
       // Perform a successful lookup
       const result = await handleMessage({
@@ -613,49 +623,23 @@ describe('Background Message Handler', () => {
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
 
-      // Check that the word was added to recent searches
-      const recentSearches = await storage.get('recentSearches');
-      expect(recentSearches).toContain('hello');
-    });
-
-    test('should not add duplicate searches', async () => {
-      await storage.set('recentSearches', ['hello', 'world']);
-
-      await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+      // Check that native message was called to add recent search
+      expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
+        action: 'addRecentSearch',
         word: 'hello'
-      }, { dictionary, storage });
-
-      const recentSearches = await storage.get('recentSearches');
-      expect(recentSearches[0]).toBe('hello');
-      expect(recentSearches.filter(s => s === 'hello')).toHaveLength(1);
-    });
-
-    test('should limit recent searches to 10 items', async () => {
-      const existingSearches = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-      await storage.set('recentSearches', existingSearches);
-
-      await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
-        word: 'hello'
-      }, { dictionary, storage });
-
-      const recentSearches = await storage.get('recentSearches');
-      expect(recentSearches).toHaveLength(10);
-      expect(recentSearches[0]).toBe('hello');
-      expect(recentSearches).not.toContain('ten');
+      });
     });
 
     test('should not add failed searches to recent searches', async () => {
-      await storage.set('recentSearches', []);
-
       await handleMessage({
         type: MessageTypes.LOOKUP_WORD,
         word: 'xyznotaword123'
       }, { dictionary, storage });
 
-      const recentSearches = await storage.get('recentSearches');
-      expect(recentSearches).toEqual([]);
+      // Verify that addRecentSearch was NOT called
+      expect(browser.runtime.sendNativeMessage).not.toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'addRecentSearch' })
+      );
     });
   });
 

@@ -32,7 +32,8 @@
 
     "permissions": [
         "storage",
-        "contextMenus"
+        "contextMenus",
+        "nativeMessaging"
     ],
 
     "host_permissions": [

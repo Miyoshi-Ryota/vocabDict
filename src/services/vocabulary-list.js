@@ -152,8 +152,10 @@ class VocabularyList {
         return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
       },
       lookupCount: (a, b) => {
-        const countA = this.dictionary.getLookupCount(a.word);
-        const countB = this.dictionary.getLookupCount(b.word);
+        // Use the lookupCount from the word object if available (pre-fetched)
+        // This is populated in message-handler.js before sorting
+        const countA = a.lookupCount !== undefined ? a.lookupCount : 0;
+        const countB = b.lookupCount !== undefined ? b.lookupCount : 0;
         return countA - countB;
       }
     };

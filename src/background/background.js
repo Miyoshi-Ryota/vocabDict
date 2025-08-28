@@ -1,11 +1,9 @@
 const DictionaryService = require('../services/dictionary-service');
-const StorageManager = require('../services/storage');
 const { handleMessage } = require('./message-handler');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
-const dictionary = new DictionaryService(dictionaryData, StorageManager);
-const storage = StorageManager;
+const dictionary = new DictionaryService(dictionaryData);
 
 // Popup word state management
 const popupWordState = {
@@ -29,17 +27,8 @@ const popupWordState = {
 // Service instances to pass to message handler
 const services = {
   dictionary,
-  storage,
   popupWordState
 };
-
-/**
- * Initialize services
- */
-async function initializeServices() {
-  await dictionary.loadLookupStatistics();
-  console.log('Dictionary lookup statistics loaded');
-}
 
 /**
  * Handle installation event
@@ -47,16 +36,21 @@ async function initializeServices() {
 browser.runtime.onInstalled.addListener(async () => {
   console.log('VocabDict extension installed');
 
-  // Initialize services
-  await initializeServices();
-
   // Initialize default vocabulary list if none exists
-  const lists = await storage.get('vocab_lists');
-  if (!lists || lists.length === 0) {
-    const VocabularyList = require('../services/vocabulary-list');
-    const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
-    await storage.set('vocab_lists', [defaultList.toJSON()]);
-    console.log('Created default vocabulary list');
+  try {
+    const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+    const lists = response.vocabularyLists || [];
+    if (lists.length === 0) {
+      // Create default list via native message
+      await browser.runtime.sendNativeMessage({
+        action: "createVocabularyList",
+        name: "My Vocabulary",
+        isDefault: true
+      });
+      console.log('Created default vocabulary list');
+    }
+  } catch (error) {
+    console.error('Error initializing default vocabulary list:', error);
   }
 
   // Create context menu for macOS
@@ -132,14 +126,11 @@ browser.runtime.onConnect.addListener((port) => {
   });
 });
 
-// Initialize services on startup
-initializeServices().catch(console.error);
 
 // Export for testing
 module.exports = {
   services,
   dictionary,
-  storage,
   handleContextMenuClick,
   popupWordState
 };
