@@ -413,6 +413,59 @@ describe('Content Script User Flow Integration Tests', () => {
   });
 
   describe('Text selection mode settings', () => {
+    test('should open popup window with selected word when user clicks lookup button in popup mode', async () => {
+      // Mock get_settings to return popup mode
+      const originalSendMessage = browser.runtime.sendMessage;
+      browser.runtime.sendMessage = jest.fn((message) => {
+        if (message.type === 'get_settings') {
+          return Promise.resolve({ success: true, data: { textSelectionMode: 'popup' } });
+        }
+        return originalSendMessage(message);
+      });
+
+      // User selects "hello"
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = '<span>hello</span>';
+      document.body.appendChild(testDiv);
+
+      const textNode = testDiv.querySelector('span').firstChild;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      range.getBoundingClientRect = () => ({
+        width: 50,
+        height: 20,
+        top: 200,
+        left: 150,
+        right: 200,
+        bottom: 220
+      });
+
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      const selectionEvent = new Event('selectionchange');
+      document.dispatchEvent(selectionEvent);
+
+      // Wait for lookup button to appear and click it
+      const lookupButton = await waitForElement('.vocabdict-lookup-button');
+      lookupButton.click();
+
+      // Wait for popup to open via background action
+      await waitFor(() => browser.action.openPopup.mock.calls.length > 0);
+
+      // Verify message to open popup with selected word
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'open_popup_with_word',
+          word: 'hello'
+        })
+      );
+
+      // Verify no inline overlay was created
+      const overlay = document.querySelector('.vocabdict-overlay');
+      expect(overlay).toBeNull();
+    });
 
     test('should show inline overlay with selected word definition when user clicks lookup button in inline mode', async () => {
       // Set text selection mode to inline
