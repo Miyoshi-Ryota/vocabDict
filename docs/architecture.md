@@ -1,8 +1,10 @@
-# VocabDict アーキテクチャ
+# VocabDict アーキテクチャ v2
 
 ## 概要
 
 VocabDictは、英語学習者向けのSafari Web Extensionです。統合された辞書検索、語彙管理、間隔反復学習を通じて語彙力向上を支援します。
+
+v2アーキテクチャでは、データ永続化層を完全にSwiftData+CloudKitに移行し、JavaScriptの責務を最小限にしました。
 
 ## コアアーキテクチャ
 
@@ -14,104 +16,152 @@ VocabDictは、英語学習者向けのSafari Web Extensionです。統合され
 │  │  (400x600) │  │  (iOS button)│  │   (macOS)   │ │
 │  └────────────┘  └──────────────┘  └─────────────┘ │
 └──────────────────────────────────────────────────────┘
-                            │
-                    メッセージパッシング
-                    (browser.runtime)
-                            ▼
+                           │
+                   メッセージパッシング
+                   (browser.runtime)
+                           ▼
 ┌──────────────────────────────────────────────────────┐
 │              Background Service Worker                │
-│  ┌──────────────────────────────────────────────┐   │
-│  │            Message Handler                    │   │
-│  │    メッセージを適切なサービスにルーティング        │   │
-│  └──────────────────────────────────────────────┘   │
+│         メッセージをNativeへルーティングのみ           │
 └──────────────────────────────────────────────────────┘
-                            │
-                            ▼
+                           │
+               browser.runtime.sendNativeMessage
+                           ▼
 ┌──────────────────────────────────────────────────────┐
-│                   サービスレイヤー                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │
-│  │Dictionary│ │Vocabulary│ │  Spaced  │ │Storage │ │
-│  │ Service  │ │   List   │ │Repetition│ │Manager │ │
-│  └──────────┘ └──────────┘ └──────────┘ └────────┘ │
+│           Native Layer (Swift)                        │
+│         SafariWebExtensionHandler                     │
 └──────────────────────────────────────────────────────┘
-                            │
-                            ▼
+                           │
+                           ▼
 ┌──────────────────────────────────────────────────────┐
-│                  データ永続化層                        │
-│              browser.storage.local API                │
+│              CloudKitStore (Swift)                    │
+│         すべてのビジネスロジックとデータ操作            │
+└──────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────┐
+│           データ永続化層 (SwiftData)                   │
+│         App Group共有ストレージ                        │
+└──────────────────────────────────────────────────────┘
+                           │
+                   CloudKit自動同期
+                   (.automatic mode)
+                           ▼
+┌──────────────────────────────────────────────────────┐
+│              CloudKit (iCloud)                        │
+│         全デバイス間でのデータ同期                      │
 └──────────────────────────────────────────────────────┘
 ```
+
+## 主要な変更点（v1 → v2）
+
+### 1. データ永続化層の完全移行
+- **削除**: `browser.storage.local` APIとStorageManager
+- **導入**: SwiftData + CloudKit
+- **利点**: ストレージ制限解消、デバイス間自動同期
+
+### 2. ビジネスロジックのSwift移行
+- **削除**: JavaScript側のサービスレイヤー（SpacedRepetition等）
+- **移行先**: CloudKitStore（Swift）
+- **利点**: JavaScriptは純粋なメッセージングレイヤーに
+
+### 3. 簡素化されたメッセージフロー
+- **旧**: JS → Services → StorageManager → browser.storage
+- **新**: JS → Native Handler → CloudKitStore → SwiftData
 
 ## コンポーネントの責務
 
-### UIレイヤー
-- **Popup**: 4つのタブ（検索、リスト、学習、設定）を持つメインインターフェース
-  - src/popup/内のファイルに実装されている
-- **Content Script**: Webページ上のテキスト選択を処理（iOS向け）
-  - src/content/に実装されている。
-- **Context Menu**: 右クリックによる単語検索（macOS向け）
-  - Context Menu自体はsrc/background/background.jsで作成している。
+### JavaScript層（最小限の責務）
+- **UI表示**: Popup、Content Script、Context Menu
+- **メッセージング**: ユーザー操作をNativeへ転送
+- **辞書データ**: 読み取り専用の辞書サービス（DictionaryService）のみ残存
 
-### バックグラウンドレイヤー（src/background）
-- **Service Worker**: 中央メッセージハブとサービスコーディネーター
-- **Message Handler**: メッセージをサービスにルーティング、一貫したレスポンス形式を維持
+### Native層（Swift）
+- **SafariWebExtensionHandler**: JSからのメッセージ受信とルーティング
+- **CloudKitStore**: すべてのビジネスロジックとデータ操作
+  - 語彙リスト管理
+  - 間隔反復学習アルゴリズム
+  - 検索履歴
+  - ユーザー設定
+  - 統計情報
 
-### サービスレイヤー（src/services）
-- **DictionaryService**: 単語の定義、発音、同義語/反意語
-- **VocabularyList**: ユーザー語彙のCRUD操作と管理
-- **SpacedRepetition**: 学習アルゴリズムと復習スケジューリング
-- **StorageManager**: browser.storage.localの抽象化
+### データ層
+- **SwiftData**: ローカルデータ永続化
+- **App Group**: AppとExtension間でのデータ共有
+- **CloudKit**: デバイス間での自動同期
 
-## データアーキテクチャ
+## メッセージフロー
 
-### メッセージフォーマット
-```javascript
-// リクエスト
-{ type: MESSAGE_TYPE, ...params }
-
-// レスポンス
-{ success: boolean, data?: any, error?: string }
+### 単語追加の例
+```mermaid
+sequenceDiagram
+    User->>Popup: 単語を追加
+    Popup->>MessageHandler: ADD_TO_LIST
+    MessageHandler->>NativeHandler: sendNativeMessage
+    NativeHandler->>CloudKitStore: addWordToList()
+    CloudKitStore->>SwiftData: save
+    SwiftData->>CloudKit: 自動同期
+    CloudKitStore-->>Popup: 結果
 ```
 
-## 主要な設計決定
-
-1. **メッセージ駆動型通信**: 疎結合のため、全コンポーネントはbrowser.runtimeメッセージで通信
-2. **サービス指向アーキテクチャ**: ビジネスロジックをサービスモジュールに分離
-3. **デトロイト派TDD**: 意味のあるテストのため、モックより実装を使用
-4. **辞書データを信頼できる情報源に**: 単語定義はユーザーデータに複製しない
-5. **依存性注入**: テスタビリティのため、サービスをパラメータとして渡す
-
-## ビルドパイプライン
-
+### レビュー送信の例
+```mermaid
+sequenceDiagram
+    User->>LearnTab: レビュー結果選択
+    LearnTab->>NativeHandler: SUBMIT_REVIEW
+    NativeHandler->>CloudKitStore: submitReview()
+    Note over CloudKitStore: 間隔反復計算
+    CloudKitStore->>SwiftData: save
+    CloudKitStore-->>LearnTab: 次回復習日
 ```
-src/                          webpack                    Xcode
- ├─ background/ ──────────┐                         ┌──> macOS app
- ├─ content/ ─────────────┼──> Resources/ ─────────┤
- ├─ popup/ ───────────────┘                         └──> iOS app
- └─ services/
-```
+
+## データ同期メカニズム
+
+### ローカル同期（App Group）
+- `ModelContext.save()` で即座に保存
+- 同一デバイス内のApp/Extension間で共有
+
+### クラウド同期（CloudKit）
+- `.automatic` モードで自動同期
+- プロセスが動作中に同期実行
+- iOS/macOS間でシームレスに共有
+
+## 主要な設計原則
+
+1. **Swift First**: ビジネスロジックはSwift側に集約
+2. **メッセージ駆動**: コンポーネント間は疎結合
+3. **自動同期**: ユーザーは同期を意識しない
+4. **最小限のJS**: JavaScriptは表示とメッセージングのみ
 
 ## プラットフォーム考慮事項
 
-### Safari Extension の制限
-- ES6モジュール非対応（webpackバンドル必須）
-- Chrome拡張機能と比較してAPI制限あり
-- 手動テーマ選択（自動検出なし）
-- ストレージクォータ制限
+### Safari Extension制限
+- ES6モジュール非対応（webpack必須）
+- browser.* APIのみ使用
+- テーマ自動検出不可
 
 ### iOS vs macOS
 - **iOS**: テキスト選択ボタンUI
 - **macOS**: コンテキストメニュー統合
-- プラットフォーム固有機能を持つ共有コードベース
+- 両プラットフォームで同一データストア共有
 
+## 開発ガイド
 
-## Directory Design
+### 新機能追加の流れ
+1. SwiftDataモデルを定義
+2. CloudKitStoreにビジネスロジック実装
+3. SafariWebExtensionHandlerにルーティング追加
+4. JavaScript側でUIとメッセージング実装
 
-* iOS (App)
-  * VocabDict.swift
-* macOS (App)
-  * VocabDict.swift
-* Shared (App)
-  * db
-  * model
-  * service
+### デバッグポイント
+- JS側: console.logでメッセージ確認
+- Native側: SafariWebExtensionHandlerでログ出力
+- データ: CloudKit Dashboardで同期状態確認
+
+## まとめ
+
+VocabDict v2は以下を実現：
+- **データ永続化をSwiftDataに統一** - browser.storageの制限から解放
+- **ビジネスロジックをSwiftに集約** - メンテナンス性の向上
+- **CloudKitで自動同期** - シームレスなマルチデバイス体験
+- **シンプルなアーキテクチャ** - 理解しやすく拡張しやすい設計
