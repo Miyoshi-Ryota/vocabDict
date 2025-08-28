@@ -1,6 +1,7 @@
 const VocabularyList = require('../../src/services/vocabulary-list');
 const DictionaryService = require('../../src/services/dictionary-service');
 const dictionaryData = require('../../src/data/dictionary.json');
+const { DifficultyLevels } = require('../../src/utils/constants');
 
 describe('VocabularyList', () => {
   let list;
@@ -42,7 +43,7 @@ describe('VocabularyList', () => {
       expect(entry).toBeDefined();
       expect(entry.word).toBe('hello');
       expect(entry.dateAdded).toBeDefined();
-      expect(entry.difficulty).toBe('medium');
+      expect(entry.difficulty).toBe(DifficultyLevels.MEDIUM);
       expect(entry.lastReviewed).toBeNull();
       expect(entry.nextReview).toBeDefined();
       expect(entry.reviewHistory).toEqual([]);
@@ -67,11 +68,11 @@ describe('VocabularyList', () => {
 
     test('should accept optional metadata', async () => {
       const entry = await list.addWord('hello', {
-        difficulty: 'hard',
+        difficulty: DifficultyLevels.HARD,
         customNotes: 'Common greeting'
       });
 
-      expect(entry.difficulty).toBe('hard');
+      expect(entry.difficulty).toBe(DifficultyLevels.HARD);
       expect(entry.customNotes).toBe('Common greeting');
     });
   });
@@ -111,11 +112,11 @@ describe('VocabularyList', () => {
 
     test('should update user-specific properties', () => {
       const updated = list.updateWord('hello', {
-        difficulty: 'hard',
+        difficulty: DifficultyLevels.HARD,
         customNotes: 'Updated note'
       });
 
-      expect(updated.difficulty).toBe('hard');
+      expect(updated.difficulty).toBe(DifficultyLevels.HARD);
       expect(updated.customNotes).toBe('Updated note');
     });
 
@@ -132,13 +133,13 @@ describe('VocabularyList', () => {
     });
 
     test('should handle case-insensitive update', () => {
-      const updated = list.updateWord('HELLO', { difficulty: 'easy' });
+      const updated = list.updateWord('HELLO', { difficulty: DifficultyLevels.EASY });
       expect(updated).toBeDefined();
-      expect(list.words.hello.difficulty).toBe('easy');
+      expect(list.words.hello.difficulty).toBe(DifficultyLevels.EASY);
     });
 
     test('should return null for non-existent word', () => {
-      const result = list.updateWord('nonexistent', { difficulty: 'hard' });
+      const result = list.updateWord('nonexistent', { difficulty: DifficultyLevels.HARD });
       expect(result).toBeNull();
     });
   });
@@ -158,7 +159,7 @@ describe('VocabularyList', () => {
       expect(word.synonyms).toBeDefined(); // From dictionary
       expect(word.antonyms).toBeDefined(); // From dictionary
       expect(word.dateAdded).toBeDefined(); // From list
-      expect(word.difficulty).toBe('medium'); // From list
+      expect(word.difficulty).toBe(DifficultyLevels.MEDIUM); // From list
       expect(word.customNotes).toBe(''); // From list
     });
 
@@ -195,9 +196,9 @@ describe('VocabularyList', () => {
   describe('sorting', () => {
     beforeEach(async () => {
       // Add words with different properties
-      await list.addWord('zealous', { difficulty: 'hard' });
-      await list.addWord('aesthetic', { difficulty: 'easy' });
-      await list.addWord('brevity', { difficulty: 'medium' });
+      await list.addWord('zealous', { difficulty: DifficultyLevels.HARD });
+      await list.addWord('aesthetic', { difficulty: DifficultyLevels.EASY });
+      await list.addWord('brevity', { difficulty: DifficultyLevels.MEDIUM });
 
       // Set different review dates
       const now = Date.now();
@@ -239,9 +240,9 @@ describe('VocabularyList', () => {
 
     test('should sort by difficulty', async () => {
       const sorted = await list.sortBy('difficulty', 'asc');
-      expect(sorted[0].difficulty).toBe('easy');
-      expect(sorted[1].difficulty).toBe('medium');
-      expect(sorted[2].difficulty).toBe('hard');
+      expect(sorted[0].difficulty).toBe(DifficultyLevels.EASY);
+      expect(sorted[1].difficulty).toBe(DifficultyLevels.MEDIUM);
+      expect(sorted[2].difficulty).toBe(DifficultyLevels.HARD);
     });
 
     test('should sort by lookup count', async () => {
@@ -269,10 +270,10 @@ describe('VocabularyList', () => {
 
   describe('filtering', () => {
     beforeEach(async () => {
-      await list.addWord('hello', { difficulty: 'easy' });
-      await list.addWord('aesthetic', { difficulty: 'easy' });
-      await list.addWord('eloquent', { difficulty: 'medium' });
-      await list.addWord('serendipity', { difficulty: 'hard' });
+      await list.addWord('hello', { difficulty: DifficultyLevels.EASY });
+      await list.addWord('aesthetic', { difficulty: DifficultyLevels.EASY });
+      await list.addWord('eloquent', { difficulty: DifficultyLevels.MEDIUM });
+      await list.addWord('serendipity', { difficulty: DifficultyLevels.HARD });
 
       // Add review dates to some words
       list.updateWord('hello', {
@@ -282,9 +283,9 @@ describe('VocabularyList', () => {
     });
 
     test('should filter by difficulty', async () => {
-      const easyWords = await list.filterBy('difficulty', 'easy');
+      const easyWords = await list.filterBy('difficulty', DifficultyLevels.EASY);
       expect(easyWords.length).toBe(2);
-      expect(easyWords.every(w => w.difficulty === 'easy')).toBe(true);
+      expect(easyWords.every(w => w.difficulty === DifficultyLevels.EASY)).toBe(true);
     });
 
     test('should filter by review status - due', async () => {
@@ -340,19 +341,19 @@ describe('VocabularyList', () => {
 
   describe('statistics', () => {
     beforeEach(async () => {
-      await list.addWord('hello', { difficulty: 'easy' });
-      await list.addWord('aesthetic', { difficulty: 'easy' });
-      await list.addWord('eloquent', { difficulty: 'medium' });
-      await list.addWord('serendipity', { difficulty: 'hard' });
+      await list.addWord('hello', { difficulty: DifficultyLevels.EASY });
+      await list.addWord('aesthetic', { difficulty: DifficultyLevels.EASY });
+      await list.addWord('eloquent', { difficulty: DifficultyLevels.MEDIUM });
+      await list.addWord('serendipity', { difficulty: DifficultyLevels.HARD });
     });
 
     test('should calculate statistics', async () => {
       const stats = await list.getStatistics();
 
       expect(stats.totalWords).toBe(4);
-      expect(stats.byDifficulty.easy).toBe(2);
-      expect(stats.byDifficulty.medium).toBe(1);
-      expect(stats.byDifficulty.hard).toBe(1);
+      expect(stats.byDifficulty[DifficultyLevels.EASY]).toBe(2);
+      expect(stats.byDifficulty[DifficultyLevels.MEDIUM]).toBe(1);
+      expect(stats.byDifficulty[DifficultyLevels.HARD]).toBe(1);
       expect(stats.totalReviews).toBe(0);
       expect(stats.wordsReviewed).toBe(0);
       expect(stats.wordsDue).toBe(0);
@@ -394,7 +395,7 @@ describe('VocabularyList', () => {
           hello: {
             word: 'hello',
             dateAdded: new Date().toISOString(),
-            difficulty: 'easy',
+            difficulty: DifficultyLevels.EASY,
             lastReviewed: null,
             nextReview: null,
             reviewHistory: [],
@@ -408,7 +409,7 @@ describe('VocabularyList', () => {
       expect(imported.name).toBe('Imported List');
       expect(imported.isDefault).toBe(true);
       expect(Object.keys(imported.words).length).toBe(1);
-      expect(imported.words.hello.difficulty).toBe('easy');
+      expect(imported.words.hello.difficulty).toBe(DifficultyLevels.EASY);
       expect(imported.words.hello.customNotes).toBe('Test note');
     });
   });
