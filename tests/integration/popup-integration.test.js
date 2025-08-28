@@ -288,27 +288,39 @@ describe('Popup Integration Tests', () => {
   });
 
   describe('Dark/Light theme toggle', () => {
-    test.skip('should toggle theme when changing theme select', async () => {
+    test('should toggle theme when changing theme select', async () => {
       // Switch to settings tab
       const settingsTab = document.querySelector('[data-tab="settings"]');
       settingsTab.click();
 
+      // Wait for settings tab to be active
       await waitFor(() => document.querySelector('#settings-tab').classList.contains('active'));
 
       // Find theme select element
       const themeSelect = document.querySelector('#theme-select');
       expect(themeSelect).toBeTruthy();
-      
-      const initialTheme = document.body.classList.contains('dark-theme');
 
-      // Change theme by changing select value
-      themeSelect.value = initialTheme ? 'light' : 'dark';
+      // Record initial theme and style values
+      const initialTheme = document.documentElement.getAttribute('data-theme');
+      const initialBg = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg-primary')
+        .trim();
+
+      // Change theme by updating select value
+      themeSelect.value = initialTheme === 'dark' ? 'light' : 'dark';
       const changeEvent = new Event('change', { bubbles: true });
       themeSelect.dispatchEvent(changeEvent);
 
-      await waitFor(() => document.body.classList.contains('dark-theme') !== initialTheme);
+      // Wait for theme attribute to change
+      await waitFor(() => document.documentElement.getAttribute('data-theme') !== initialTheme);
 
-      expect(document.body.classList.contains('dark-theme')).toBe(!initialTheme);
+      const newTheme = document.documentElement.getAttribute('data-theme');
+      const newBg = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg-primary')
+        .trim();
+
+      expect(newTheme).not.toBe(initialTheme);
+      expect(newBg).not.toBe(initialBg);
     });
   });
 });
