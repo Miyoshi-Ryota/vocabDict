@@ -20,8 +20,13 @@ struct VocabDict: App {
 }
 
 struct VocabDictView: View {
+    @State private var selectedTab = 0
+    @AppStorage("theme") private var theme = "dark"
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        MainTabView(selectedTab: $selectedTab)
+            .frame(minWidth: 600, minHeight: 700)
+            .preferredColorScheme(theme == "dark" ? .dark : .light)
     }
 }
 
