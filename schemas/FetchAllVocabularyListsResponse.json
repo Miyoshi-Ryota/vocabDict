@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AddWordToVocabularyListRequest",
+  "description": "Request to add a word to a vocabulary list. It's used for all of UI->(background)->(SwiftWebExtensionHandler)->SwiftData",
+  "type": "object",
+  "required": ["action", "word", "listId"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "ADD_WORD_TO_VOCABULARY_LIST",
+      "description": "The action to be performed. Must be 'ADD_WORD_TO_VOCABULARY_LIST'."
+    },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word to be added to the vocabulary list."
+    },
+    "listId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The ID of the vocabulary list to which the word will be added."
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"]
+        }
+      }
+    }
+  }
+}
