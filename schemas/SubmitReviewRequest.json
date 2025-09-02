@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SubmitReviewRequest",
+  "description": "Request to submit a review result for a word.",
+  "type": "object",
+  "required": ["action", "listId", "word", "reviewResult"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "submitReview",
+      "description": "The action to be performed. Must be 'submitReview'."
+    },
+    "listId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The ID of the vocabulary list containing the word."
+    },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word being reviewed."
+    },
+    "reviewResult": {
+      "type": "string",
+      "enum": ["good", "ok", "bad"],
+      "description": "The review result indicating how well the user knew the word."
+    },
+    "timeSpent": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Time spent on the review in seconds."
+    }
+  }
+}

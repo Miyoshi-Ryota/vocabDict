@@ -82,7 +82,7 @@ class DictionaryService {
     try {
       if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendNativeMessage) {
         const response = await browser.runtime.sendNativeMessage({
-          action: "getLookupCount",
+          action: "fetchLookupCount",
           word: normalizedWord
         });
         return response.count || 0;

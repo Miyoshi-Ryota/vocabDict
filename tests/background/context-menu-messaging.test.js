@@ -75,7 +75,7 @@ describe('Context Menu Messaging Flow', () => {
   test('should handle OPEN_POPUP_WITH_WORD message directly', async () => {
     // Test handleMessage directly
     const result = await handleMessage({
-      type: MessageTypes.OPEN_POPUP_WITH_WORD,
+      action: MessageTypes.OPEN_POPUP_WITH_WORD,
       word: 'test-word'
     }, services);
 
@@ -127,7 +127,7 @@ describe('Context Menu Messaging Flow', () => {
 
   test('should require word parameter in message', async () => {
     const result = await handleMessage({
-      type: MessageTypes.OPEN_POPUP_WITH_WORD
+      action: MessageTypes.OPEN_POPUP_WITH_WORD
       // Missing word parameter
     }, services);
 
@@ -137,7 +137,7 @@ describe('Context Menu Messaging Flow', () => {
 
   test('should handle missing popupWordState', async () => {
     const result = await handleMessage({
-      type: MessageTypes.OPEN_POPUP_WITH_WORD,
+      action: MessageTypes.OPEN_POPUP_WITH_WORD,
       word: 'test'
     }, { dictionary: services.dictionary }); // Missing popupWordState
 

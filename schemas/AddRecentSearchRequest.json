@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AddRecentSearchRequest",
+  "description": "Request to add a word to recent searches.",
+  "type": "object",
+  "required": ["action", "word"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "addRecentSearch",
+      "description": "The action to be performed. Must be 'addRecentSearch'."
+    },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word to add to recent searches."
+    }
+  }
+}

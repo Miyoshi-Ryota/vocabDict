@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchVocabularyListWordsResponse",
+  "description": "Response containing words from a vocabulary list.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "data": {
+      "type": "array",
+      "description": "Array of word entries.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"]
+          },
+          "nextReview": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lookupCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UpdateSettingsResponse",
+  "description": "Response from updating user settings.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the settings were successfully updated."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Updated settings.",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": ["light", "dark", "auto"]
+        },
+        "autoPlayPronunciation": {
+          "type": "boolean"
+        },
+        "showExampleSentences": {
+          "type": "boolean"
+        },
+        "textSelectionMode": {
+          "type": "string",
+          "enum": ["inline", "popup"]
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

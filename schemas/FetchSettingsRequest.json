@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchSettingsRequest",
+  "description": "Request to fetch user settings.",
+  "type": "object",
+  "required": ["action"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "fetchSettings",
+      "description": "The action to be performed. Must be 'fetchSettings'."
+    }
+  }
+}

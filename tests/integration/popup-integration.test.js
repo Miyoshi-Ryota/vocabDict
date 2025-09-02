@@ -38,12 +38,12 @@ describe('Popup Integration Tests', () => {
     
     // Mock native messages and browser runtime
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
-      if (message.action === 'getVocabularyLists') {
+      if (message.action === 'fetchAllVocabularyLists') {
         return Promise.resolve({ 
           vocabularyLists: [mockList.toJSON()]
         });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'addWordToVocabularyList') {
         const wordEntry = {
           word: message.word,
           dateAdded: new Date().toISOString(),
@@ -95,7 +95,7 @@ describe('Popup Integration Tests', () => {
       }
       if (message.type === 'add_to_list') {
         return browser.runtime.sendNativeMessage({
-          action: 'addWordToList',
+          action: 'addWordToVocabularyList',
           listId: message.listId,
           word: message.word,
           metadata: message.metadata || {}
@@ -280,7 +280,7 @@ describe('Popup Integration Tests', () => {
 
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'add_to_list',
+          action: 'addToList',
           word: 'hello'
         })
       );

@@ -1,5 +1,5 @@
 const DictionaryService = require('../services/dictionary-service');
-const { handleMessage } = require('./message-handler');
+const { handleMessage, MessageTypes } = require('./message-handler');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
@@ -38,7 +38,7 @@ browser.runtime.onInstalled.addListener(async () => {
 
   // Initialize default vocabulary list if none exists
   try {
-    const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+    const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
     const lists = response.vocabularyLists || [];
     if (lists.length === 0) {
       // Create default list via native message
@@ -75,7 +75,7 @@ async function handleContextMenuClick(info, _tab) {
     // This avoids potential issues with Safari's message passing
     try {
       const response = await handleMessage({
-        type: 'open_popup_with_word',
+        action: MessageTypes.OPEN_POPUP_WITH_WORD,
         word: info.selectionText
       }, services);
       

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchReviewQueueResponse",
+  "description": "Response containing words due for review.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "data": {
+      "type": "array",
+      "description": "Array of words due for review.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "listId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "listName": {
+            "type": "string"
+          },
+          "nextReview": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"]
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

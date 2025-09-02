@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchLookupCountResponse",
+  "description": "Response containing the lookup count for a word.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of times the word has been looked up."
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

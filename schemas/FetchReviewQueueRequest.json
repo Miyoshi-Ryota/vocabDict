@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchReviewQueueRequest",
+  "description": "Request to fetch words due for review.",
+  "type": "object",
+  "required": ["action"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "fetchReviewQueue",
+      "description": "The action to be performed. Must be 'fetchReviewQueue'."
+    },
+    "maxWords": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 30,
+      "description": "Maximum number of words to return in the review queue."
+    }
+  }
+}

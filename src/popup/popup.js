@@ -22,7 +22,7 @@ const ThemeManager = {
   loadTheme() {
     // Check for saved theme preference
     browser.runtime.sendMessage({
-      type: 'get_settings'
+      action: 'getSettings'
     }).then(response => {
       if (response.success) {
         const theme = response.data.theme || 'dark';
@@ -52,7 +52,7 @@ const ThemeManager = {
 
         // Save preference
         await browser.runtime.sendMessage({
-          type: 'update_settings',
+          action: 'updateSettings',
           settings: { theme }
         });
       });
@@ -125,7 +125,7 @@ const SearchTab = {
   async checkPendingContextSearch() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_pending_context_search'
+        action: 'getPendingContextSearch'
       });
 
       if (response.success && response.data) {
@@ -179,7 +179,7 @@ const SearchTab = {
     try {
       // Send search request to background
       const response = await browser.runtime.sendMessage({
-        type: 'lookup_word',
+        action: 'lookupWord',
         word: query
       });
 
@@ -336,7 +336,7 @@ const SearchTab = {
     try {
       // Get default list
       const listsResponse = await browser.runtime.sendMessage({
-        type: 'get_lists'
+        action: 'getLists'
       });
       const lists = listsResponse.success ? listsResponse.data : [];
       const defaultList = lists.find(l => l.isDefault) || lists[0];
@@ -348,7 +348,7 @@ const SearchTab = {
 
       // Send add to list request
       const addResponse = await browser.runtime.sendMessage({
-        type: 'add_to_list',
+        action: 'addToList',
         word: wordData.word,
         listId: defaultList.id
       });
@@ -366,7 +366,7 @@ const SearchTab = {
 
   async loadRecentSearches() {
     const response = await browser.runtime.sendMessage({
-      type: 'get_recent_searches'
+      action: 'getRecentSearches'
     });
     if (response.success) {
       this.recentSearches = response.data;
@@ -409,7 +409,7 @@ const ListsTab = {
   async loadLists() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_lists'
+        action: 'getLists'
       });
 
       if (response.success) {
@@ -460,7 +460,7 @@ const ListsTab = {
   async loadListWords(listId) {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_lists'
+        action: 'getLists'
       });
 
       if (response.success) {
@@ -495,7 +495,7 @@ const ListsTab = {
       }
 
       const response = await browser.runtime.sendMessage({
-        type: 'get_list_words',
+        action: 'getListWords',
         listId: list.id,
         sortBy,
         sortOrder,
@@ -689,7 +689,7 @@ const ListsTab = {
 
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'create_list',
+        action: 'createList',
         name
       });
 
@@ -804,7 +804,7 @@ const LearnTab = {
   async loadReviewQueue() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_review_queue'
+        action: 'getReviewQueue'
       });
 
       if (response.success) {
@@ -876,7 +876,7 @@ const LearnTab = {
   async startReviewSession() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_review_queue'
+        action: 'getReviewQueue'
       });
 
       if (!response.success || response.data.length === 0) {
@@ -1039,7 +1039,7 @@ const LearnTab = {
     try {
       // Send review result to background
       await browser.runtime.sendMessage({
-        type: 'process_review',
+        action: 'processReview',
         word: word.word,
         result: action,
         listId: word.listId || null
@@ -1131,7 +1131,7 @@ const SettingsTab = {
 
   async loadSettings() {
     const response = await browser.runtime.sendMessage({
-      type: 'get_settings'
+      action: 'getSettings'
     });
     const settings = response.success
       ? response.data
@@ -1204,7 +1204,7 @@ const SettingsTab = {
 
   async updateSetting(key, value) {
     await browser.runtime.sendMessage({
-      type: 'update_settings',
+      action: 'updateSettings',
       settings: { [key]: value }
     });
   }

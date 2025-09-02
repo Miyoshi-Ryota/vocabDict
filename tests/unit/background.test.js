@@ -20,12 +20,12 @@ describe('Background Message Handler', () => {
     
     // Setup comprehensive mock for native messages
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
-      if (message.action === 'getVocabularyLists') {
+      if (message.action === 'fetchAllVocabularyLists') {
         return Promise.resolve({ 
           vocabularyLists: [mockList.toJSON()]
         });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'addWordToVocabularyList') {
         const word = message.word;
         if (!dictionary.getDictionaryData(word)) {
           return Promise.resolve({ error: 'Word not found in dictionary' });
@@ -119,7 +119,7 @@ describe('Background Message Handler', () => {
   describe('LOOKUP_WORD message', () => {
     test('should return word data for valid word', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+        action: MessageTypes.LOOKUP_WORD,
         word: 'hello'
       }, { dictionary });
 
@@ -132,7 +132,7 @@ describe('Background Message Handler', () => {
 
     test('should return error for invalid word', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+        action: MessageTypes.LOOKUP_WORD,
         word: 'xyznotaword123'
       }, { dictionary });
 
@@ -142,7 +142,7 @@ describe('Background Message Handler', () => {
 
     test('should handle fuzzy search suggestions', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+        action: MessageTypes.LOOKUP_WORD,
         word: 'hllo'
       }, { dictionary });
 
@@ -154,7 +154,7 @@ describe('Background Message Handler', () => {
 
     test('should require word parameter', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD
+        action: MessageTypes.LOOKUP_WORD
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -167,7 +167,7 @@ describe('Background Message Handler', () => {
       const listId = mockList.id;
 
       const result = await handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_TO_LIST,
         word: 'hello',
         listId
       }, { dictionary });
@@ -177,7 +177,7 @@ describe('Background Message Handler', () => {
       expect(result.data.word).toBe('hello');
 
       expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
-        action: 'addWordToList',
+        action: 'addWordToVocabularyList',
         listId: listId,
         word: 'hello',
         metadata: {}
@@ -188,7 +188,7 @@ describe('Background Message Handler', () => {
       const listId = mockList.id;
 
       const result = await handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_TO_LIST,
         word: 'notaword',
         listId
       }, { dictionary });
@@ -203,7 +203,7 @@ describe('Background Message Handler', () => {
         .mockImplementationOnce(() => Promise.resolve({ error: 'List not found' }));
 
       await expect(handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_TO_LIST,
         word: 'hello',
         listId: 'non-existent-id'
       }, { dictionary })).resolves.toEqual({
@@ -216,7 +216,7 @@ describe('Background Message Handler', () => {
   describe('GET_LISTS message', () => {
     test('should return all lists', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_LISTS
+        action: MessageTypes.GET_LISTS
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -231,7 +231,7 @@ describe('Background Message Handler', () => {
       );
       
       const result = await handleMessage({
-        type: MessageTypes.GET_LISTS
+        action: MessageTypes.GET_LISTS
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -242,7 +242,7 @@ describe('Background Message Handler', () => {
   describe('CREATE_LIST message', () => {
     test('should create new list', async () => {
       const result = await handleMessage({
-        type: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_LIST,
         name: 'New List'
       }, { dictionary });
 
@@ -254,7 +254,7 @@ describe('Background Message Handler', () => {
 
     test('should require list name', async () => {
       const result = await handleMessage({
-        type: MessageTypes.CREATE_LIST
+        action: MessageTypes.CREATE_LIST
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -263,7 +263,7 @@ describe('Background Message Handler', () => {
 
     test('should handle empty list name', async () => {
       const result = await handleMessage({
-        type: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_LIST,
         name: '   '
       }, { dictionary });
 
@@ -277,13 +277,13 @@ describe('Background Message Handler', () => {
       // First add the word
       const listId = mockList.id;
       await handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_TO_LIST,
         word: 'hello',
         listId
       }, { dictionary });
 
       const result = await handleMessage({
-        type: MessageTypes.SUBMIT_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         listId: listId,
         word: 'hello',
         reviewResult: 'known',
@@ -298,7 +298,7 @@ describe('Background Message Handler', () => {
 
     test('should require all parameters', async () => {
       const result = await handleMessage({
-        type: MessageTypes.SUBMIT_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         word: 'hello'
       }, { dictionary });
 
@@ -310,7 +310,7 @@ describe('Background Message Handler', () => {
   describe('GET_SETTINGS message', () => {
     test('should return settings', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_SETTINGS
+        action: MessageTypes.GET_SETTINGS
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -323,7 +323,7 @@ describe('Background Message Handler', () => {
   describe('UPDATE_SETTINGS message', () => {
     test('should update settings', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_SETTINGS,
+        action: MessageTypes.UPDATE_SETTINGS,
         settings: { theme: 'light' }
       }, { dictionary });
 
@@ -334,7 +334,7 @@ describe('Background Message Handler', () => {
 
     test('should require settings object', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_SETTINGS
+        action: MessageTypes.UPDATE_SETTINGS
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -353,7 +353,7 @@ describe('Background Message Handler', () => {
       });
 
       const result = await handleMessage({
-        type: MessageTypes.GET_LIST_WORDS,
+        action: MessageTypes.GET_LIST_WORDS,
         listId: mockList.id,
         filterBy: 'medium',
         sortBy: 'lookupCount',
@@ -369,7 +369,7 @@ describe('Background Message Handler', () => {
 
     test('should require listId', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_LIST_WORDS
+        action: MessageTypes.GET_LIST_WORDS
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -380,7 +380,7 @@ describe('Background Message Handler', () => {
   describe('UPDATE_WORD message', () => {
     test('should update word in list', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_WORD,
+        action: MessageTypes.UPDATE_WORD,
         listId: mockList.id,
         word: 'hello',
         updates: { difficulty: 'hard' }
@@ -398,7 +398,7 @@ describe('Background Message Handler', () => {
 
     test('should handle native error', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_WORD,
+        action: MessageTypes.UPDATE_WORD,
         listId: mockList.id,
         word: 'errorWord',
         updates: { difficulty: 'easy' }
@@ -414,7 +414,7 @@ describe('Background Message Handler', () => {
       await mockList.addWord('hello', { difficulty: 'medium' });
 
       const result = await handleMessage({
-        type: MessageTypes.PROCESS_REVIEW,
+        action: MessageTypes.PROCESS_REVIEW,
         listId: mockList.id,
         word: 'hello',
         result: 'known'
@@ -432,7 +432,7 @@ describe('Background Message Handler', () => {
 
     test('should require all parameters', async () => {
       const result = await handleMessage({
-        type: MessageTypes.PROCESS_REVIEW,
+        action: MessageTypes.PROCESS_REVIEW,
         listId: mockList.id,
         word: 'hello'
       }, { dictionary });
@@ -446,7 +446,7 @@ describe('Background Message Handler', () => {
     test('should return pending word when available', async () => {
       popupWordState.getPendingSearch.mockReturnValue('queued');
       const result = await handleMessage({
-        type: MessageTypes.GET_PENDING_CONTEXT_SEARCH
+        action: MessageTypes.GET_PENDING_CONTEXT_SEARCH
       }, { dictionary, popupWordState });
 
       expect(result.success).toBe(true);
@@ -455,7 +455,7 @@ describe('Background Message Handler', () => {
 
     test('should error when popupWordState missing', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_PENDING_CONTEXT_SEARCH
+        action: MessageTypes.GET_PENDING_CONTEXT_SEARCH
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -468,7 +468,7 @@ describe('Background Message Handler', () => {
       browser.action.openPopup.mockResolvedValue();
 
       const result = await handleMessage({
-        type: MessageTypes.OPEN_POPUP_WITH_WORD,
+        action: MessageTypes.OPEN_POPUP_WITH_WORD,
         word: 'hello'
       }, { dictionary, popupWordState });
 
@@ -481,7 +481,7 @@ describe('Background Message Handler', () => {
       browser.action.openPopup.mockRejectedValue(new Error('fail'));
 
       const result = await handleMessage({
-        type: MessageTypes.OPEN_POPUP_WITH_WORD,
+        action: MessageTypes.OPEN_POPUP_WITH_WORD,
         word: 'hello'
       }, { dictionary, popupWordState });
 
@@ -493,7 +493,7 @@ describe('Background Message Handler', () => {
   describe('GET_RECENT_SEARCHES message', () => {
     test('should return recent searches', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_RECENT_SEARCHES
+        action: MessageTypes.GET_RECENT_SEARCHES
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -505,7 +505,7 @@ describe('Background Message Handler', () => {
   describe('Unknown message type', () => {
     test('should handle unknown message type', async () => {
       const result = await handleMessage({
-        type: 'UNKNOWN_TYPE'
+        action: 'UNKNOWN_TYPE'
       }, { dictionary });
 
       expect(result.success).toBe(false);

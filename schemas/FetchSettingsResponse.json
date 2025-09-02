@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchSettingsResponse",
+  "description": "Response containing user settings.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "settings": {
+      "type": "object",
+      "description": "User settings.",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": ["light", "dark", "auto"],
+          "default": "dark"
+        },
+        "autoPlayPronunciation": {
+          "type": "boolean",
+          "default": false
+        },
+        "showExampleSentences": {
+          "type": "boolean",
+          "default": true
+        },
+        "textSelectionMode": {
+          "type": "string",
+          "enum": ["inline", "popup"],
+          "default": "inline"
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

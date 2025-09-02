@@ -7,8 +7,8 @@
   "properties": {
     "action": {
       "type": "string",
-      "const": "ADD_WORD_TO_VOCABULARY_LIST",
-      "description": "The action to be performed. Must be 'ADD_WORD_TO_VOCABULARY_LIST'."
+      "const": "addWordToVocabularyList",
+      "description": "The action to be performed. Must be 'addWordToVocabularyList'."
     },
     "word": {
       "type": "string",
@@ -24,8 +24,9 @@
       "type": "object",
       "properties": {
         "difficulty": {
-          "type": "string",
-          "enum": ["easy", "medium", "hard"]
+          "type": "integer",
+          "minimum": 1,
+          "description": "Word frequency value (1 to ~330000)"
         }
       }
     }

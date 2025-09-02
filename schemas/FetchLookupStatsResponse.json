@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchLookupStatsResponse",
+  "description": "Response containing lookup statistics.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "stats": {
+      "type": "object",
+      "description": "Lookup statistics.",
+      "properties": {
+        "totalLookups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uniqueWords": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "topWords": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "word": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

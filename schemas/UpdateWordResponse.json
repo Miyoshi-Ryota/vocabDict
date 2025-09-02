@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UpdateWordResponse",
+  "description": "Response from updating a word in a vocabulary list.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the word was successfully updated."
+    },
+    "data": {
+      "type": "object",
+      "description": "The updated word entry.",
+      "properties": {
+        "word": {
+          "type": "string"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"]
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

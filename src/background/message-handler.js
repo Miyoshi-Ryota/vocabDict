@@ -1,20 +1,20 @@
 const VocabularyList = require('../services/vocabulary-list');
 
 const MessageTypes = {
-  LOOKUP_WORD: 'lookup_word',
-  ADD_TO_LIST: 'add_to_list',
-  GET_LISTS: 'get_lists',
-  GET_LIST_WORDS: 'get_list_words',
-  CREATE_LIST: 'create_list',
-  UPDATE_WORD: 'update_word',  // どこでも使われてないかも？不要？
-  GET_REVIEW_QUEUE: 'get_review_queue',
-  SUBMIT_REVIEW: 'submit_review',
-  PROCESS_REVIEW: 'process_review',  // 追加
-  GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',
-  GET_RECENT_SEARCHES: 'get_recent_searches',
-  GET_SETTINGS: 'get_settings',
-  UPDATE_SETTINGS: 'update_settings',
-  OPEN_POPUP_WITH_WORD: 'open_popup_with_word'
+  LOOKUP_WORD: 'lookupWord',
+  ADD_TO_LIST: 'addToList',
+  GET_LISTS: 'getLists',
+  GET_LIST_WORDS: 'getListWords',
+  CREATE_LIST: 'createList',
+  UPDATE_WORD: 'updateWord',
+  GET_REVIEW_QUEUE: 'getReviewQueue',
+  SUBMIT_REVIEW: 'submitReview',
+  PROCESS_REVIEW: 'processReview',
+  GET_PENDING_CONTEXT_SEARCH: 'getPendingContextSearch',
+  GET_RECENT_SEARCHES: 'getRecentSearches',
+  GET_SETTINGS: 'getSettings',
+  UPDATE_SETTINGS: 'updateSettings',
+  OPEN_POPUP_WITH_WORD: 'openPopupWithWord'
 };
 
 /**
@@ -27,7 +27,7 @@ async function handleMessage(message, services) {
   const { dictionary, popupWordState } = services;
 
   try {
-    switch (message.type) {
+    switch (message.action) {
       case MessageTypes.LOOKUP_WORD: {
         if (!message.word) {
           return { success: false, error: 'Word parameter is required' };
@@ -75,7 +75,7 @@ async function handleMessage(message, services) {
         try {
           // Send to native handler to add word to SwiftData/CloudKit
           const response = await browser.runtime.sendNativeMessage({ 
-            action: "addWordToList",
+            action: "addWordToVocabularyList",
             listId: message.listId,
             word: message.word,
             metadata: message.metadata || {}
@@ -93,7 +93,7 @@ async function handleMessage(message, services) {
 
       case MessageTypes.GET_LISTS: {
         console.log("Fetching vocabulary lists from native messaging");
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
         console.log("Received vocabulary lists:", response);
         return { success: true, data: response.vocabularyLists || [] };
       }
@@ -103,7 +103,7 @@ async function handleMessage(message, services) {
           return { success: false, error: 'ListId is required' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
         const lists = response.vocabularyLists || [];
         const listData = lists.find(l => l.id === message.listId);
 
@@ -193,7 +193,7 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.GET_REVIEW_QUEUE: {
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+        const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
         const lists = response.vocabularyLists || [];
         const maxWords = message.maxWords || 30;
         const now = new Date();
@@ -239,7 +239,7 @@ async function handleMessage(message, services) {
             action: "submitReview",
             listId: message.listId,
             word: message.word,
-            result: message.reviewResult,
+            reviewResult: message.reviewResult,
             timeSpent: message.timeSpent || 0.0
           });
 
@@ -271,7 +271,7 @@ async function handleMessage(message, services) {
             action: "submitReview",
             listId: listId,
             word: word,
-            result: result,
+            reviewResult: result,
             timeSpent: 0.0
           });
 
@@ -302,7 +302,7 @@ async function handleMessage(message, services) {
       case MessageTypes.GET_RECENT_SEARCHES: {
         try {
           const response = await browser.runtime.sendNativeMessage({
-            action: "getRecentSearches"
+            action: "fetchRecentSearches"
           });
           return { success: true, data: response.recentSearches || [] };
         } catch (error) {
@@ -314,7 +314,7 @@ async function handleMessage(message, services) {
       case MessageTypes.GET_SETTINGS: {
         try {
           const response = await browser.runtime.sendNativeMessage({
-            action: "getSettings"
+            action: "fetchSettings"
           });
           return { success: true, data: response.settings || {
             theme: 'dark',
@@ -378,7 +378,7 @@ async function handleMessage(message, services) {
       }
 
       default:
-        return { success: false, error: `Unknown message type: ${message.type}` };
+        return { success: false, error: `Unknown message action: ${message.action}` };
     }
   } catch (error) {
     console.error('Message handler error:', error);

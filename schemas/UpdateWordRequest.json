@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UpdateWordRequest",
+  "description": "Request to update a word in a vocabulary list.",
+  "type": "object",
+  "required": ["action", "listId", "word", "updates"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "updateWord",
+      "description": "The action to be performed. Must be 'updateWord'."
+    },
+    "listId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The ID of the vocabulary list containing the word."
+    },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word to update."
+    },
+    "updates": {
+      "type": "object",
+      "description": "The updates to apply to the word.",
+      "properties": {
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"]
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

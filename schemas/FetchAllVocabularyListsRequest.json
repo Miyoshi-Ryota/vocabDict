@@ -7,8 +7,8 @@
   "properties": {
     "action": {
       "type": "string",
-      "const": "FETCH_ALL_VOCABULARY_LISTS",
-      "description": "The action to be performed. Must be 'FETCH_ALL_VOCABULARY_LISTS'."
+      "const": "fetchAllVocabularyLists",
+      "description": "The action to be performed. Must be 'fetchAllVocabularyLists'."
     }
   }
 }

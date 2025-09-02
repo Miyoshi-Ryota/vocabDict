@@ -26,7 +26,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         guard let messageDict = message as? [String: Any],
               let action = messageDict["action"] as? String else {
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid message format" ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid message format" ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             return
         }
@@ -34,7 +34,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         os_log(.default, "Processing action: %@", action)
         
         switch action {
-        case "getVocabularyLists":
+        case "fetchAllVocabularyLists":
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
             
@@ -45,7 +45,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         case "createVocabularyList":
             guard let name = messageDict["name"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Name is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Name is required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -57,18 +57,28 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [ SFExtensionMessageKey: [ "vocabularyList": newList.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
-        case "addWordToList":
+        case "addWordToVocabularyList":
             guard let listId = messageDict["listId"] as? String,
                   let listUUID = UUID(uuidString: listId),
                   let word = messageDict["word"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters: listId and word are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid parameters: listId and word are required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            // Extract optional metadata
-            let metadata = messageDict["metadata"] as? [String: String] ?? [:]
+            // Extract optional metadata (difficulty is now an integer)
+            let metadataAny = messageDict["metadata"] as? [String: Any] ?? [:]
+            var metadata: [String: String] = [:]
+            
+            // Convert metadata to [String: String] for CloudKitStore
+            for (key, value) in metadataAny {
+                if key == "difficulty", let intValue = value as? Int {
+                    metadata[key] = String(intValue)
+                } else if let stringValue = value as? String {
+                    metadata[key] = stringValue
+                }
+            }
             
             // Add word to list
             if let wordEntry = cloudKitStore.addWordToVocabularyList(word: word, metadata: metadata, to: listUUID) {
@@ -80,14 +90,14 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
             } else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Failed to add word to list" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to add word to list" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
             }
             
         case "addRecentSearch":
             guard let word = messageDict["word"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Word is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Word is required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -97,13 +107,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
-        case "getRecentSearches":
+        case "fetchRecentSearches":
             let searches = cloudKitStore.getRecentSearches()
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "recentSearches": searches ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
-        case "getSettings":
+        case "fetchSettings":
             let settings = cloudKitStore.getSettings()
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "settings": settings.toDictionary() ] ]
@@ -112,7 +122,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         case "updateSettings":
             guard let updates = messageDict["settings"] as? [String: Any] else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Settings updates are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Settings updates are required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -125,7 +135,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         case "incrementLookupCount":
             guard let word = messageDict["word"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Word is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Word is required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -135,16 +145,16 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
-        case "getLookupStats":
+        case "fetchLookupStats": // Currently not used from JS side, reserved for future use
             let stats = cloudKitStore.getLookupStats()
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "stats": stats ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
-        case "getLookupCount":
+        case "fetchLookupCount":
             guard let word = messageDict["word"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Word is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Word is required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -158,9 +168,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             guard let listId = messageDict["listId"] as? String,
                   let listUUID = UUID(uuidString: listId),
                   let word = messageDict["word"] as? String,
-                  let result = messageDict["result"] as? String else {
+                  let reviewResult = messageDict["reviewResult"] as? String else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters: listId, word, and result are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid parameters: listId, word, and reviewResult are required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -169,7 +179,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             
             let reviewResponse = cloudKitStore.submitReview(
                 word: word,
-                result: result,
+                result: reviewResult,
                 timeSpent: timeSpent,
                 in: listUUID
             )
@@ -184,7 +194,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                   let word = messageDict["word"] as? String,
                   let updates = messageDict["updates"] as? [String: Any] else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Invalid parameters: listId, word, and updates are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid parameters: listId, word, and updates are required" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
@@ -198,13 +208,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
             } else {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "error": "Failed to update word" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to update word" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
             }
             
         default:
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "error": "Unknown action: \(action)" ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Unknown action: \(action)" ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
         }
     }

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LookupWordResponse",
+  "description": "Response from looking up a word in the dictionary.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the lookup was successful."
+    },
+    "data": {
+      "type": "object",
+      "description": "The dictionary data for the word if found.",
+      "properties": {
+        "word": {
+          "type": "string"
+        },
+        "definitions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Suggested words if the exact word was not found."
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the lookup failed."
+    }
+  }
+}

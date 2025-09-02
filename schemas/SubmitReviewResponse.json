@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SubmitReviewResponse",
+  "description": "Response from submitting a review result.",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the review was successfully submitted."
+    },
+    "data": {
+      "type": "object",
+      "description": "Updated word data after review.",
+      "properties": {
+        "word": {
+          "type": "string"
+        },
+        "nextReview": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Next scheduled review date."
+        },
+        "interval": {
+          "type": "integer",
+          "description": "Review interval in days."
+        },
+        "easeFactor": {
+          "type": "number",
+          "description": "Ease factor for spaced repetition."
+        },
+        "reviewCount": {
+          "type": "integer",
+          "description": "Total number of reviews for this word."
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

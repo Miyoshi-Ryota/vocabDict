@@ -25,12 +25,12 @@ describe('Content Script User Flow Integration Tests', () => {
     const dictionary = new DictionaryService(dictionaryData);
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
-      if (message.action === 'getVocabularyLists') {
+      if (message.action === 'fetchAllVocabularyLists') {
         return Promise.resolve({ 
           vocabularyLists: [defaultList.toJSON()]
         });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'addWordToVocabularyList') {
         return Promise.resolve({ 
           success: true,
           data: {
@@ -126,7 +126,7 @@ describe('Content Script User Flow Integration Tests', () => {
       expect(overlay).toBeTruthy();
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'lookup_word',
+          action: 'lookupWord',
           word: 'vocabulary'
         })
       );
@@ -223,7 +223,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // Verify that add to list message was sent
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'add_to_list',
+          action: 'addToList',
           word: 'ephemeral'
         })
       );
@@ -457,7 +457,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // Verify message to open popup with selected word
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'open_popup_with_word',
+          action: 'openPopupWithWord',
           word: 'hello'
         })
       );
@@ -470,7 +470,7 @@ describe('Content Script User Flow Integration Tests', () => {
     test('should show inline overlay with selected word definition when user clicks lookup button in inline mode', async () => {
       // Set text selection mode to inline
       await browser.runtime.sendMessage({
-        type: 'update_settings',
+        action: 'updateSettings',
         settings: { textSelectionMode: 'inline' }
       });
 

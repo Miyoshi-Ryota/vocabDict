@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchVocabularyListWordsRequest",
+  "description": "Request to fetch words from a specific vocabulary list.",
+  "type": "object",
+  "required": ["action", "listId"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "fetchVocabularyListWords",
+      "description": "The action to be performed. Must be 'fetchVocabularyListWords'."
+    },
+    "listId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The ID of the vocabulary list to fetch words from."
+    },
+    "filterBy": {
+      "type": "string",
+      "enum": ["all", "easy", "medium", "hard"],
+      "description": "Filter words by difficulty level."
+    },
+    "sortBy": {
+      "type": "string",
+      "enum": ["alphabetical", "date", "difficulty", "frequency"],
+      "description": "Sort words by specified criteria."
+    },
+    "sortOrder": {
+      "type": "string",
+      "enum": ["asc", "desc"],
+      "default": "asc",
+      "description": "Sort order (ascending or descending)."
+    }
+  }
+}

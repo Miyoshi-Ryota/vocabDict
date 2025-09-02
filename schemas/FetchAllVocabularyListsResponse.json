@@ -1,33 +1,48 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "AddWordToVocabularyListRequest",
-  "description": "Request to add a word to a vocabulary list. It's used for all of UI->(background)->(SwiftWebExtensionHandler)->SwiftData",
+  "title": "FetchAllVocabularyListsResponse",
+  "description": "Response containing all vocabulary lists.",
   "type": "object",
-  "required": ["action", "word", "listId"],
+  "required": ["success"],
   "properties": {
-    "action": {
-      "type": "string",
-      "const": "ADD_WORD_TO_VOCABULARY_LIST",
-      "description": "The action to be performed. Must be 'ADD_WORD_TO_VOCABULARY_LIST'."
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
     },
-    "word": {
-      "type": "string",
-      "minLength": 1,
-      "description": "The word to be added to the vocabulary list."
-    },
-    "listId": {
-      "type": "string",
-      "format": "uuid",
-      "description": "The ID of the vocabulary list to which the word will be added."
-    },
-    "metadata": {
-      "type": "object",
-      "properties": {
-        "difficulty": {
-          "type": "string",
-          "enum": ["easy", "medium", "hard"]
+    "vocabularyLists": {
+      "type": "array",
+      "description": "Array of vocabulary lists.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "wordCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
     }
   }
 }

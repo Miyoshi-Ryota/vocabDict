@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchLookupStatsRequest",
+  "description": "Request to fetch lookup statistics.",
+  "type": "object",
+  "required": ["action"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "fetchLookupStats",
+      "description": "The action to be performed. Must be 'fetchLookupStats'."
+    }
+  }
+}

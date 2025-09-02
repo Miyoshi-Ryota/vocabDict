@@ -93,7 +93,7 @@ function createLookupButton(selectedText, rect) {
     // Get user's text selection mode preference
     try {
       const settingsResponse = await browser.runtime.sendMessage({
-        type: 'get_settings'
+        action: 'getSettings'
       });
 
       const textSelectionMode = settingsResponse.success && settingsResponse.data
@@ -103,7 +103,7 @@ function createLookupButton(selectedText, rect) {
       if (textSelectionMode === 'popup') {
         // Open popup with the selected word
         await browser.runtime.sendMessage({
-          type: 'open_popup_with_word',
+          action: 'openPopupWithWord',
           word: selectedText
         });
       } else {
@@ -162,7 +162,7 @@ async function showWordLookupOverlay(word, rect) {
   try {
     // Look up word using background script
     const response = await browser.runtime.sendMessage({
-      type: 'lookup_word',
+      action: 'lookupWord',
       word
     });
 
@@ -275,7 +275,7 @@ async function addWordToList(word) {
   try {
     // Get available lists
     const listsResponse = await browser.runtime.sendMessage({
-      type: 'get_lists'
+      action: 'getLists'
     });
 
     if (listsResponse.success && listsResponse.data.length > 0) {
@@ -283,7 +283,7 @@ async function addWordToList(word) {
       const listId = listsResponse.data[0].id;
 
       const addResponse = await browser.runtime.sendMessage({
-        type: 'add_to_list',
+        action: 'addToList',
         word,
         listId,
         metadata: {
