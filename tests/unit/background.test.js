@@ -36,7 +36,7 @@ describe('Background Message Handler', () => {
         const wordEntry = {
           word: word,
           dateAdded: new Date().toISOString(),
-          difficulty: message.metadata?.difficulty || 'medium',
+          difficulty: message.metadata?.difficulty || 5000,
           customNotes: message.metadata?.customNotes || '',
           lastReviewed: null,
           nextReview: new Date(Date.now() + 86400000).toISOString(),
@@ -65,8 +65,8 @@ describe('Background Message Handler', () => {
           return Promise.resolve({ error: 'Word not found' });
         }
         const nextInterval = message.result === 'mastered' ? null : 
-                           message.result === 'unknown' ? 1 :
-                           message.result === 'known' ? 3 : 1;
+                           message.reviewResult === 'bad' ? 1 :
+                           message.reviewResult === 'good' ? 3 : 1;
         const nextReview = nextInterval ? 
           new Date(Date.now() + nextInterval * 86400000).toISOString() : 
           null;
@@ -158,7 +158,7 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Word parameter is required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
@@ -286,7 +286,7 @@ describe('Background Message Handler', () => {
         action: MessageTypes.SUBMIT_REVIEW,
         listId: listId,
         word: 'hello',
-        reviewResult: 'known',
+        reviewResult: 'good',
         timeSpent: 10
       }, { dictionary });
 
@@ -303,7 +303,7 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
@@ -338,15 +338,15 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
   describe('GET_LIST_WORDS message', () => {
     test('should return filtered and sorted words', async () => {
-      await mockList.addWord('hello', { difficulty: 'medium' });
-      await mockList.addWord('world', { difficulty: 'medium' });
-      await mockList.addWord('apple', { difficulty: 'easy' });
+      await mockList.addWord('hello', { difficulty: 5000 });
+      await mockList.addWord('world', { difficulty: 5000 });
+      await mockList.addWord('apple', { difficulty: 1000 });
 
       dictionary.getLookupCount = jest.fn().mockImplementation(word => {
         return word === 'hello' ? 5 : word === 'world' ? 2 : 0;
@@ -355,7 +355,7 @@ describe('Background Message Handler', () => {
       const result = await handleMessage({
         action: MessageTypes.GET_LIST_WORDS,
         listId: mockList.id,
-        filterBy: 'medium',
+        filterBy: 5000,
         sortBy: 'lookupCount',
         sortOrder: 'desc'
       }, { dictionary });
@@ -383,16 +383,16 @@ describe('Background Message Handler', () => {
         action: MessageTypes.UPDATE_WORD,
         listId: mockList.id,
         word: 'hello',
-        updates: { difficulty: 'hard' }
+        updates: { difficulty: 10000 }
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data.difficulty).toBe('hard');
+      expect(result.data.difficulty).toBe(10000);
       expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
         action: 'updateWord',
         listId: mockList.id,
         word: 'hello',
-        updates: { difficulty: 'hard' }
+        updates: { difficulty: 10000 }
       });
     });
 
@@ -401,7 +401,7 @@ describe('Background Message Handler', () => {
         action: MessageTypes.UPDATE_WORD,
         listId: mockList.id,
         word: 'errorWord',
-        updates: { difficulty: 'easy' }
+        updates: { difficulty: 1000 }
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -411,13 +411,13 @@ describe('Background Message Handler', () => {
 
   describe('PROCESS_REVIEW message', () => {
     test('should forward review to native handler', async () => {
-      await mockList.addWord('hello', { difficulty: 'medium' });
+      await mockList.addWord('hello', { difficulty: 5000 });
 
       const result = await handleMessage({
         action: MessageTypes.PROCESS_REVIEW,
         listId: mockList.id,
         word: 'hello',
-        result: 'known'
+        reviewResult: 'good'
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -425,7 +425,7 @@ describe('Background Message Handler', () => {
         action: 'submitReview',
         listId: mockList.id,
         word: 'hello',
-        result: 'known',
+        reviewResult: 'good',
         timeSpent: 0.0
       });
     });
@@ -509,7 +509,7 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unknown message type');
+      expect(result.error).toContain('Unknown message action');
     });
   });
 });

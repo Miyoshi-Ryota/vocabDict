@@ -33,55 +33,81 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         
         os_log(.default, "Processing action: %@", action)
         
+        // Convert dictionary to JSON data for Codable decoding
+        let jsonData: Data
+        do {
+            jsonData = try JSONSerialization.data(withJSONObject: messageDict, options: [])
+        } catch {
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to parse message: \(error.localizedDescription)" ] ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            return
+        }
+        
         switch action {
         case "fetchAllVocabularyLists":
+            // Validate request using Codable
+            do {
+                _ = try JSONDecoder().decode(FetchAllVocabularyListsRequest.self, from: jsonData)
+            } catch {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
             
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "vocabularyLists": listsData ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "vocabularyLists": listsData ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "createVocabularyList":
-            guard let name = messageDict["name"] as? String else {
+            // Decode and validate request
+            let createRequest: CreateVocabularyListRequest
+            do {
+                createRequest = try JSONDecoder().decode(CreateVocabularyListRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Name is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            let isDefault = messageDict["isDefault"] as? Bool ?? false
-            let newList = cloudKitStore.createVocabularyList(name: name, isDefault: isDefault)
+            let newList = cloudKitStore.createVocabularyList(name: createRequest.name, isDefault: createRequest.isDefault ?? false)
             
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "vocabularyList": newList.toDictionary() ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "vocabularyList": newList.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "addWordToVocabularyList":
-            guard let listId = messageDict["listId"] as? String,
-                  let listUUID = UUID(uuidString: listId),
-                  let word = messageDict["word"] as? String else {
+            // Decode and validate request
+            let addWordRequest: AddWordToVocabularyListRequest
+            do {
+                addWordRequest = try JSONDecoder().decode(AddWordToVocabularyListRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid parameters: listId and word are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            // Extract optional metadata (difficulty is now an integer)
-            let metadataAny = messageDict["metadata"] as? [String: Any] ?? [:]
-            var metadata: [String: String] = [:]
+            guard let listUUID = UUID(uuidString: addWordRequest.listID) else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid list ID format" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
             
             // Convert metadata to [String: String] for CloudKitStore
-            for (key, value) in metadataAny {
-                if key == "difficulty", let intValue = value as? Int {
-                    metadata[key] = String(intValue)
-                } else if let stringValue = value as? String {
-                    metadata[key] = stringValue
-                }
+            var metadata: [String: String] = [:]
+            if let difficulty = addWordRequest.metadata?.difficulty {
+                metadata["difficulty"] = String(difficulty)
             }
             
             // Add word to list
-            if let wordEntry = cloudKitStore.addWordToVocabularyList(word: word, metadata: metadata, to: listUUID) {
+            if let wordEntry = cloudKitStore.addWordToVocabularyList(word: addWordRequest.word, metadata: metadata, to: listUUID) {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ 
                     "success": true, 
@@ -95,92 +121,159 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
         case "addRecentSearch":
-            guard let word = messageDict["word"] as? String else {
+            // Decode and validate request
+            let recentSearchRequest: AddRecentSearchRequest
+            do {
+                recentSearchRequest = try JSONDecoder().decode(AddRecentSearchRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Word is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            cloudKitStore.addRecentSearch(word: word)
+            cloudKitStore.addRecentSearch(word: recentSearchRequest.word)
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "fetchRecentSearches":
+            // Validate request using Codable
+            do {
+                _ = try JSONDecoder().decode(FetchRecentSearchesRequest.self, from: jsonData)
+            } catch {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
             let searches = cloudKitStore.getRecentSearches()
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "recentSearches": searches ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "recentSearches": searches ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "fetchSettings":
+            // Validate request using Codable
+            do {
+                _ = try JSONDecoder().decode(FetchSettingsRequest.self, from: jsonData)
+            } catch {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
             let settings = cloudKitStore.getSettings()
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "settings": settings.toDictionary() ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "settings": settings.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "updateSettings":
-            guard let updates = messageDict["settings"] as? [String: Any] else {
+            // Decode and validate request
+            let updateSettingsRequest: UpdateSettingsRequest
+            do {
+                updateSettingsRequest = try JSONDecoder().decode(UpdateSettingsRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Settings updates are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
+            }
+            
+            // Convert Settings to dictionary for CloudKitStore
+            var updates: [String: Any] = [:]
+            if let theme = updateSettingsRequest.settings.theme {
+                updates["theme"] = theme.rawValue
+            }
+            if let autoPlay = updateSettingsRequest.settings.autoPlayPronunciation {
+                updates["autoPlayPronunciation"] = autoPlay
+            }
+            if let showExamples = updateSettingsRequest.settings.showExampleSentences {
+                updates["showExampleSentences"] = showExamples
+            }
+            if let selectionMode = updateSettingsRequest.settings.textSelectionMode {
+                updates["textSelectionMode"] = selectionMode.rawValue
             }
             
             let updatedSettings = cloudKitStore.updateSettings(updates)
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "settings": updatedSettings.toDictionary() ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "settings": updatedSettings.toDictionary() ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "incrementLookupCount":
-            guard let word = messageDict["word"] as? String else {
+            // Decode and validate request
+            let incrementRequest: IncrementLookupCountRequest
+            do {
+                incrementRequest = try JSONDecoder().decode(IncrementLookupCountRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Word is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            cloudKitStore.incrementLookupCount(for: word)
+            cloudKitStore.incrementLookupCount(for: incrementRequest.word)
             let response = NSExtensionItem()
             response.userInfo = [ SFExtensionMessageKey: [ "success": true ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "fetchLookupStats": // Currently not used from JS side, reserved for future use
+            // Validate request using Codable
+            do {
+                _ = try JSONDecoder().decode(FetchLookupStatsRequest.self, from: jsonData)
+            } catch {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
             let stats = cloudKitStore.getLookupStats()
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "stats": stats ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "stats": stats ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "fetchLookupCount":
-            guard let word = messageDict["word"] as? String else {
+            // Decode and validate request
+            let lookupCountRequest: FetchLookupCountRequest
+            do {
+                lookupCountRequest = try JSONDecoder().decode(FetchLookupCountRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Word is required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            let count = cloudKitStore.getLookupCount(for: word)
+            let count = cloudKitStore.getLookupCount(for: lookupCountRequest.word)
             let response = NSExtensionItem()
-            response.userInfo = [ SFExtensionMessageKey: [ "count": count ] ]
+            response.userInfo = [ SFExtensionMessageKey: [ "success": true, "count": count ] ]
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "submitReview":
-            guard let listId = messageDict["listId"] as? String,
-                  let listUUID = UUID(uuidString: listId),
-                  let word = messageDict["word"] as? String,
-                  let reviewResult = messageDict["reviewResult"] as? String else {
+            // Decode and validate request
+            let submitReviewRequest: SubmitReviewRequest
+            do {
+                submitReviewRequest = try JSONDecoder().decode(SubmitReviewRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid parameters: listId, word, and reviewResult are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            let timeSpent = (messageDict["timeSpent"] as? Double) ?? 0.0
+            guard let listUUID = UUID(uuidString: submitReviewRequest.listID) else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid list ID format" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
             
             let reviewResponse = cloudKitStore.submitReview(
-                word: word,
-                result: reviewResult,
-                timeSpent: timeSpent,
+                word: submitReviewRequest.word,
+                result: submitReviewRequest.reviewResult.rawValue,
+                timeSpent: submitReviewRequest.timeSpent ?? 0.0,
                 in: listUUID
             )
             
@@ -189,17 +282,34 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             context.completeRequest(returningItems: [ response ], completionHandler: nil)
             
         case "updateWord":
-            guard let listId = messageDict["listId"] as? String,
-                  let listUUID = UUID(uuidString: listId),
-                  let word = messageDict["word"] as? String,
-                  let updates = messageDict["updates"] as? [String: Any] else {
+            // Decode and validate request
+            let updateWordRequest: UpdateWordRequest
+            do {
+                updateWordRequest = try JSONDecoder().decode(UpdateWordRequest.self, from: jsonData)
+            } catch {
                 let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid parameters: listId, word, and updates are required" ] ]
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
             
-            if let updatedWord = cloudKitStore.updateWord(word: word, updates: updates, in: listUUID) {
+            guard let listUUID = UUID(uuidString: updateWordRequest.listID) else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid list ID format" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+            
+            // Convert updates to dictionary
+            var updates: [String: Any] = [:]
+            if let difficulty = updateWordRequest.updates.difficulty {
+                updates["difficulty"] = String(difficulty)
+            }
+            if let customNotes = updateWordRequest.updates.customNotes {
+                updates["customNotes"] = customNotes
+            }
+            
+            if let updatedWord = cloudKitStore.updateWord(word: updateWordRequest.word, updates: updates, in: listUUID) {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ 
                     "success": true,

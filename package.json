@@ -16,6 +16,7 @@
     "build:macos": "npm run build && xcodebuild -scheme 'vocabDict (macOS)' -configuration Release clean build",
     "build:all": "npm run build && xcodebuild -scheme 'vocabDict (iOS)' -configuration Release clean build && xcodebuild -scheme 'vocabDict (macOS)' -configuration Release clean build",
     "watch": "webpack --mode development --watch",
+    "generate:types": "./scripts/generate-types.sh",
     "lint": "eslint src tests --ext .js",
     "lint:fix": "eslint src tests --ext .js --fix"
   },

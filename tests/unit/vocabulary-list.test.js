@@ -125,7 +125,7 @@ describe('VocabularyList', () => {
       const updated = list.updateWord('hello', {
         lastReviewed: now,
         nextReview: new Date(Date.now() + 86400000).toISOString(),
-        reviewHistory: [{ date: now, result: 'known', timeSpent: 3.5 }]
+        reviewHistory: [{ date: now, result: 'good', timeSpent: 3.5 }]
       });
 
       expect(updated.lastReviewed).toBe(now);
@@ -362,7 +362,7 @@ describe('VocabularyList', () => {
     test('should update statistics after reviews', async () => {
       list.updateWord('hello', {
         lastReviewed: new Date().toISOString(),
-        reviewHistory: [{ date: new Date().toISOString(), result: 'known', timeSpent: 3 }]
+        reviewHistory: [{ date: new Date().toISOString(), result: 'good', timeSpent: 3 }]
       });
 
       const stats = await list.getStatistics();

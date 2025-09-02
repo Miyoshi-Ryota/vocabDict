@@ -35,7 +35,7 @@ describe('Background Service Integration Tests', () => {
         const wordEntry = {
           word: word,
           dateAdded: new Date().toISOString(),
-          difficulty: metadata.difficulty || 'medium',
+          difficulty: metadata.difficulty || 5000,
           customNotes: metadata.customNotes || '',
           lastReviewed: null,
           nextReview: new Date(Date.now() + 86400000).toISOString(),
@@ -117,12 +117,12 @@ describe('Background Service Integration Tests', () => {
         action: MessageTypes.ADD_TO_LIST,
         word: 'serendipity',
         listId,
-        metadata: { difficulty: 'hard', customNotes: 'Beautiful word!' }
+        metadata: { difficulty: 10000, customNotes: 'Beautiful word!' }
       }, services);
 
       expect(addResponse.success).toBe(true);
       expect(addResponse.data.word).toBe('serendipity');
-      expect(addResponse.data.difficulty).toBe('hard');
+      expect(addResponse.data.difficulty).toBe(10000);
       expect(addResponse.data.customNotes).toBe('Beautiful word!');
     });
   });
@@ -177,7 +177,7 @@ describe('Background Service Integration Tests', () => {
         action: MessageTypes.SUBMIT_REVIEW,
         listId: wordToReview.listId,
         word: wordToReview.word,
-        reviewResult: 'known',
+        reviewResult: 'good',
         timeSpent: 15
       }, services);
 

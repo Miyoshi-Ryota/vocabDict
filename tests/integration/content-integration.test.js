@@ -217,7 +217,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // Wait for the add to list flow to complete
       await waitFor(() => {
         const calls = browser.runtime.sendMessage.mock.calls;
-        return calls.some(call => call[0].type === 'add_to_list');
+        return calls.some(call => call[0].action === 'addToList');
       });
 
       // Verify that add to list message was sent
@@ -417,7 +417,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // Mock get_settings to return popup mode
       const originalSendMessage = browser.runtime.sendMessage;
       browser.runtime.sendMessage = jest.fn((message) => {
-        if (message.type === 'get_settings') {
+        if (message.action === 'getSettings') {
           return Promise.resolve({ success: true, data: { textSelectionMode: 'popup' } });
         }
         return originalSendMessage(message);

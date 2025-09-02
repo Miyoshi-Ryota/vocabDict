@@ -25,8 +25,13 @@
       "description": "The updates to apply to the word.",
       "properties": {
         "difficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Word frequency value (1 to ~330000)"
+        },
+        "customNotes": {
           "type": "string",
-          "enum": ["easy", "medium", "hard"]
+          "description": "Custom notes about the word"
         },
         "metadata": {
           "type": "object"

@@ -47,7 +47,7 @@ describe('Popup Integration Tests', () => {
         const wordEntry = {
           word: message.word,
           dateAdded: new Date().toISOString(),
-          difficulty: message.metadata?.difficulty || 'medium',
+          difficulty: message.metadata?.difficulty || 5000,
           customNotes: message.metadata?.customNotes || '',
           lastReviewed: null,
           nextReview: new Date(Date.now() + 86400000).toISOString(),
@@ -65,7 +65,7 @@ describe('Popup Integration Tests', () => {
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
       }
-      if (message.action === 'getSettings') {
+      if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
           settings: {
             theme: 'dark',
@@ -79,7 +79,7 @@ describe('Popup Integration Tests', () => {
     });
     
     browser.runtime.sendMessage.mockImplementation((message) => {
-      if (message.type === 'lookup_word') {
+      if (message.action === 'lookupWord') {
         const result = dictionary.getDictionaryData(message.word);
         if (result) {
           return Promise.resolve({ success: true, data: result });
@@ -90,10 +90,10 @@ describe('Popup Integration Tests', () => {
         }
         return Promise.resolve({ success: false, error: 'Word not found' });
       }
-      if (message.type === 'get_lists') {
+      if (message.action === 'getLists') {
         return Promise.resolve({ success: true, data: [mockList.toJSON()] });
       }
-      if (message.type === 'add_to_list') {
+      if (message.action === 'addToList') {
         return browser.runtime.sendNativeMessage({
           action: 'addWordToVocabularyList',
           listId: message.listId,
@@ -106,13 +106,16 @@ describe('Popup Integration Tests', () => {
           return { success: true, data: response.data };
         });
       }
-      if (message.type === 'get_recent_searches') {
-        return browser.runtime.sendNativeMessage({ action: 'getRecentSearches' })
+      if (message.action === 'getRecentSearches') {
+        return browser.runtime.sendNativeMessage({ action: 'fetchRecentSearches' })
           .then(response => ({ success: true, data: response.recentSearches || [] }));
       }
-      if (message.type === 'get_settings') {
-        return browser.runtime.sendNativeMessage({ action: 'getSettings' })
+      if (message.action === 'getSettings') {
+        return browser.runtime.sendNativeMessage({ action: 'fetchSettings' })
           .then(response => ({ success: true, data: response.settings }));
+      }
+      if (message.action === 'getReviewQueue') {
+        return Promise.resolve({ success: true, data: [] });
       }
       return Promise.resolve({ success: true });
     });
@@ -274,7 +277,7 @@ describe('Popup Integration Tests', () => {
       // Wait for the word to be added (button should change)
       await waitFor(() => {
         return browser.runtime.sendMessage.mock.calls.some(
-          call => call[0].type === 'add_to_list' && call[0].word === 'hello'
+          call => call[0].action === 'addToList' && call[0].word === 'hello'
         );
       });
 

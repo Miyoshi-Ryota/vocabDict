@@ -262,7 +262,7 @@ describe('DictionaryService', () => {
     test('should get lookup count from native', async () => {
       // Mock the response for getLookupCount
       browser.runtime.sendNativeMessage.mockImplementation((message) => {
-        if (message.action === 'getLookupCount') {
+        if (message.action === 'fetchLookupCount') {
           return Promise.resolve({ count: 5 });
         }
         return Promise.resolve({ success: true });
@@ -272,7 +272,7 @@ describe('DictionaryService', () => {
       expect(count).toBe(5);
       
       expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
-        action: 'getLookupCount',
+        action: 'fetchLookupCount',
         word: 'hello'
       });
     });
@@ -280,7 +280,7 @@ describe('DictionaryService', () => {
     test('should return 0 for words never looked up', async () => {
       // Mock the response for getLookupCount
       browser.runtime.sendNativeMessage.mockImplementation((message) => {
-        if (message.action === 'getLookupCount') {
+        if (message.action === 'fetchLookupCount') {
           return Promise.resolve({ count: 0 });
         }
         return Promise.resolve({ success: true });

@@ -1,4 +1,5 @@
 const VocabularyList = require('../services/vocabulary-list');
+const validators = require('../generated/validators');
 
 const MessageTypes = {
   LOOKUP_WORD: 'lookupWord',
@@ -25,6 +26,15 @@ const MessageTypes = {
  */
 async function handleMessage(message, services) {
   const { dictionary, popupWordState } = services;
+
+  // Validate incoming request if validators are available
+  if (validators && message.action) {
+    const validation = validators.validateRequest(message.action, message);
+    if (!validation.valid) {
+      console.error(`Request validation failed for ${message.action}:`, validation.error);
+      return { success: false, error: `Invalid request: ${validation.error}` };
+    }
+  }
 
   try {
     switch (message.action) {
@@ -259,10 +269,10 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.PROCESS_REVIEW: {
-        const { word, result, listId } = message;
+        const { word, reviewResult, listId } = message;
 
-        if (!word || !result || !listId) {
-          return { success: false, error: 'Word, result, and listId are required' };
+        if (!word || !reviewResult || !listId) {
+          return { success: false, error: 'Word, reviewResult, and listId are required' };
         }
 
         try {
@@ -271,7 +281,7 @@ async function handleMessage(message, services) {
             action: "submitReview",
             listId: listId,
             word: word,
-            reviewResult: result,
+            reviewResult: reviewResult,
             timeSpent: 0.0
           });
 
