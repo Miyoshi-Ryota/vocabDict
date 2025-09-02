@@ -19,18 +19,16 @@ for schema in schemas/*Request.json schemas/*Response.json; do
     --src-lang schema
 done
 
-# Generate Swift Codable types
+# Generate Swift Codable types in a single file
 echo "📝 Generating Swift types..."
-for schema in schemas/*Request.json schemas/*Response.json; do
-  filename=$(basename "$schema" .json)
-  echo "  - $filename"
-  quicktype "$schema" \
-    -o "Shared (App)/Generated/${filename}.swift" \
-    --lang swift \
-    --src-lang schema \
-    --swift-5-support \
-    --no-initializers
-done
+echo "  - Combining all schemas into AllTypes.swift"
+quicktype schemas/*.json \
+  -o "Shared (App)/Generated/AllTypes.swift" \
+  --lang swift \
+  --src-lang schema \
+  --swift-5-support \
+  --no-initializers \
+  --alphabetize-properties
 
 # Create combined validator module for JavaScript
 echo "📦 Creating JavaScript validator module..."
@@ -118,5 +116,5 @@ echo "✅ Generation complete!"
 echo ""
 echo "Generated files:"
 echo "  - JavaScript validators in src/generated/"
-echo "  - Swift types in Shared (App)/Generated/"
+echo "  - Swift types in Shared (App)/Generated/AllTypes.swift"
 echo "  - Validator module at src/generated/validators.js"
