@@ -65,7 +65,7 @@ describe('Content Script User Flow Integration Tests', () => {
         return Promise.resolve({ success: true, data: [] });
       }
       if (message.action === 'fetchSettings') {
-        return Promise.resolve({ success: true, data: { textSelectionMode: 'inline' } });
+        return Promise.resolve({ success: true, settings: { textSelectionMode: 'inline' } });
       }
       if (message.action === 'openPopupWithWord') {
         return Promise.resolve({ success: true, data: { popupOpened: true } });
@@ -113,9 +113,6 @@ describe('Content Script User Flow Integration Tests', () => {
       // User triggers selection change
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
-      if (window.__vocabdictTest && window.__vocabdictTest.invokeSelection) {
-        window.__vocabdictTest.invokeSelection('vocabulary', range.getBoundingClientRect());
-      }
 
       // Wait for lookup button to appear
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
@@ -147,9 +144,6 @@ describe('Content Script User Flow Integration Tests', () => {
 
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
-      if (window.__vocabdictTest && window.__vocabdictTest.invokeSelection) {
-        window.__vocabdictTest.invokeSelection('ephemeral', range.getBoundingClientRect());
-      }
 
       // Wait for lookup button to appear
       const lookupButton = await waitForElement('.vocabdict-lookup-button');

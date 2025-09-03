@@ -67,6 +67,7 @@ describe('Popup Integration Tests', () => {
       }
       if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
+          success: true,
           settings: {
             theme: 'dark',
             autoPlayPronunciation: false,

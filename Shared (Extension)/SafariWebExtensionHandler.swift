@@ -60,12 +60,18 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601
-                _ = try decoder.decode(T.self, from: raw)
+                // Decode once
+                let model = try decoder.decode(T.self, from: raw)
+
                 let encoder = JSONEncoder()
                 encoder.dateEncodingStrategy = .iso8601
-                let encoded = try encoder.encode(try decoder.decode(T.self, from: raw))
+                // Encode the decoded model
+                let encoded = try encoder.encode(model)
                 let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                complete(jsonObject as? [String: Any] ?? payload)
+                guard let dict = jsonObject as? [String: Any] else {
+                    throw NSError(domain: "ValidateAndComplete", code: -1, userInfo: [NSLocalizedDescriptionKey: "Response encoding produced non-dictionary JSON"])
+                }
+                complete(dict)
             } catch {
                 fail("Encoding response failed: \(error.localizedDescription)")
             }

@@ -687,7 +687,6 @@ struct UpdateWordResponseData: Codable {
     let customNotes: String?
     /// Word difficulty (frequency) as an integer
     let difficulty: Int?
-    let updatedAt: Date?
     let word: String?
 }
 

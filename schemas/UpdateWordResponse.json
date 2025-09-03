@@ -23,10 +23,6 @@
         "customNotes": {
           "type": "string",
           "description": "Custom notes about the word"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
         }
       }
     },

@@ -11,12 +11,10 @@ if (!window.__vocabDictListenerAdded) {
   window.__vocabDictListenerAdded = true;
 
   // Debounced selection handler
-  const isTest = typeof process !== 'undefined' && process.env && process.env.JEST_WORKER_ID;
-  const DEBOUNCE_MS = isTest ? 10 : 300;
+  const DEBOUNCE_MS = 300;
   document.addEventListener('selectionchange', () => {
     clearTimeout(selectionTimeout);
-    // Run immediately for responsiveness (and jsdom tests)
-    try { handleSelection(); } catch {}
+    // Debounced execution only; tests should adapt via hooks/waits
     selectionTimeout = setTimeout(() => {
       handleSelection();
     }, DEBOUNCE_MS);
@@ -395,16 +393,4 @@ window.addEventListener('pagehide', () => {
   }
 });
 
-// Test hook for jsdom to simulate selection UI
-try {
-  const isJest = typeof process !== 'undefined' && process.env && process.env.JEST_WORKER_ID;
-  if (isJest) {
-    window.__vocabdictTest = {
-      invokeSelection: (text, rect) => {
-        if (lookupButton) { try { lookupButton.remove(); } catch (_) {} lookupButton = null; }
-        const fallbackRect = rect || { top: 100, left: 100, right: 150, bottom: 120, width: 50, height: 20 };
-        createLookupButton(String(text || '').trim(), fallbackRect);
-      }
-    };
-  }
-} catch (_) {}
+// Note: No test-only hooks in production code.

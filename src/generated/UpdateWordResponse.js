@@ -178,7 +178,6 @@ const typeMap = {
     "Data": o([
         { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
-        { json: "updatedAt", js: "updatedAt", typ: u(undefined, Date) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
 };
