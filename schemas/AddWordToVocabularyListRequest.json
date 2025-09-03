@@ -27,6 +27,10 @@
           "type": "integer",
           "minimum": 1,
           "description": "Word frequency value (1 to ~330000)"
+        },
+        "customNotes": {
+          "type": "string",
+          "description": "Custom notes about the word"
         }
       }
     }

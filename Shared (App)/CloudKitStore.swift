@@ -97,7 +97,7 @@ class CloudKitStore {
         return vocabularyList
     }
     
-    func addWordToVocabularyList(word: String, metadata: [String: String], to vocabularyListId: UUID) -> UserSpecificData? {
+    func addWordToVocabularyList(word: String, metadata: [String: Any], to vocabularyListId: UUID) -> UserSpecificData? {
         guard let vocabularyList = getVocabularyList(id: vocabularyListId) else {
             os_log(.default, "Vocabulary list with ID \(vocabularyListId.uuidString) not found")
             return nil
@@ -112,11 +112,21 @@ class CloudKitStore {
         }
         
         // Create new UserSpecificData with automatic values
+        let difficulty: Int
+        if let diff = metadata["difficulty"] as? Int {
+            difficulty = diff
+        } else if let diffStr = metadata["difficulty"] as? String,
+                  let diffInt = Int(diffStr) {
+            difficulty = diffInt
+        } else {
+            difficulty = 5000 // Default medium difficulty
+        }
+        
         let userData = UserSpecificData(
             word: word,
             dateAdded: Date(),
-            difficulty: metadata["difficulty"] ?? "medium",
-            customNotes: metadata["customNotes"] ?? "",
+            difficulty: difficulty,
+            customNotes: (metadata["customNotes"] as? String) ?? "",
             lastReviewed: nil,
             nextReview: Date(timeIntervalSinceNow: 86400),  // Tomorrow
             reviewHistory: []
@@ -145,8 +155,11 @@ class CloudKitStore {
         os_log(.default, "[DEBUG] Found word data for '%{public}@'", normalizedWord)
         
         // Update fields
-        if let difficulty = updates["difficulty"] as? String {
+        if let difficulty = updates["difficulty"] as? Int {
             wordData.difficulty = difficulty
+        } else if let difficultyString = updates["difficulty"] as? String,
+                  let difficultyInt = Int(difficultyString) {
+            wordData.difficulty = difficultyInt
         }
         if let customNotes = updates["customNotes"] as? String {
             wordData.customNotes = customNotes

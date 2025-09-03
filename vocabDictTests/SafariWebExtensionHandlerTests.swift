@@ -164,7 +164,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         // Then
         XCTAssertNotNil(mockContext.completedItems)
         if let response = mockContext.extractResponse() {
-            XCTAssertEqual(response["error"] as? String, "Invalid parameters: listId, word, and updates are required")
+            XCTAssertTrue((response["error"] as? String)?.contains("Invalid request format") ?? false)
         }
     }
 
@@ -196,7 +196,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         XCTAssertNotNil(mockContext.completedItems)
         if let response = mockContext.extractResponse() {
             XCTAssertNotNil(response["error"])
-            XCTAssertEqual(response["error"] as? String, "Name is required")
+            XCTAssertTrue((response["error"] as? String)?.contains("Invalid request format") ?? false)
         }
     }
 

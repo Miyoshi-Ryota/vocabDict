@@ -177,6 +177,7 @@ const typeMap = {
         { json: "word", js: "word", typ: "" },
     ], "any"),
     "Metadata": o([
+        { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
     ], "any"),
     "Action": [

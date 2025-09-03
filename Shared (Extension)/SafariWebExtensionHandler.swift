@@ -100,10 +100,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 return
             }
             
-            // Convert metadata to [String: String] for CloudKitStore
-            var metadata: [String: String] = [:]
+            // Convert metadata to [String: Any] for CloudKitStore
+            var metadata: [String: Any] = [:]
             if let difficulty = addWordRequest.metadata?.difficulty {
-                metadata["difficulty"] = String(difficulty)
+                metadata["difficulty"] = difficulty
+            }
+            if let customNotes = addWordRequest.metadata?.customNotes {
+                metadata["customNotes"] = customNotes
             }
             
             // Add word to list
@@ -303,7 +306,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             // Convert updates to dictionary
             var updates: [String: Any] = [:]
             if let difficulty = updateWordRequest.updates.difficulty {
-                updates["difficulty"] = String(difficulty)
+                updates["difficulty"] = difficulty
             }
             if let customNotes = updateWordRequest.updates.customNotes {
                 updates["customNotes"] = customNotes

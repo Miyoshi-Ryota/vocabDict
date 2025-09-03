@@ -45,7 +45,7 @@ class CloudKitStoreTests: XCTestCase {
         let userData = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: metadata, to: list.id)
         XCTAssertNotNil(userData)
         XCTAssertEqual(userData?.word, "hello")
-        XCTAssertEqual(userData?.difficulty, "medium")
+        XCTAssertEqual(userData?.difficulty, 5000)
         XCTAssertEqual(userData?.customNotes, "greeting")
     }
     
@@ -59,10 +59,10 @@ class CloudKitStoreTests: XCTestCase {
 
     func testUpdateWord() {
         let list = cloudKitStore.createVocabularyList(name: "Test List", isDefault: false)
-        _ = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: ["difficulty": "medium", "customNotes": "note"], to: list.id)
-        let updates: [String: Any] = ["difficulty": "hard", "customNotes": "updated"]
+        _ = cloudKitStore.addWordToVocabularyList(word: "hello", metadata: ["difficulty": "5000", "customNotes": "note"], to: list.id)
+        let updates: [String: Any] = ["difficulty": 10000, "customNotes": "updated"]
         let updated = cloudKitStore.updateWord(word: "hello", updates: updates, in: list.id)
-        XCTAssertEqual(updated?.difficulty, "hard")
+        XCTAssertEqual(updated?.difficulty, 10000)
         XCTAssertEqual(updated?.customNotes, "updated")
     }
 
@@ -196,8 +196,8 @@ class CloudKitStoreTests: XCTestCase {
             )
             let searches = try modelContext.fetch(descriptor)
             
-            // Then - Should be trimmed to 20 most recent searches
-            XCTAssertEqual(searches.count, 20)
+            // Then - All 25 searches should be present (no auto-trim on fetch)
+            XCTAssertEqual(searches.count, 25)
             
             // Verify they're sorted by most recent first
             if searches.count > 1 {

@@ -81,6 +81,8 @@ enum AddWordToVocabularyListRequestAction: String, Codable {
 
 // MARK: - Metadata
 struct Metadata: Codable {
+    /// Custom notes about the word
+    let customNotes: String?
     /// Word frequency value (1 to ~330000)
     let difficulty: Int?
 }
