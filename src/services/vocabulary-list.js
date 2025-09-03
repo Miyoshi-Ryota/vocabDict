@@ -137,6 +137,13 @@ class VocabularyList {
   async sortBy(criteria, order = 'asc') {
     const words = await this.getWords();
 
+    // Normalize difficulty for mixed representations (string buckets vs numeric frequency)
+    const toNumericDifficulty = (d) => {
+      if (typeof d === 'number') return d;
+      const map = { easy: 1000, medium: 5000, hard: 10000 };
+      return map[(d || '').toLowerCase()] ?? Number.MAX_SAFE_INTEGER;
+    };
+
     const sortFunctions = {
       alphabetical: (a, b) => a.word.localeCompare(b.word),
       dateAdded: (a, b) => new Date(a.dateAdded) - new Date(b.dateAdded),
@@ -147,10 +154,7 @@ class VocabularyList {
         if (!b.lastReviewed) return -1;
         return new Date(a.lastReviewed) - new Date(b.lastReviewed);
       },
-      difficulty: (a, b) => {
-        const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-      },
+      difficulty: (a, b) => toNumericDifficulty(a.difficulty) - toNumericDifficulty(b.difficulty),
       lookupCount: (a, b) => {
         // Use the lookupCount from the word object if available (pre-fetched)
         // This is populated in message-handler.js before sorting
@@ -194,7 +198,13 @@ class VocabularyList {
 
     switch (filterType) {
       case 'difficulty':
-        return words.filter(word => word.difficulty === filterValue);
+        return words.filter(word => {
+          const d = word.difficulty;
+          if (typeof d === 'string') return d === filterValue;
+          // Map numeric difficulty to buckets for filtering by label
+          const bucket = d <= 3000 ? 'easy' : d <= 10000 ? 'medium' : 'hard';
+          return bucket === filterValue;
+        });
 
       case 'reviewStatus': {
         const now = new Date();
@@ -271,7 +281,13 @@ class VocabularyList {
 
     words.forEach(word => {
       // Count by difficulty
-      stats.byDifficulty[word.difficulty]++;
+      if (typeof word.difficulty === 'number') {
+        const bucket = word.difficulty <= 3000 ? 'easy' : word.difficulty <= 10000 ? 'medium' : 'hard';
+        stats.byDifficulty[bucket]++;
+      } else if (typeof word.difficulty === 'string') {
+        const label = (word.difficulty || '').toLowerCase();
+        if (label in stats.byDifficulty) stats.byDifficulty[label]++;
+      }
 
       // Count reviews
       if (word.reviewHistory && word.reviewHistory.length > 0) {

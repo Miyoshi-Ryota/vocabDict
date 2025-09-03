@@ -90,6 +90,10 @@ async function handleMessage(message, services) {
             word: message.word,
             metadata: message.metadata || {}
           });
+          const vrAdd = validators.validateResponse('addWordToVocabularyList', response);
+          if (!vrAdd.valid) {
+            console.warn('Invalid addWordToVocabularyList response:', vrAdd.error);
+          }
 
           if (response.error) {
             return { success: false, error: response.error };
