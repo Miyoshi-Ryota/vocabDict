@@ -44,7 +44,7 @@ echo "📦 Creating JavaScript validator module..."
     base=$(basename "$req" .json)
     typeName="$base"                                      # e.g., AddWordToVocabularyListRequest
     actionName=$(echo "$base" | sed -E 's/Request$//' )   # e.g., AddWordToVocabularyList
-    actionKey=$(printf "%s" "$actionName" | sed -E 's/^(.)/\L\1/') # camelCase first letter
+    actionKey=$(echo "$actionName" | awk '{print tolower(substr($0,1,1)) substr($0,2)}') # camelCase first letter
     echo "validators.${actionKey} = require('./${typeName}');"
   done
   echo
@@ -53,7 +53,7 @@ echo "📦 Creating JavaScript validator module..."
     base=$(basename "$res" .json)
     typeName="$base"                                       # e.g., LookupWordResponse
     actionName=$(echo "$base" | sed -E 's/Response$//' )   # e.g., LookupWord
-    actionKey=$(printf "%s" "$actionName" | sed -E 's/^(.)/\L\1/') # e.g., lookupWord
+    actionKey=$(echo "$actionName" | awk '{print tolower(substr($0,1,1)) substr($0,2)}') # e.g., lookupWord
     echo "validators.${actionKey}Response = require('./${typeName}');"
   done
   cat << 'EOF'

@@ -439,7 +439,7 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 

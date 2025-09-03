@@ -200,10 +200,18 @@ class VocabularyList {
       case 'difficulty':
         return words.filter(word => {
           const d = word.difficulty;
-          if (typeof d === 'string') return d === filterValue;
-          // Map numeric difficulty to buckets for filtering by label
-          const bucket = d <= 3000 ? 'easy' : d <= 10000 ? 'medium' : 'hard';
-          return bucket === filterValue;
+          if (typeof filterValue === 'number') {
+            if (typeof d === 'number') return d === filterValue;
+            // If word difficulty is a label but filter is numeric, approximate by bucket
+            const bucketLabel = (d || '').toLowerCase();
+            const fvBucket = filterValue <= 3000 ? 'easy' : filterValue <= 10000 ? 'medium' : 'hard';
+            return bucketLabel === fvBucket;
+          } else {
+            // filterValue is a label
+            if (typeof d === 'string') return d === filterValue;
+            const bucket = d <= 3000 ? 'easy' : d <= 10000 ? 'medium' : 'hard';
+            return bucket === filterValue;
+          }
         });
 
       case 'reviewStatus': {
