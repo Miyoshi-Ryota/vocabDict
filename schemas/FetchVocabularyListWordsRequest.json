@@ -22,7 +22,7 @@
     },
     "sortBy": {
       "type": "string",
-      "enum": ["alphabetical", "date", "difficulty", "frequency"],
+      "enum": ["alphabetical", "date", "difficulty", "frequency", "lookupCount"],
       "description": "Sort words by specified criteria."
     },
     "sortOrder": {

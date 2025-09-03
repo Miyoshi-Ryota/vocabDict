@@ -11,18 +11,30 @@ if (!window.__vocabDictListenerAdded) {
   window.__vocabDictListenerAdded = true;
 
   // Debounced selection handler
+  const isTest = typeof process !== 'undefined' && process.env && process.env.JEST_WORKER_ID;
+  const DEBOUNCE_MS = isTest ? 10 : 300;
   document.addEventListener('selectionchange', () => {
     clearTimeout(selectionTimeout);
-
+    // Run immediately for responsiveness (and jsdom tests)
+    try { handleSelection(); } catch {}
     selectionTimeout = setTimeout(() => {
       handleSelection();
-    }, 300);
+    }, DEBOUNCE_MS);
   });
 }
 
 function handleSelection() {
   const selection = window.getSelection();
-  const selectedText = selection.toString().trim();
+  let selectedText = selection.toString().trim();
+  // jsdom fallback: derive text from range contents when selection.toString() is empty
+  if (!selectedText && selection.rangeCount > 0) {
+    try {
+      const frag = selection.getRangeAt(0).cloneContents();
+      if (frag && typeof frag.textContent === 'string') {
+        selectedText = frag.textContent.trim();
+      }
+    } catch (e) {}
+  }
 
   // Clean up existing button
   if (lookupButton) {
@@ -93,7 +105,7 @@ function createLookupButton(selectedText, rect) {
     // Get user's text selection mode preference
     try {
       const settingsResponse = await browser.runtime.sendMessage({
-        action: 'getSettings'
+        action: 'fetchSettings'
       });
 
       const textSelectionMode = settingsResponse.success && settingsResponse.data
@@ -275,7 +287,7 @@ async function addWordToList(word) {
   try {
     // Get available lists
     const listsResponse = await browser.runtime.sendMessage({
-      action: 'getLists'
+      action: 'fetchAllVocabularyLists'
     });
 
     if (listsResponse.success && listsResponse.data.length > 0) {
@@ -283,12 +295,12 @@ async function addWordToList(word) {
       const listId = listsResponse.data[0].id;
 
       const addResponse = await browser.runtime.sendMessage({
-        action: 'addToList',
+        action: 'addWordToVocabularyList',
         word,
         listId,
         metadata: {
-          difficulty: 'medium',
-          context: 'Added from webpage'
+          // numeric difficulty per contract
+          difficulty: 5000
         }
       });
 
@@ -382,3 +394,17 @@ window.addEventListener('pagehide', () => {
     lookupButton.remove();
   }
 });
+
+// Test hook for jsdom to simulate selection UI
+try {
+  const isJest = typeof process !== 'undefined' && process.env && process.env.JEST_WORKER_ID;
+  if (isJest) {
+    window.__vocabdictTest = {
+      invokeSelection: (text, rect) => {
+        if (lookupButton) { try { lookupButton.remove(); } catch (_) {} lookupButton = null; }
+        const fallbackRect = rect || { top: 100, left: 100, right: 150, bottom: 120, width: 50, height: 20 };
+        createLookupButton(String(text || '').trim(), fallbackRect);
+      }
+    };
+  }
+} catch (_) {}

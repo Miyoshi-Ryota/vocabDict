@@ -79,7 +79,7 @@ describe('Background Message Handler', () => {
           }
         });
       }
-      if (message.action === 'getSettings') {
+      if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
           settings: {
             theme: 'dark',  
@@ -162,12 +162,12 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('ADD_TO_LIST message', () => {
+  describe('ADD_WORD_TO_VOCABULARY_LIST message', () => {
     test('should add word to specified list', async () => {
       const listId = mockList.id;
 
       const result = await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello',
         listId
       }, { dictionary });
@@ -188,7 +188,7 @@ describe('Background Message Handler', () => {
       const listId = mockList.id;
 
       const result = await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'notaword',
         listId
       }, { dictionary });
@@ -203,7 +203,7 @@ describe('Background Message Handler', () => {
         .mockImplementationOnce(() => Promise.resolve({ error: 'List not found' }));
 
       await expect(handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello',
         listId: 'non-existent-id'
       }, { dictionary })).resolves.toEqual({
@@ -213,10 +213,10 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('GET_LISTS message', () => {
+  describe('FETCH_ALL_VOCABULARY_LISTS message', () => {
     test('should return all lists', async () => {
       const result = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -231,7 +231,7 @@ describe('Background Message Handler', () => {
       );
       
       const result = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -239,10 +239,10 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('CREATE_LIST message', () => {
+  describe('CREATE_VOCABULARY_LIST message', () => {
     test('should create new list', async () => {
       const result = await handleMessage({
-        action: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_VOCABULARY_LIST,
         name: 'New List'
       }, { dictionary });
 
@@ -254,16 +254,16 @@ describe('Background Message Handler', () => {
 
     test('should require list name', async () => {
       const result = await handleMessage({
-        action: MessageTypes.CREATE_LIST
+        action: MessageTypes.CREATE_VOCABULARY_LIST
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('name is required');
+      expect(result.error).toContain('Invalid request');
     });
 
     test('should handle empty list name', async () => {
       const result = await handleMessage({
-        action: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_VOCABULARY_LIST,
         name: '   '
       }, { dictionary });
 
@@ -277,7 +277,7 @@ describe('Background Message Handler', () => {
       // First add the word
       const listId = mockList.id;
       await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello',
         listId
       }, { dictionary });
@@ -307,10 +307,10 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('GET_SETTINGS message', () => {
+  describe('FETCH_SETTINGS message', () => {
     test('should return settings', async () => {
       const result = await handleMessage({
-        action: MessageTypes.GET_SETTINGS
+        action: MessageTypes.FETCH_SETTINGS
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -342,7 +342,7 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('GET_LIST_WORDS message', () => {
+  describe('FETCH_VOCABULARY_LIST_WORDS message', () => {
     test('should return filtered and sorted words', async () => {
       await mockList.addWord('hello', { difficulty: 5000 });
       await mockList.addWord('world', { difficulty: 5000 });
@@ -353,9 +353,9 @@ describe('Background Message Handler', () => {
       });
 
       const result = await handleMessage({
-        action: MessageTypes.GET_LIST_WORDS,
+        action: MessageTypes.FETCH_VOCABULARY_LIST_WORDS,
         listId: mockList.id,
-        filterBy: 5000,
+        filterBy: 'medium',
         sortBy: 'lookupCount',
         sortOrder: 'desc'
       }, { dictionary });
@@ -369,11 +369,11 @@ describe('Background Message Handler', () => {
 
     test('should require listId', async () => {
       const result = await handleMessage({
-        action: MessageTypes.GET_LIST_WORDS
+        action: MessageTypes.FETCH_VOCABULARY_LIST_WORDS
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('ListId is required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
@@ -491,10 +491,10 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('GET_RECENT_SEARCHES message', () => {
+  describe('FETCH_RECENT_SEARCHES message', () => {
     test('should return recent searches', async () => {
       const result = await handleMessage({
-        action: MessageTypes.GET_RECENT_SEARCHES
+        action: MessageTypes.FETCH_RECENT_SEARCHES
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -510,7 +510,7 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unknown message action');
+      expect(result.error).toContain('Invalid request');
     });
   });
 });

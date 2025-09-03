@@ -62,7 +62,7 @@ echo "📦 Creating JavaScript validator module..."
 function validateRequest(action, data) {
   const validator = validators[action];
   if (!validator) {
-    return { valid: true, data }; // Pass through if no validator
+    return { valid: false, error: `No validator found for action: ${action}` };
   }
   try {
     const functionName = 'to' + action.charAt(0).toUpperCase() + action.slice(1) + 'Request';
@@ -78,7 +78,7 @@ function validateResponse(action, data) {
   const validatorKey = action + 'Response';
   const validator = validators[validatorKey];
   if (!validator) {
-    return { valid: true, data }; // Pass through if no validator
+    return { valid: false, error: `No response validator found for action: ${action}` };
   }
   try {
     const functionName = 'to' + action.charAt(0).toUpperCase() + action.slice(1) + 'Response';

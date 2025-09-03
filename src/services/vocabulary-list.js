@@ -38,7 +38,7 @@ class VocabularyList {
     const userWordData = {
       word: dictionaryEntry.word, // Use the correct case from dictionary
       dateAdded: new Date().toISOString(),
-      difficulty: metadata.difficulty || 'medium',
+      difficulty: (typeof metadata.difficulty === 'number') ? metadata.difficulty : 5000,
       customNotes: metadata.customNotes || '',
       lastReviewed: null,
       nextReview: new Date(Date.now() + 86400000).toISOString(), // Default: review tomorrow
@@ -138,11 +138,7 @@ class VocabularyList {
     const words = await this.getWords();
 
     // Normalize difficulty for mixed representations (string buckets vs numeric frequency)
-    const toNumericDifficulty = (d) => {
-      if (typeof d === 'number') return d;
-      const map = { easy: 1000, medium: 5000, hard: 10000 };
-      return map[(d || '').toLowerCase()] ?? Number.MAX_SAFE_INTEGER;
-    };
+    const toNumericDifficulty = (d) => (typeof d === 'number') ? d : Number.MAX_SAFE_INTEGER;
 
     const sortFunctions = {
       alphabetical: (a, b) => a.word.localeCompare(b.word),
@@ -199,19 +195,11 @@ class VocabularyList {
     switch (filterType) {
       case 'difficulty':
         return words.filter(word => {
-          const d = word.difficulty;
-          if (typeof filterValue === 'number') {
-            if (typeof d === 'number') return d === filterValue;
-            // If word difficulty is a label but filter is numeric, approximate by bucket
-            const bucketLabel = (d || '').toLowerCase();
-            const fvBucket = filterValue <= 3000 ? 'easy' : filterValue <= 10000 ? 'medium' : 'hard';
-            return bucketLabel === fvBucket;
-          } else {
-            // filterValue is a label
-            if (typeof d === 'string') return d === filterValue;
-            const bucket = d <= 3000 ? 'easy' : d <= 10000 ? 'medium' : 'hard';
-            return bucket === filterValue;
-          }
+          const d = (typeof word.difficulty === 'number') ? word.difficulty : Number.MAX_SAFE_INTEGER;
+          if (typeof filterValue === 'number') return d === filterValue;
+          // label filter: bucket numeric
+          const bucket = d <= 3000 ? 'easy' : d < 10000 ? 'medium' : 'hard';
+          return bucket === filterValue;
         });
 
       case 'reviewStatus': {
@@ -290,7 +278,7 @@ class VocabularyList {
     words.forEach(word => {
       // Count by difficulty
       if (typeof word.difficulty === 'number') {
-        const bucket = word.difficulty <= 3000 ? 'easy' : word.difficulty <= 10000 ? 'medium' : 'hard';
+        const bucket = word.difficulty <= 3000 ? 'easy' : word.difficulty < 10000 ? 'medium' : 'hard';
         stats.byDifficulty[bucket]++;
       } else if (typeof word.difficulty === 'string') {
         const label = (word.difficulty || '').toLowerCase();

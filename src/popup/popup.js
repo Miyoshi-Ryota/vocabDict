@@ -22,18 +22,18 @@ const ThemeManager = {
   loadTheme() {
     // Check for saved theme preference
     browser.runtime.sendMessage({
-      action: 'getSettings'
+      action: 'fetchSettings'
     }).then(response => {
-      if (response.success) {
-        const theme = response.data.theme || 'dark';
-        this.applyTheme(theme);
+      const theme = (response && response.success && response.data && response.data.theme) ? response.data.theme : 'dark';
+      this.applyTheme(theme);
 
-        // Update theme selector if it exists
-        const themeSelect = document.getElementById('theme-select');
-        if (themeSelect) {
-          themeSelect.value = theme;
-        }
+      // Update theme selector if it exists
+      const themeSelect = document.getElementById('theme-select');
+      if (themeSelect) {
+        themeSelect.value = theme;
       }
+    }).catch(() => {
+      this.applyTheme('dark');
     });
   },
 
@@ -336,7 +336,7 @@ const SearchTab = {
     try {
       // Get default list
       const listsResponse = await browser.runtime.sendMessage({
-        action: 'getLists'
+        action: 'fetchAllVocabularyLists'
       });
       const lists = listsResponse.success ? listsResponse.data : [];
       const defaultList = lists.find(l => l.isDefault) || lists[0];
@@ -348,9 +348,10 @@ const SearchTab = {
 
       // Send add to list request
       const addResponse = await browser.runtime.sendMessage({
-        action: 'addToList',
+        action: 'addWordToVocabularyList',
         word: wordData.word,
-        listId: defaultList.id
+        listId: defaultList.id,
+        metadata: { difficulty: 5000 }
       });
 
       if (addResponse.success) {
@@ -365,9 +366,9 @@ const SearchTab = {
   },
 
   async loadRecentSearches() {
-    const response = await browser.runtime.sendMessage({
-      action: 'getRecentSearches'
-    });
+      const response = await browser.runtime.sendMessage({
+        action: 'fetchRecentSearches'
+      });
     if (response.success) {
       this.recentSearches = response.data;
       this.displayRecentSearches();
@@ -376,7 +377,7 @@ const SearchTab = {
 
   displayRecentSearches() {
     const container = document.querySelector('.recent-searches-list');
-    if (!container || this.recentSearches.length === 0) return;
+    if (!container || !this.recentSearches || this.recentSearches.length === 0) return;
 
     container.innerHTML = this.recentSearches
       .slice(0, 5)
@@ -409,7 +410,7 @@ const ListsTab = {
   async loadLists() {
     try {
       const response = await browser.runtime.sendMessage({
-        action: 'getLists'
+        action: 'fetchAllVocabularyLists'
       });
 
       if (response.success) {
@@ -422,6 +423,7 @@ const ListsTab = {
 
   displayLists(lists) {
     const container = document.querySelector('.lists-container');
+    lists = Array.isArray(lists) ? lists : [];
     if (lists.length === 0) {
       container.innerHTML = '<p class="text-center">No vocabulary lists yet</p>';
       return;
@@ -460,7 +462,7 @@ const ListsTab = {
   async loadListWords(listId) {
     try {
       const response = await browser.runtime.sendMessage({
-        action: 'getLists'
+        action: 'fetchAllVocabularyLists'
       });
 
       if (response.success) {
@@ -495,7 +497,7 @@ const ListsTab = {
       }
 
       const response = await browser.runtime.sendMessage({
-        action: 'getListWords',
+        action: 'fetchVocabularyListWords',
         listId: list.id,
         sortBy,
         sortOrder,
@@ -804,11 +806,11 @@ const LearnTab = {
   async loadReviewQueue() {
     try {
       const response = await browser.runtime.sendMessage({
-        action: 'getReviewQueue'
+        action: 'fetchReviewQueue'
       });
 
-      if (response.success) {
-        const dueWordsCount = response.data.length;
+      if (response && response.success) {
+        const dueWordsCount = Array.isArray(response.data) ? response.data.length : 0;
         this.updateDueWordsCount(dueWordsCount);
         this.displayReviewStatus(dueWordsCount);
       }
@@ -876,10 +878,10 @@ const LearnTab = {
   async startReviewSession() {
     try {
       const response = await browser.runtime.sendMessage({
-        action: 'getReviewQueue'
+        action: 'fetchReviewQueue'
       });
 
-      if (!response.success || response.data.length === 0) {
+      if (!response || !response.success || !Array.isArray(response.data) || response.data.length === 0) {
         NotificationManager.show('No words available for review', 'info');
         return;
       }
@@ -1131,17 +1133,16 @@ const SettingsTab = {
   },
 
   async loadSettings() {
-    const response = await browser.runtime.sendMessage({
-      action: 'getSettings'
-    });
-    const settings = response.success
-      ? response.data
-      : {
-          theme: 'dark',
-          autoAddLookups: true,
-          dailyReviewLimit: 30,
-          textSelectionMode: 'inline'
-        };
+    let response = null;
+    try {
+      response = await browser.runtime.sendMessage({ action: 'fetchSettings' });
+    } catch (_) { /* ignore */ }
+    const settings = (response && response.success && response.data) ? response.data : {
+      theme: 'dark',
+      autoAddLookups: true,
+      dailyReviewLimit: 30,
+      textSelectionMode: 'inline'
+    };
 
     // Update UI
     const autoAddToggle = document.getElementById('auto-add-toggle');

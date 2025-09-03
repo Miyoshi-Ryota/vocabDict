@@ -42,6 +42,35 @@ describe('Content Script User Flow Integration Tests', () => {
       return Promise.resolve({ success: true });
     });
 
+    // Mock runtime sendMessage for UI→background actions
+    browser.runtime.sendMessage.mockImplementation((message) => {
+      if (message.action === 'lookupWord') {
+        const result = dictionary.getDictionaryData(message.word);
+        return Promise.resolve(result ? { success: true, data: result } : { success: false, error: 'Word not found' });
+      }
+      if (message.action === 'fetchAllVocabularyLists') {
+        return Promise.resolve({ success: true, data: [defaultList.toJSON()] });
+      }
+      if (message.action === 'addWordToVocabularyList') {
+        return browser.runtime.sendNativeMessage({
+          action: 'addWordToVocabularyList',
+          listId: message.listId,
+          word: message.word,
+          metadata: message.metadata || {}
+        }).then(response => (response.error ? { success: false, error: response.error } : { success: true, data: response.data }));
+      }
+      if (message.action === 'fetchRecentSearches') {
+        return Promise.resolve({ success: true, data: [] });
+      }
+      if (message.action === 'fetchSettings') {
+        return Promise.resolve({ success: true, data: { textSelectionMode: 'inline' } });
+      }
+      if (message.action === 'openPopupWithWord') {
+        return Promise.resolve({ success: true, data: { popupOpened: true } });
+      }
+      return Promise.resolve({ success: true });
+    });
+
     // Load the content script
     require('../../src/content/content.js');
   });
@@ -82,6 +111,9 @@ describe('Content Script User Flow Integration Tests', () => {
       // User triggers selection change
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
+      if (window.__vocabdictTest && window.__vocabdictTest.invokeSelection) {
+        window.__vocabdictTest.invokeSelection('vocabulary', range.getBoundingClientRect());
+      }
 
       // Wait for lookup button to appear
       const lookupButton = await waitForElement('.vocabdict-lookup-button');
@@ -113,6 +145,9 @@ describe('Content Script User Flow Integration Tests', () => {
 
       const selectionEvent = new Event('selectionchange');
       document.dispatchEvent(selectionEvent);
+      if (window.__vocabdictTest && window.__vocabdictTest.invokeSelection) {
+        window.__vocabdictTest.invokeSelection('ephemeral', range.getBoundingClientRect());
+      }
 
       // Wait for lookup button to appear
       const lookupButton = await waitForElement('.vocabdict-lookup-button');

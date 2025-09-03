@@ -21,10 +21,14 @@
 //   let fetchSettingsResponse = try? JSONDecoder().decode(FetchSettingsResponse.self, from: jsonData)
 //   let fetchVocabularyListWordsRequest = try? JSONDecoder().decode(FetchVocabularyListWordsRequest.self, from: jsonData)
 //   let fetchVocabularyListWordsResponse = try? JSONDecoder().decode(FetchVocabularyListWordsResponse.self, from: jsonData)
+//   let getPendingContextSearchRequest = try? JSONDecoder().decode(GetPendingContextSearchRequest.self, from: jsonData)
+//   let getPendingContextSearchResponse = try? JSONDecoder().decode(GetPendingContextSearchResponse.self, from: jsonData)
 //   let incrementLookupCountRequest = try? JSONDecoder().decode(IncrementLookupCountRequest.self, from: jsonData)
 //   let incrementLookupCountResponse = try? JSONDecoder().decode(IncrementLookupCountResponse.self, from: jsonData)
 //   let lookupWordRequest = try? JSONDecoder().decode(LookupWordRequest.self, from: jsonData)
 //   let lookupWordResponse = try? JSONDecoder().decode(LookupWordResponse.self, from: jsonData)
+//   let openPopupWithWordRequest = try? JSONDecoder().decode(OpenPopupWithWordRequest.self, from: jsonData)
+//   let openPopupWithWordResponse = try? JSONDecoder().decode(OpenPopupWithWordResponse.self, from: jsonData)
 //   let submitReviewRequest = try? JSONDecoder().decode(SubmitReviewRequest.self, from: jsonData)
 //   let submitReviewResponse = try? JSONDecoder().decode(SubmitReviewResponse.self, from: jsonData)
 //   let updateSettingsRequest = try? JSONDecoder().decode(UpdateSettingsRequest.self, from: jsonData)
@@ -223,22 +227,16 @@ enum FetchLookupStatsRequestAction: String, Codable {
 struct FetchLookupStatsResponse: Codable {
     /// Error message if the operation failed.
     let error: String?
-    /// Lookup statistics.
-    let stats: Stats?
+    /// Lookup statistics by word.
+    let stats: [String: Stat]?
     /// Whether the fetch was successful.
     let success: Bool
 }
 
-/// Lookup statistics.
-// MARK: - Stats
-struct Stats: Codable {
-    let topWords: [TopWord]?
-    let totalLookups, uniqueWords: Int?
-}
-
-// MARK: - TopWord
-struct TopWord: Codable {
+// MARK: - Stat
+struct Stat: Codable {
     let count: Int?
+    let firstLookup, lastLookup: Date?
     let word: String?
 }
 
@@ -391,6 +389,7 @@ enum SortBy: String, Codable {
     case date = "date"
     case difficulty = "difficulty"
     case frequency = "frequency"
+    case lookupCount = "lookupCount"
 }
 
 /// Sort order (ascending or descending).
@@ -427,6 +426,24 @@ struct DatumReviewHistory: Codable {
     let date: Date?
     let result: String?
     let timeSpent: Double?
+}
+
+/// Request to retrieve a pending word selection to search when opening popup.
+// MARK: - GetPendingContextSearchRequest
+struct GetPendingContextSearchRequest: Codable {
+    let action: GetPendingContextSearchRequestAction
+}
+
+enum GetPendingContextSearchRequestAction: String, Codable {
+    case getPendingContextSearch = "getPendingContextSearch"
+}
+
+/// Response containing a pending word for context search, if any.
+// MARK: - GetPendingContextSearchResponse
+struct GetPendingContextSearchResponse: Codable {
+    let data: String?
+    let error: String?
+    let success: Bool
 }
 
 /// Request to increment the lookup count for a word.
@@ -484,6 +501,30 @@ struct LookupWordResponseData: Codable {
     let word: String?
 }
 
+/// Request to open the extension popup with a prefilled word.
+// MARK: - OpenPopupWithWordRequest
+struct OpenPopupWithWordRequest: Codable {
+    let action: OpenPopupWithWordRequestAction
+    let word: String
+}
+
+enum OpenPopupWithWordRequestAction: String, Codable {
+    case openPopupWithWord = "openPopupWithWord"
+}
+
+/// Response for opening the extension popup.
+// MARK: - OpenPopupWithWordResponse
+struct OpenPopupWithWordResponse: Codable {
+    let data: OpenPopupWithWordResponseData?
+    let error: String?
+    let success: Bool
+}
+
+// MARK: - OpenPopupWithWordResponseData
+struct OpenPopupWithWordResponseData: Codable {
+    let popupOpened: Bool?
+}
+
 /// Request to submit a review result for a word.
 // MARK: - SubmitReviewRequest
 struct SubmitReviewRequest: Codable {
@@ -520,7 +561,7 @@ enum ReviewResult: String, Codable {
 /// Response from submitting a review result.
 // MARK: - SubmitReviewResponse
 struct SubmitReviewResponse: Codable {
-    /// Updated word data after review.
+    /// Updated word data and scheduling after review.
     let data: SubmitReviewResponseData?
     /// Error message if the operation failed.
     let error: String?
@@ -528,18 +569,34 @@ struct SubmitReviewResponse: Codable {
     let success: Bool
 }
 
-/// Updated word data after review.
+/// Updated word data and scheduling after review.
 // MARK: - SubmitReviewResponseData
 struct SubmitReviewResponseData: Codable {
-    /// Ease factor for spaced repetition.
-    let easeFactor: Double?
-    /// Review interval in days.
-    let interval: Int?
+    /// Days until next review; null if mastered.
+    let nextInterval: Int?
     /// Next scheduled review date.
     let nextReview: Date?
-    /// Total number of reviews for this word.
-    let reviewCount: Int?
+    /// Full user-specific word entry after update.
+    let word: Word?
+}
+
+/// Full user-specific word entry after update.
+// MARK: - Word
+struct Word: Codable {
+    let customNotes: String?
+    let dateAdded: Date?
+    let difficulty: Int?
+    let lastReviewed: Date?
+    let nextReview: Date?
+    let reviewHistory: [WordReviewHistory]?
     let word: String?
+}
+
+// MARK: - WordReviewHistory
+struct WordReviewHistory: Codable {
+    let date: Date?
+    let result: String?
+    let timeSpent: Double?
 }
 
 /// Request to update user settings.

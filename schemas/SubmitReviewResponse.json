@@ -11,27 +11,39 @@
     },
     "data": {
       "type": "object",
-      "description": "Updated word data after review.",
+      "description": "Updated word data and scheduling after review.",
       "properties": {
         "word": {
-          "type": "string"
+          "type": "object",
+          "description": "Full user-specific word entry after update.",
+          "properties": {
+            "word": { "type": "string" },
+            "dateAdded": { "type": "string", "format": "date-time" },
+            "difficulty": { "type": "integer" },
+            "customNotes": { "type": "string" },
+            "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+            "nextReview": { "type": "string", "format": "date-time" },
+            "reviewHistory": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "date": { "type": "string", "format": "date-time" },
+                  "result": { "type": "string" },
+                  "timeSpent": { "type": "number" }
+                }
+              }
+            }
+          }
         },
         "nextReview": {
           "type": "string",
           "format": "date-time",
           "description": "Next scheduled review date."
         },
-        "interval": {
-          "type": "integer",
-          "description": "Review interval in days."
-        },
-        "easeFactor": {
-          "type": "number",
-          "description": "Ease factor for spaced repetition."
-        },
-        "reviewCount": {
-          "type": "integer",
-          "description": "Total number of reviews for this word."
+        "nextInterval": {
+          "type": ["integer", "null"],
+          "description": "Days until next review; null if mastered."
         }
       }
     },

@@ -191,6 +191,7 @@ const typeMap = {
         "date",
         "difficulty",
         "frequency",
+        "lookupCount",
     ],
     "SortOrder": [
         "asc",

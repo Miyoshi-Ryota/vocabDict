@@ -11,30 +11,14 @@
     },
     "stats": {
       "type": "object",
-      "description": "Lookup statistics.",
-      "properties": {
-        "totalLookups": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "uniqueWords": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "topWords": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "word": {
-                "type": "string"
-              },
-              "count": {
-                "type": "integer",
-                "minimum": 0
-              }
-            }
-          }
+      "description": "Lookup statistics by word.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "word": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 },
+          "firstLookup": { "type": "string", "format": "date-time" },
+          "lastLookup": { "type": "string", "format": "date-time" }
         }
       }
     },

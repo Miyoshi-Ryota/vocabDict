@@ -172,16 +172,13 @@ function r(name) {
 const typeMap = {
     "FetchLookupStatsResponse": o([
         { json: "error", js: "error", typ: u(undefined, "") },
-        { json: "stats", js: "stats", typ: u(undefined, r("Stats")) },
+        { json: "stats", js: "stats", typ: u(undefined, m(r("Stat"))) },
         { json: "success", js: "success", typ: true },
     ], "any"),
-    "Stats": o([
-        { json: "topWords", js: "topWords", typ: u(undefined, a(r("TopWord"))) },
-        { json: "totalLookups", js: "totalLookups", typ: u(undefined, 0) },
-        { json: "uniqueWords", js: "uniqueWords", typ: u(undefined, 0) },
-    ], "any"),
-    "TopWord": o([
+    "Stat": o([
         { json: "count", js: "count", typ: u(undefined, 0) },
+        { json: "firstLookup", js: "firstLookup", typ: u(undefined, Date) },
+        { json: "lastLookup", js: "lastLookup", typ: u(undefined, Date) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
 };

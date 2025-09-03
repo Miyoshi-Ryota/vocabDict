@@ -132,7 +132,7 @@ describe('Context Menu Messaging Flow', () => {
     }, services);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Word parameter is required');
+    expect(result.error).toContain('Invalid request');
   });
 
   test('should handle missing popupWordState', async () => {

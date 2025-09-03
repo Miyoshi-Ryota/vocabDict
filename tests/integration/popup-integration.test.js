@@ -90,10 +90,10 @@ describe('Popup Integration Tests', () => {
         }
         return Promise.resolve({ success: false, error: 'Word not found' });
       }
-      if (message.action === 'getLists') {
+      if (message.action === 'fetchAllVocabularyLists') {
         return Promise.resolve({ success: true, data: [mockList.toJSON()] });
       }
-      if (message.action === 'addToList') {
+      if (message.action === 'addWordToVocabularyList') {
         return browser.runtime.sendNativeMessage({
           action: 'addWordToVocabularyList',
           listId: message.listId,
@@ -106,15 +106,15 @@ describe('Popup Integration Tests', () => {
           return { success: true, data: response.data };
         });
       }
-      if (message.action === 'getRecentSearches') {
+      if (message.action === 'fetchRecentSearches') {
         return browser.runtime.sendNativeMessage({ action: 'fetchRecentSearches' })
           .then(response => ({ success: true, data: response.recentSearches || [] }));
       }
-      if (message.action === 'getSettings') {
+      if (message.action === 'fetchSettings') {
         return browser.runtime.sendNativeMessage({ action: 'fetchSettings' })
           .then(response => ({ success: true, data: response.settings }));
       }
-      if (message.action === 'getReviewQueue') {
+      if (message.action === 'fetchReviewQueue') {
         return Promise.resolve({ success: true, data: [] });
       }
       return Promise.resolve({ success: true });
@@ -277,13 +277,13 @@ describe('Popup Integration Tests', () => {
       // Wait for the word to be added (button should change)
       await waitFor(() => {
         return browser.runtime.sendMessage.mock.calls.some(
-          call => call[0].action === 'addToList' && call[0].word === 'hello'
+          call => call[0].action === 'addWordToVocabularyList' && call[0].word === 'hello'
         );
       });
 
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'addToList',
+          action: 'addWordToVocabularyList',
           word: 'hello'
         })
       );

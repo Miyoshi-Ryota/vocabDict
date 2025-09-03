@@ -107,7 +107,7 @@ describe('Background Service Integration Tests', () => {
 
       // 2. Get lists to find where to add
       const listsResponse = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
 
       expect(listsResponse.success).toBe(true);
@@ -116,7 +116,7 @@ describe('Background Service Integration Tests', () => {
 
       // 3. Add word to list
       const addResponse = await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'serendipity',
         listId,
         metadata: { difficulty: 10000, customNotes: 'Beautiful word!' }
@@ -133,7 +133,7 @@ describe('Background Service Integration Tests', () => {
     test('should handle full review session workflow', async () => {
       // Setup: Add words to list
       const listsResponse = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
       const listId = listsResponse.data[0].id;
 
@@ -141,7 +141,7 @@ describe('Background Service Integration Tests', () => {
       const words = ['hello', 'eloquent', 'serendipity'];
       for (const word of words) {
         await handleMessage({
-          action: MessageTypes.ADD_TO_LIST,
+          action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
           word,
           listId
         }, services);
@@ -161,7 +161,7 @@ describe('Background Service Integration Tests', () => {
 
       // 1. Get review queue
       const queueResponse = await handleMessage({
-        action: MessageTypes.GET_REVIEW_QUEUE,
+        action: MessageTypes.FETCH_REVIEW_QUEUE,
         maxWords: 5
       }, services);
 
@@ -193,7 +193,7 @@ describe('Background Service Integration Tests', () => {
     test('should manage words across multiple lists', async () => {
       // Create additional list
       const createResponse = await handleMessage({
-        action: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_VOCABULARY_LIST,
         name: 'Technical Terms'
       }, services);
 
@@ -202,19 +202,19 @@ describe('Background Service Integration Tests', () => {
 
       // Add word to first list
       const listsResponse = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
       const defaultListId = listsResponse.data[0].id;
 
       await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'algorithm',
         listId: defaultListId
       }, services);
 
       // Try to add different word to second list (mock would need to handle multiple lists)
       const addToTechResponse = await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'recursion',
         listId: techListId
       }, services);
@@ -223,7 +223,7 @@ describe('Background Service Integration Tests', () => {
 
       // Verify words are stored in their respective lists
       const listsAfterAdds = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
       const defaultList = listsAfterAdds.data.find(l => l.id === defaultListId);
       const techList = listsAfterAdds.data.find(l => l.id === techListId);
@@ -248,12 +248,12 @@ describe('Background Service Integration Tests', () => {
 
     test('should handle adding non-existent word to list', async () => {
       const listsResponse = await handleMessage({
-        action: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
       const listId = listsResponse.data[0].id;
 
       const response = await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'notindictionary',
         listId
       }, services);
@@ -264,13 +264,13 @@ describe('Background Service Integration Tests', () => {
 
     test('should handle missing parameters gracefully', async () => {
       const response = await handleMessage({
-        action: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello'
         // Missing listId
       }, services);
 
       expect(response.success).toBe(false);
-      expect(response.error).toContain('required');
+      expect(response.error).toContain('Invalid request');
     });
   });
 });

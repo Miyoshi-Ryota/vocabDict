@@ -2,19 +2,19 @@
 //
 //   const Convert = require("./file");
 //
-//   const submitReviewResponse = Convert.toSubmitReviewResponse(json);
+//   const getPendingContextSearchResponse = Convert.toGetPendingContextSearchResponse(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
 // Converts JSON strings to/from your types
 // and asserts the results of JSON.parse at runtime
-function toSubmitReviewResponse(json) {
-    return cast(JSON.parse(json), r("SubmitReviewResponse"));
+function toGetPendingContextSearchResponse(json) {
+    return cast(JSON.parse(json), r("GetPendingContextSearchResponse"));
 }
 
-function submitReviewResponseToJson(value) {
-    return JSON.stringify(uncast(value, r("SubmitReviewResponse")), null, 2);
+function getPendingContextSearchResponseToJson(value) {
+    return JSON.stringify(uncast(value, r("GetPendingContextSearchResponse")), null, 2);
 }
 
 function invalidValue(typ, val, key, parent = '') {
@@ -170,33 +170,14 @@ function r(name) {
 }
 
 const typeMap = {
-    "SubmitReviewResponse": o([
-        { json: "data", js: "data", typ: u(undefined, r("Data")) },
+    "GetPendingContextSearchResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(null, "")) },
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
-    ], "any"),
-    "Data": o([
-        { json: "nextInterval", js: "nextInterval", typ: u(undefined, u(0, null)) },
-        { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
-        { json: "word", js: "word", typ: u(undefined, r("Word")) },
-    ], "any"),
-    "Word": o([
-        { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
-        { json: "dateAdded", js: "dateAdded", typ: u(undefined, Date) },
-        { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
-        { json: "lastReviewed", js: "lastReviewed", typ: u(undefined, u(Date, null)) },
-        { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
-        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("ReviewHistory"))) },
-        { json: "word", js: "word", typ: u(undefined, "") },
-    ], "any"),
-    "ReviewHistory": o([
-        { json: "date", js: "date", typ: u(undefined, Date) },
-        { json: "result", js: "result", typ: u(undefined, "") },
-        { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
     ], "any"),
 };
 
 module.exports = {
-    "submitReviewResponseToJson": submitReviewResponseToJson,
-    "toSubmitReviewResponse": toSubmitReviewResponse,
+    "getPendingContextSearchResponseToJson": getPendingContextSearchResponseToJson,
+    "toGetPendingContextSearchResponse": toGetPendingContextSearchResponse,
 };

@@ -15,8 +15,10 @@ validators.fetchRecentSearches = require('./FetchRecentSearchesRequest');
 validators.fetchReviewQueue = require('./FetchReviewQueueRequest');
 validators.fetchSettings = require('./FetchSettingsRequest');
 validators.fetchVocabularyListWords = require('./FetchVocabularyListWordsRequest');
+validators.getPendingContextSearch = require('./GetPendingContextSearchRequest');
 validators.incrementLookupCount = require('./IncrementLookupCountRequest');
 validators.lookupWord = require('./LookupWordRequest');
+validators.openPopupWithWord = require('./OpenPopupWithWordRequest');
 validators.submitReview = require('./SubmitReviewRequest');
 validators.updateSettings = require('./UpdateSettingsRequest');
 validators.updateWord = require('./UpdateWordRequest');
@@ -32,8 +34,10 @@ validators.fetchRecentSearchesResponse = require('./FetchRecentSearchesResponse'
 validators.fetchReviewQueueResponse = require('./FetchReviewQueueResponse');
 validators.fetchSettingsResponse = require('./FetchSettingsResponse');
 validators.fetchVocabularyListWordsResponse = require('./FetchVocabularyListWordsResponse');
+validators.getPendingContextSearchResponse = require('./GetPendingContextSearchResponse');
 validators.incrementLookupCountResponse = require('./IncrementLookupCountResponse');
 validators.lookupWordResponse = require('./LookupWordResponse');
+validators.openPopupWithWordResponse = require('./OpenPopupWithWordResponse');
 validators.submitReviewResponse = require('./SubmitReviewResponse');
 validators.updateSettingsResponse = require('./UpdateSettingsResponse');
 validators.updateWordResponse = require('./UpdateWordResponse');
@@ -42,7 +46,7 @@ validators.updateWordResponse = require('./UpdateWordResponse');
 function validateRequest(action, data) {
   const validator = validators[action];
   if (!validator) {
-    return { valid: true, data }; // Pass through if no validator
+    return { valid: false, error: `No validator found for action: ${action}` };
   }
   try {
     const functionName = 'to' + action.charAt(0).toUpperCase() + action.slice(1) + 'Request';
@@ -58,7 +62,7 @@ function validateResponse(action, data) {
   const validatorKey = action + 'Response';
   const validator = validators[validatorKey];
   if (!validator) {
-    return { valid: true, data }; // Pass through if no validator
+    return { valid: false, error: `No response validator found for action: ${action}` };
   }
   try {
     const functionName = 'to' + action.charAt(0).toUpperCase() + action.slice(1) + 'Response';
