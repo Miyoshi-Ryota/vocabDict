@@ -134,69 +134,20 @@ async function handleMessage(message, services) {
         if (!message.listId) {
           return { success: false, error: 'ListId is required' };
         }
-
-        // Fetch all lists to locate the target list
-        const payloadLists = { action: "fetchAllVocabularyLists" };
-        const vrReq = validators.validateRequest('fetchAllVocabularyLists', payloadLists);
+        // Forward to native handler to build words + lookupStats
+        const payload = {
+          action: 'fetchVocabularyListWords',
+          listId: message.listId,
+          filterBy: message.filterBy,
+          sortBy: message.sortBy,
+          sortOrder: message.sortOrder
+        };
+        const vrReq = validators.validateRequest('fetchVocabularyListWords', payload);
         if (!vrReq.valid) {
           return { success: false, error: `Invalid request: ${vrReq.error}` };
         }
         const response = await browser.runtime.sendNativeMessage(vrReq.data);
-        const vrLists2 = validators.validateResponse('fetchAllVocabularyLists', response);
-        if (!vrLists2.valid) {
-          return { success: false, error: `Invalid response: ${vrLists2.error}` };
-        }
-        const lists = response.vocabularyLists || [];
-        const listData = lists.find(l => l.id === message.listId);
-        if (!listData) {
-          return { success: false, error: 'List not found' };
-        }
-
-        // Build words array from list data (UserWordData only)
-        let words = Object.values(listData.words || {});
-
-        // Filtering by difficulty bucket if requested
-        if (message.filterBy && message.filterBy !== 'all') {
-          const bucketOf = (d) => {
-            const val = typeof d === 'number' ? d : Number.MAX_SAFE_INTEGER;
-            return val <= 3000 ? 'easy' : (val < 10000 ? 'medium' : 'hard');
-          };
-          words = words.filter(w => bucketOf(w.difficulty) === message.filterBy);
-        }
-
-        // Build lookupStats map for current words
-        const lookupStats = {};
-        for (const w of words) {
-          const count = await dictionary.getLookupCount(w.word);
-          // Only count is strictly needed; word key included for completeness
-          lookupStats[w.word] = { word: w.word, count };
-        }
-
-        // Sorting
-        if (message.sortBy && words.length > 0) {
-          const sortOrder = message.sortOrder || 'asc';
-          const order = (n) => sortOrder === 'desc' ? -n : n;
-          const toNum = (v) => (typeof v === 'number') ? v : Number.MAX_SAFE_INTEGER;
-          const cmp = {
-            alphabetical: (a, b) => order(a.word.localeCompare(b.word)),
-            dateAdded: (a, b) => order(new Date(a.dateAdded) - new Date(b.dateAdded)),
-            lastReviewed: (a, b) => {
-              const aHas = !!a.lastReviewed, bHas = !!b.lastReviewed;
-              if (!aHas && !bHas) return 0;
-              if (!aHas) return order(1);
-              if (!bHas) return order(-1);
-              return order(new Date(a.lastReviewed) - new Date(b.lastReviewed));
-            },
-            difficulty: (a, b) => order(toNum(a.difficulty) - toNum(b.difficulty)),
-            lookupCount: (a, b) => order((lookupStats[a.word]?.count || 0) - (lookupStats[b.word]?.count || 0))
-          }[message.sortBy];
-          if (cmp) {
-            words.sort(cmp);
-          }
-        }
-
-        const result = { success: true, data: { words, lookupStats } };
-        const vrResp = validators.validateResponse('fetchVocabularyListWords', result);
+        const vrResp = validators.validateResponse('fetchVocabularyListWords', response);
         if (!vrResp.valid) {
           return { success: false, error: `Invalid response: ${vrResp.error}` };
         }

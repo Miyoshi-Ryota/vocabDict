@@ -78,6 +78,84 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
 
         switch action {
+        case "fetchVocabularyListWords":
+            // Decode and validate request
+            let req: ProtoFetchVocabularyListWordsRequest
+            do {
+                req = try JSONDecoder().decode(ProtoFetchVocabularyListWordsRequest.self, from: jsonData)
+            } catch {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+
+            // NOTE:
+            //  - 将来的にこの SafariWebExtensionHandler は「極力薄く」保つ方針です。
+            //  - コマンドパターン採用後は、本ケースのフィルタ/ソート/lookupStats 構築などのロジックは
+            //    SomeCommand.from_proto(req, ctx).execute() 側へ移し、ここでは
+            //      受信 → デコード → コマンド実行 → エンコード（検証）
+            //    のみを担う予定です。
+            //  - 現時点では JS 側からの素通し要件に合わせて、最小限の組み立てをこのハンドラ内で実施しています。
+
+            guard let listUUID = UUID(uuidString: req.listID), let vocabularyList = cloudKitStore.getVocabularyList(id: listUUID) else {
+                let response = NSExtensionItem()
+                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "List not found" ] ]
+                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                return
+            }
+
+            // Start from model objects for filtering/sorting fidelity
+            var items = Array(vocabularyList.words.values)
+
+            // Filter by difficulty bucket if requested
+            if let filter = req.filterBy?.rawValue, filter != "all" {
+                func bucket(_ d: Int) -> String { return d <= 3000 ? "easy" : (d < 10000 ? "medium" : "hard") }
+                items = items.filter { bucket($0.difficulty) == filter }
+            }
+
+            // Build lookup stats map for current words
+            let allStats = cloudKitStore.getLookupStats() // [word: dict]
+            var filteredStats: [String: Any] = [:]
+            let wordsSet = Set(items.map { $0.word.lowercased() })
+            for (word, stat) in allStats where wordsSet.contains(word) {
+                filteredStats[word] = stat
+            }
+
+            // Sorting
+            if let sortBy = req.sortBy?.rawValue {
+                let desc = (req.sortOrder?.rawValue == "desc")
+                func cmp<T: Comparable>(_ a: T, _ b: T) -> Bool { return desc ? (a > b) : (a < b) }
+                switch sortBy {
+                case "alphabetical":
+                    items.sort { cmp($0.word, $1.word) }
+                case "dateAdded":
+                    items.sort { cmp($0.dateAdded, $1.dateAdded) }
+                case "lastReviewed":
+                    // Keep nils at the end regardless of order
+                    let reviewed = items.filter { $0.lastReviewed != nil }
+                    let notReviewed = items.filter { $0.lastReviewed == nil }
+                    let sorted = reviewed.sorted { (a, b) in
+                        guard let la = a.lastReviewed, let lb = b.lastReviewed else { return false }
+                        return desc ? (la > lb) : (la < lb)
+                    }
+                    items = sorted + notReviewed
+                case "difficulty":
+                    items.sort { cmp($0.difficulty, $1.difficulty) }
+                case "lookupCount":
+                    func count(_ w: String) -> Int { (filteredStats[w.lowercased()] as? [String: Any])? ["count"] as? Int ?? 0 }
+                    items.sort { cmp(count($0.word), count($1.word)) }
+                default:
+                    break
+                }
+            }
+
+            let wordsPayload = items.map { $0.toDictionary() }
+            validateAndComplete([ "success": true, "data": [
+                "words": wordsPayload,
+                "lookupStats": filteredStats
+            ]], as: ProtoFetchVocabularyListWordsResponse.self)
+
         case "fetchAllVocabularyLists":
             // Validate request using Codable
             do {

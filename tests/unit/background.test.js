@@ -28,6 +28,25 @@ describe('Background Message Handler', () => {
           vocabularyLists: [{ ...rest, createdAt: created }]
         });
       }
+      if (message.action === 'fetchVocabularyListWords') {
+        // Build native-style response: { success, data: { words, lookupStats } }
+        const all = Object.values(mockList.words || {});
+        // Filter by bucket
+        const bucket = (d) => (typeof d === 'number' ? d : Number.MAX_SAFE_INTEGER) <= 3000 ? 'easy' : ((typeof d === 'number' ? d : Number.MAX_SAFE_INTEGER) < 10000 ? 'medium' : 'hard');
+        const filtered = (message.filterBy && message.filterBy !== 'all') ? all.filter(w => bucket(w.difficulty) === message.filterBy) : all;
+        // Lookup stats map (simple counts for the test)
+        const lookupStats = {};
+        for (const w of filtered) {
+          lookupStats[w.word] = { word: w.word, count: w.word === 'hello' ? 5 : (w.word === 'world' ? 2 : 0) };
+        }
+        // Sort by lookupCount desc if requested
+        let words = [...filtered];
+        if (message.sortBy === 'lookupCount') {
+          const factor = (message.sortOrder || 'asc') === 'desc' ? -1 : 1;
+          words.sort((a, b) => factor * ((lookupStats[a.word]?.count || 0) - (lookupStats[b.word]?.count || 0)));
+        }
+        return Promise.resolve({ success: true, data: { words, lookupStats } });
+      }
       if (message.action === 'addWordToVocabularyList') {
         const word = message.word;
         if (!dictionary.getDictionaryData(word)) {
@@ -358,9 +377,7 @@ describe('Background Message Handler', () => {
       await mockList.addWord('world', { difficulty: 5000 });
       await mockList.addWord('apple', { difficulty: 1000 });
 
-      dictionary.getLookupCount = jest.fn().mockImplementation(word => {
-        return word === 'hello' ? 5 : word === 'world' ? 2 : 0;
-      });
+      // Native handler will compute lookupStats; dictionary.getLookupCount is not used here
 
       const result = await handleMessage({
         action: MessageTypes.FETCH_VOCABULARY_LIST_WORDS,
@@ -376,7 +393,8 @@ describe('Background Message Handler', () => {
       expect(result.data.words).toHaveLength(2);
       expect(result.data.words[0].word).toBe('hello');
       expect(result.data.words[1].word).toBe('world');
-      expect(dictionary.getLookupCount).toHaveBeenCalledWith('hello');
+      // lookupStats is included in response data keyed by word
+      expect(result.data.lookupStats).toBeDefined();
     });
 
     test('should require listId', async () => {
