@@ -302,6 +302,7 @@ async function handleMessage(message, services) {
         const result = { success: true, data: queue };
         const vrResp = validators.validateResponse('fetchReviewQueue', result);
         if (!vrResp.valid) {
+          console.error('fetchReviewQueue response validation error:', vrResp.error, JSON.stringify(result).slice(0,200));
           return { success: false, error: `Invalid response: ${vrResp.error}` };
         }
         return result;
@@ -337,10 +338,9 @@ async function handleMessage(message, services) {
             return { success: false, error: reviewResponse.error };
           }
 
-          return { 
-            success: true, 
-            data: reviewResponse.data 
-          };
+          const d = reviewResponse.data || {};
+          const flattened = { lastReviewed: d.word?.lastReviewed, nextReview: d.nextReview };
+          return { success: true, data: flattened };
         } catch (error) {
           console.error('Submit review error:', error);
           return { success: false, error: error.message };
