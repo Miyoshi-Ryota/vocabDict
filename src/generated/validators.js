@@ -5,38 +5,38 @@
 const validators = {};
 
 // Request validators
-validators.lookupWord = require('./LookupWordRequest');
-validators.addWordToVocabularyList = require('./AddWordToVocabularyListRequest');
-validators.submitReview = require('./SubmitReviewRequest');
-validators.createVocabularyList = require('./CreateVocabularyListRequest');
-validators.fetchAllVocabularyLists = require('./FetchAllVocabularyListsRequest');
-validators.fetchVocabularyListWords = require('./FetchVocabularyListWordsRequest');
-validators.updateWord = require('./UpdateWordRequest');
-validators.fetchSettings = require('./FetchSettingsRequest');
-validators.updateSettings = require('./UpdateSettingsRequest');
-validators.fetchReviewQueue = require('./FetchReviewQueueRequest');
-validators.addRecentSearch = require('./AddRecentSearchRequest');
-validators.fetchRecentSearches = require('./FetchRecentSearchesRequest');
-validators.incrementLookupCount = require('./IncrementLookupCountRequest');
-validators.fetchLookupCount = require('./FetchLookupCountRequest');
-validators.fetchLookupStats = require('./FetchLookupStatsRequest');
+validators.LAddRecentSearch = require('./AddRecentSearchRequest');
+validators.LAddWordToVocabularyList = require('./AddWordToVocabularyListRequest');
+validators.LCreateVocabularyList = require('./CreateVocabularyListRequest');
+validators.LFetchAllVocabularyLists = require('./FetchAllVocabularyListsRequest');
+validators.LFetchLookupCount = require('./FetchLookupCountRequest');
+validators.LFetchLookupStats = require('./FetchLookupStatsRequest');
+validators.LFetchRecentSearches = require('./FetchRecentSearchesRequest');
+validators.LFetchReviewQueue = require('./FetchReviewQueueRequest');
+validators.LFetchSettings = require('./FetchSettingsRequest');
+validators.LFetchVocabularyListWords = require('./FetchVocabularyListWordsRequest');
+validators.LIncrementLookupCount = require('./IncrementLookupCountRequest');
+validators.LLookupWord = require('./LookupWordRequest');
+validators.LSubmitReview = require('./SubmitReviewRequest');
+validators.LUpdateSettings = require('./UpdateSettingsRequest');
+validators.LUpdateWord = require('./UpdateWordRequest');
 
 // Response validators
-validators.lookupWordResponse = require('./LookupWordResponse');
-validators.addWordToVocabularyListResponse = require('./AddWordToVocabularyListResponse');
-validators.submitReviewResponse = require('./SubmitReviewResponse');
-validators.createVocabularyListResponse = require('./CreateVocabularyListResponse');
-validators.fetchAllVocabularyListsResponse = require('./FetchAllVocabularyListsResponse');
-validators.fetchVocabularyListWordsResponse = require('./FetchVocabularyListWordsResponse');
-validators.updateWordResponse = require('./UpdateWordResponse');
-validators.fetchSettingsResponse = require('./FetchSettingsResponse');
-validators.updateSettingsResponse = require('./UpdateSettingsResponse');
-validators.fetchReviewQueueResponse = require('./FetchReviewQueueResponse');
-validators.addRecentSearchResponse = require('./AddRecentSearchResponse');
-validators.fetchRecentSearchesResponse = require('./FetchRecentSearchesResponse');
-validators.incrementLookupCountResponse = require('./IncrementLookupCountResponse');
-validators.fetchLookupCountResponse = require('./FetchLookupCountResponse');
-validators.fetchLookupStatsResponse = require('./FetchLookupStatsResponse');
+validators.LAddRecentSearchResponse = require('./AddRecentSearchResponse');
+validators.LAddWordToVocabularyListResponse = require('./AddWordToVocabularyListResponse');
+validators.LCreateVocabularyListResponse = require('./CreateVocabularyListResponse');
+validators.LFetchAllVocabularyListsResponse = require('./FetchAllVocabularyListsResponse');
+validators.LFetchLookupCountResponse = require('./FetchLookupCountResponse');
+validators.LFetchLookupStatsResponse = require('./FetchLookupStatsResponse');
+validators.LFetchRecentSearchesResponse = require('./FetchRecentSearchesResponse');
+validators.LFetchReviewQueueResponse = require('./FetchReviewQueueResponse');
+validators.LFetchSettingsResponse = require('./FetchSettingsResponse');
+validators.LFetchVocabularyListWordsResponse = require('./FetchVocabularyListWordsResponse');
+validators.LIncrementLookupCountResponse = require('./IncrementLookupCountResponse');
+validators.LLookupWordResponse = require('./LookupWordResponse');
+validators.LSubmitReviewResponse = require('./SubmitReviewResponse');
+validators.LUpdateSettingsResponse = require('./UpdateSettingsResponse');
+validators.LUpdateWordResponse = require('./UpdateWordResponse');
 
 // Helper function to validate requests
 function validateRequest(action, data) {
@@ -44,7 +44,6 @@ function validateRequest(action, data) {
   if (!validator) {
     return { valid: true, data }; // Pass through if no validator
   }
-  
   try {
     const functionName = 'to' + action.charAt(0).toUpperCase() + action.slice(1) + 'Request';
     const validated = validator[functionName](JSON.stringify(data));
@@ -61,7 +60,6 @@ function validateResponse(action, data) {
   if (!validator) {
     return { valid: true, data }; // Pass through if no validator
   }
-  
   try {
     const functionName = 'to' + action.charAt(0).toUpperCase() + action.slice(1) + 'Response';
     const validated = validator[functionName](JSON.stringify(data));
