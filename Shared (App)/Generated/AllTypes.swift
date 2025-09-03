@@ -180,7 +180,7 @@ struct FetchAllVocabularyListsResponse: Codable {
 
 // MARK: - VocabularyListElement
 struct VocabularyListElement: Codable {
-    let created: Date?
+    let createdAt: Date?
     let id: String?
     let isDefault: Bool?
     let name: String?
@@ -689,7 +689,8 @@ struct UpdateWordResponse: Codable {
 /// The updated word entry.
 // MARK: - UpdateWordResponseData
 struct UpdateWordResponseData: Codable {
-    let difficulty: Difficulty?
+    /// Word difficulty (frequency) as an integer
+    let difficulty: Int?
     let metadata: [String: JSONAny]?
     let notes: String?
     let updatedAt: Date?

@@ -176,7 +176,7 @@ const typeMap = {
         { json: "vocabularyLists", js: "vocabularyLists", typ: u(undefined, a(r("VocabularyList"))) },
     ], "any"),
     "VocabularyList": o([
-        { json: "created", js: "created", typ: u(undefined, Date) },
+        { json: "createdAt", js: "createdAt", typ: u(undefined, Date) },
         { json: "id", js: "id", typ: u(undefined, "") },
         { json: "isDefault", js: "isDefault", typ: u(undefined, true) },
         { json: "name", js: "name", typ: u(undefined, "") },

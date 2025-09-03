@@ -44,6 +44,33 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             return
         }
         
+        func complete(_ payload: [String: Any]) {
+            let response = NSExtensionItem()
+            response.userInfo = [ SFExtensionMessageKey: payload ]
+            context.completeRequest(returningItems: [ response ], completionHandler: nil)
+        }
+
+        func fail(_ message: String) {
+            complete([ "success": false, "error": message ])
+        }
+
+        // Centralized response validation (Codable round-trip) using generated types as SSOT.
+        func validateAndComplete<T: Codable>(_ payload: [String: Any], as: T.Type) {
+            do {
+                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                _ = try decoder.decode(T.self, from: raw)
+                let encoder = JSONEncoder()
+                encoder.dateEncodingStrategy = .iso8601
+                let encoded = try encoder.encode(try decoder.decode(T.self, from: raw))
+                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
+                complete(jsonObject as? [String: Any] ?? payload)
+            } catch {
+                fail("Encoding response failed: \(error.localizedDescription)")
+            }
+        }
+
         switch action {
         case "fetchAllVocabularyLists":
             // Validate request using Codable
@@ -57,27 +84,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "vocabularyLists": listsData
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                _ = try decoder.decode(FetchAllVocabularyListsResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                let encoded = try encoder.encode(try decoder.decode(FetchAllVocabularyListsResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "vocabularyLists": listsData ], as: FetchAllVocabularyListsResponse.self)
             
         case "createVocabularyList":
             // Decode and validate request
@@ -92,27 +99,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let newList = cloudKitStore.createVocabularyList(name: createRequest.name, isDefault: createRequest.isDefault ?? false)
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "vocabularyList": newList.toDictionary()
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                _ = try decoder.decode(CreateVocabularyListResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                let encoded = try encoder.encode(try decoder.decode(CreateVocabularyListResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "vocabularyList": newList.toDictionary() ], as: CreateVocabularyListResponse.self)
             
         case "addWordToVocabularyList":
             // Decode and validate request
@@ -144,27 +131,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             
             // Add word to list
             if let wordEntry = cloudKitStore.addWordToVocabularyList(word: addWordRequest.word, metadata: metadata, to: listUUID) {
-                do {
-                    let payload: [String: Any] = [
-                        "success": true,
-                        "data": wordEntry.toDictionary()
-                    ]
-                    let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-                    _ = try decoder.decode(AddWordToVocabularyListResponse.self, from: raw)
-                    let encoder = JSONEncoder()
-                    encoder.dateEncodingStrategy = .iso8601
-                    let encoded = try encoder.encode(try decoder.decode(AddWordToVocabularyListResponse.self, from: raw))
-                    let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                    let response = NSExtensionItem()
-                    response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                    context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                } catch {
-                    let response = NSExtensionItem()
-                    response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                    context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                }
+                validateAndComplete([ "success": true, "data": wordEntry.toDictionary() ], as: AddWordToVocabularyListResponse.self)
             } else {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to add word to list" ] ]
@@ -184,22 +151,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             cloudKitStore.addRecentSearch(word: recentSearchRequest.word)
-            do {
-                let payload: [String: Any] = [ "success": true ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                _ = try decoder.decode(AddRecentSearchResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(try decoder.decode(AddRecentSearchResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true ], as: AddRecentSearchResponse.self)
             
         case "fetchRecentSearches":
             // Validate request using Codable
@@ -213,25 +165,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let searches = cloudKitStore.getRecentSearches()
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "recentSearches": searches
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                _ = try decoder.decode(FetchRecentSearchesResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(try decoder.decode(FetchRecentSearchesResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "recentSearches": searches ], as: FetchRecentSearchesResponse.self)
             
         case "fetchSettings":
             // Validate request using Codable
@@ -245,25 +179,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let settings = cloudKitStore.getSettings()
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "settings": settings.toDictionary()
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                _ = try decoder.decode(FetchSettingsResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(try decoder.decode(FetchSettingsResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "settings": settings.toDictionary() ], as: FetchSettingsResponse.self)
             
         case "updateSettings":
             // Decode and validate request
@@ -296,25 +212,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let updatedSettings = cloudKitStore.updateSettings(updates)
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "settings": updatedSettings.toDictionary()
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                _ = try decoder.decode(UpdateSettingsResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(try decoder.decode(UpdateSettingsResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "settings": updatedSettings.toDictionary() ], as: UpdateSettingsResponse.self)
             
         case "incrementLookupCount":
             // Decode and validate request
@@ -329,22 +227,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             cloudKitStore.incrementLookupCount(for: incrementRequest.word)
-            do {
-                let payload: [String: Any] = [ "success": true ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                _ = try decoder.decode(IncrementLookupCountResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(try decoder.decode(IncrementLookupCountResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true ], as: IncrementLookupCountResponse.self)
             
         case "fetchLookupStats": // Currently not used from JS side, reserved for future use
             // Validate request using Codable
@@ -358,27 +241,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let stats = cloudKitStore.getLookupStats()
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "stats": stats
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                _ = try decoder.decode(FetchLookupStatsResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                let encoded = try encoder.encode(try decoder.decode(FetchLookupStatsResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "stats": stats ], as: FetchLookupStatsResponse.self)
             
         case "fetchLookupCount":
             // Decode and validate request
@@ -393,25 +256,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let count = cloudKitStore.getLookupCount(for: lookupCountRequest.word)
-            do {
-                let payload: [String: Any] = [
-                    "success": true,
-                    "count": count
-                ]
-                let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                let decoder = JSONDecoder()
-                _ = try decoder.decode(FetchLookupCountResponse.self, from: raw)
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(try decoder.decode(FetchLookupCountResponse.self, from: raw))
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete([ "success": true, "count": count ], as: FetchLookupCountResponse.self)
             
         case "submitReview":
             // Decode and validate request
@@ -438,24 +283,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 timeSpent: submitReviewRequest.timeSpent ?? 0.0,
                 in: listUUID
             )
-            // Validate and re-encode via generated Codable to enforce schema
-            do {
-                let rawData = try JSONSerialization.data(withJSONObject: reviewResponse, options: [])
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                let typed = try decoder.decode(SubmitReviewResponse.self, from: rawData)
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                let encoded = try encoder.encode(typed)
-                let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-            }
+            validateAndComplete(reviewResponse, as: SubmitReviewResponse.self)
             
         case "updateWord":
             // Decode and validate request
@@ -486,31 +314,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             if let updatedWord = cloudKitStore.updateWord(word: updateWordRequest.word, updates: updates, in: listUUID) {
-                do {
-                    let payload: [String: Any] = [
-                        "success": true,
-                        "data": updatedWord.toDictionary()
-                    ]
-                    let raw = try JSONSerialization.data(withJSONObject: payload, options: [])
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-                    _ = try decoder.decode(UpdateWordResponse.self, from: raw)
-                    let encoder = JSONEncoder()
-                    encoder.dateEncodingStrategy = .iso8601
-                    let encoded = try encoder.encode(try decoder.decode(UpdateWordResponse.self, from: raw))
-                    let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
-                    let response = NSExtensionItem()
-                    response.userInfo = [ SFExtensionMessageKey: jsonObject ]
-                    context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                } catch {
-                    let response = NSExtensionItem()
-                    response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Encoding response failed: \(error.localizedDescription)" ] ]
-                    context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                }
+                validateAndComplete([ "success": true, "data": updatedWord.toDictionary() ], as: UpdateWordResponse.self)
             } else {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to update word" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+                fail("Failed to update word")
             }
             
         default:

@@ -176,17 +176,12 @@ const typeMap = {
         { json: "success", js: "success", typ: true },
     ], "any"),
     "Data": o([
-        { json: "difficulty", js: "difficulty", typ: u(undefined, r("Difficulty")) },
+        { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
         { json: "metadata", js: "metadata", typ: u(undefined, m("any")) },
         { json: "notes", js: "notes", typ: u(undefined, "") },
         { json: "updatedAt", js: "updatedAt", typ: u(undefined, Date) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
-    "Difficulty": [
-        "easy",
-        "hard",
-        "medium",
-    ],
 };
 
 module.exports = {
