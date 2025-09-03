@@ -33,9 +33,6 @@
           "type": "string",
           "description": "Custom notes about the word"
         },
-        "metadata": {
-          "type": "object"
-        },
         "notes": {
           "type": "string"
         }

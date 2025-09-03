@@ -179,7 +179,6 @@ const typeMap = {
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
         { json: "listId", js: "listId", typ: u(undefined, "") },
         { json: "listName", js: "listName", typ: u(undefined, "") },
-        { json: "metadata", js: "metadata", typ: u(undefined, m("any")) },
         { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),

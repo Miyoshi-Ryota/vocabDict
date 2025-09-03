@@ -177,8 +177,14 @@ const typeMap = {
         { json: "suggestions", js: "suggestions", typ: u(undefined, a("")) },
     ], "any"),
     "Data": o([
-        { json: "definitions", js: "definitions", typ: u(undefined, a(m("any"))) },
+        { json: "definitions", js: "definitions", typ: u(undefined, a(r("Items"))) },
         { json: "word", js: "word", typ: u(undefined, "") },
+    ], "any"),
+    "Items": o([
+        { json: "definition", js: "definition", typ: u(undefined, "") },
+        { json: "examples", js: "examples", typ: u(undefined, a("")) },
+        { json: "meaning", js: "meaning", typ: u(undefined, "") },
+        { json: "partOfSpeech", js: "partOfSpeech", typ: u(undefined, "") },
     ], "any"),
 };
 

@@ -179,7 +179,6 @@ const typeMap = {
     "Updates": o([
         { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
-        { json: "metadata", js: "metadata", typ: u(undefined, m("any")) },
         { json: "notes", js: "notes", typ: u(undefined, "") },
     ], "any"),
     "Action": [

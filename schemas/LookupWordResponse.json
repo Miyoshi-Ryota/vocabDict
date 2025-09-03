@@ -18,9 +18,7 @@
         },
         "definitions": {
           "type": "array",
-          "items": {
-            "type": "object"
-          }
+          "items": { "$ref": "#/$defs/Definition" }
         }
       }
     },
@@ -34,6 +32,17 @@
     "error": {
       "type": "string",
       "description": "Error message if the lookup failed."
+    }
+  },
+  "$defs": {
+    "Definition": {
+      "type": "object",
+      "properties": {
+        "partOfSpeech": { "type": "string" },
+        "meaning": { "type": "string" },
+        "definition": { "type": "string" },
+        "examples": { "type": "array", "items": { "type": "string" } }
+      }
     }
   }
 }

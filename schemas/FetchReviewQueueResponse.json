@@ -33,9 +33,6 @@
             "type": "integer",
             "minimum": 1,
             "description": "Word difficulty (frequency) as an integer"
-          },
-          "metadata": {
-            "type": "object"
           }
         }
       }
