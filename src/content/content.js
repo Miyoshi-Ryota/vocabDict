@@ -108,8 +108,8 @@ function createLookupButton(selectedText, rect) {
         action: 'fetchSettings'
       });
 
-      const textSelectionMode = settingsResponse.success && settingsResponse.data
-        ? settingsResponse.data.textSelectionMode || 'inline'
+      const textSelectionMode = settingsResponse && settingsResponse.success && settingsResponse.settings
+        ? settingsResponse.settings.textSelectionMode || 'inline'
         : 'inline';
 
       if (textSelectionMode === 'popup') {

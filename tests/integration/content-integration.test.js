@@ -455,7 +455,7 @@ describe('Content Script User Flow Integration Tests', () => {
       const originalSendMessage = browser.runtime.sendMessage;
       browser.runtime.sendMessage = jest.fn((message) => {
         if (message.action === 'fetchSettings') {
-          return Promise.resolve({ success: true, data: { textSelectionMode: 'popup' } });
+          return Promise.resolve({ success: true, settings: { textSelectionMode: 'popup' } });
         }
         if (message.action === 'openPopupWithWord') {
           browser.action.openPopup.mockResolvedValue();

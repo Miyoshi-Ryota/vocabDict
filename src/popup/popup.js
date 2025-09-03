@@ -572,7 +572,7 @@ const ListsTab = {
     // Base word item structure
     let wordItem = `
       <div class="word-list-item">
-        <div class="difficulty-indicator difficulty-${word.difficulty || 'medium'}"></div>
+        <div class="difficulty-indicator"></div>
         <div class="word-list-text">
           <div class="word-list-word">${word.word}</div>
           <div class="word-list-status">
@@ -589,9 +589,9 @@ const ListsTab = {
         <span class="date-added">Added: ${this.formatDate(word.dateAdded)}</span>
       `;
     } else if (sortBy === 'difficulty') {
-      const difficultyMap = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+      const diffVal = (typeof word.difficulty === 'number') ? word.difficulty : '';
       wordItem += `
-        <span class="difficulty-badge">${difficultyMap[word.difficulty] || 'Medium'}</span>
+        <span class="difficulty-badge">${diffVal}</span>
       `;
     } else {
       // Default status
@@ -691,7 +691,7 @@ const ListsTab = {
 
     try {
       const response = await browser.runtime.sendMessage({
-        action: 'createList',
+        action: 'createVocabularyList',
         name
       });
 

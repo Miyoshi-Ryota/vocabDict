@@ -57,7 +57,7 @@ async function handleMessage(message, services) {
           const out = { success: true, data: result };
           const v = validators.validateResponse('lookupWord', out);
           if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
-          return out;
+          return v.data;
         }
 
         // Try fuzzy search using the fuzzy match method
@@ -66,13 +66,13 @@ async function handleMessage(message, services) {
           const out = { success: true, data: null, suggestions };
           const v = validators.validateResponse('lookupWord', out);
           if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
-          return out;
+          return v.data;
         }
 
         const out = { success: false, error: 'Word not found' };
         const v = validators.validateResponse('lookupWord', out);
         if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
-        return out;
+        return v.data;
       }
 
       case MessageTypes.ADD_WORD_TO_VOCABULARY_LIST: {
@@ -98,7 +98,7 @@ async function handleMessage(message, services) {
             return { success: false, error: `Invalid request: ${vrReq.error}` };
           }
           // Send to native handler to add word to SwiftData/CloudKit
-          const response = await browser.runtime.sendNativeMessage(payload);
+          const response = await browser.runtime.sendNativeMessage(vrReq.data);
           const vrAdd = validators.validateResponse('addWordToVocabularyList', response);
           if (!vrAdd.valid) {
             return { success: false, error: `Invalid response: ${vrAdd.error}` };
@@ -108,7 +108,7 @@ async function handleMessage(message, services) {
             return { success: false, error: response.error };
           }
 
-          return { success: true, data: response.data };
+          return vrAdd.data;
         } catch (error) {
           return { success: false, error: error.message };
         }
@@ -121,13 +121,13 @@ async function handleMessage(message, services) {
         if (!vrReq.valid) {
           return { success: false, error: `Invalid request: ${vrReq.error}` };
         }
-        const response = await browser.runtime.sendNativeMessage(payload);
+        const response = await browser.runtime.sendNativeMessage(vrReq.data);
         const vrLists = validators.validateResponse('fetchAllVocabularyLists', response);
         if (!vrLists.valid) {
           return { success: false, error: `Invalid response: ${vrLists.error}` };
         }
         console.log("Received vocabulary lists:", response);
-        return response;
+        return vrLists.data;
       }
 
       case MessageTypes.FETCH_VOCABULARY_LIST_WORDS: {
@@ -140,7 +140,7 @@ async function handleMessage(message, services) {
         if (!vrReq.valid) {
           return { success: false, error: `Invalid request: ${vrReq.error}` };
         }
-        const response = await browser.runtime.sendNativeMessage(payloadLists);
+        const response = await browser.runtime.sendNativeMessage(vrReq.data);
         const vrLists2 = validators.validateResponse('fetchAllVocabularyLists', response);
         if (!vrLists2.valid) {
           return { success: false, error: `Invalid response: ${vrLists2.error}` };
@@ -184,7 +184,7 @@ async function handleMessage(message, services) {
           const out = { success: true, data: sortedWords };
           const v = validators.validateResponse('fetchVocabularyListWords', out);
           if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
-          return out;
+          return v.data;
         }
 
         const result = { success: true, data: enhancedWords };
@@ -192,7 +192,7 @@ async function handleMessage(message, services) {
         if (!vrResp.valid) {
           return { success: false, error: `Invalid response: ${vrResp.error}` };
         }
-        return result;
+        return vrResp.data;
       }
 
       case MessageTypes.CREATE_VOCABULARY_LIST: {
@@ -214,12 +214,12 @@ async function handleMessage(message, services) {
         if (!vrReq.valid) {
           return { success: false, error: `Invalid request: ${vrReq.error}` };
         }
-        const response = await browser.runtime.sendNativeMessage(payload);
+        const response = await browser.runtime.sendNativeMessage(vrReq.data);
         const vrCreate = validators.validateResponse('createVocabularyList', response);
         if (!vrCreate.valid) {
           return { success: false, error: `Invalid response: ${vrCreate.error}` };
         }
-        return response;
+        return vrCreate.data;
       }
 
       case MessageTypes.UPDATE_WORD: {
@@ -238,7 +238,7 @@ async function handleMessage(message, services) {
           if (!vrReq.valid) {
             return { success: false, error: `Invalid request: ${vrReq.error}` };
           }
-          const response = await browser.runtime.sendNativeMessage(payload);
+          const response = await browser.runtime.sendNativeMessage(vrReq.data);
           const vrUpd = validators.validateResponse('updateWord', response);
           if (!vrUpd.valid) {
             return { success: false, error: `Invalid response: ${vrUpd.error}` };
@@ -247,7 +247,7 @@ async function handleMessage(message, services) {
             return { success: false, error: response.error };
           }
 
-          return { success: true, data: response.data };
+          return vrUpd.data;
         } catch (error) {
           return { success: false, error: error.message };
         }
@@ -259,7 +259,7 @@ async function handleMessage(message, services) {
         if (!vrReq.valid) {
           return { success: false, error: `Invalid request: ${vrReq.error}` };
         }
-        const response = await browser.runtime.sendNativeMessage(payload);
+        const response = await browser.runtime.sendNativeMessage(vrReq.data);
         const vrLists3 = validators.validateResponse('fetchAllVocabularyLists', response);
         if (!vrLists3.valid) {
           return { success: false, error: `Invalid response: ${vrLists3.error}` };
@@ -300,7 +300,7 @@ async function handleMessage(message, services) {
           console.error('fetchReviewQueue response validation error:', vrResp.error, JSON.stringify(result).slice(0,200));
           return { success: false, error: `Invalid response: ${vrResp.error}` };
         }
-        return result;
+        return vrResp.data;
       }
 
       case MessageTypes.SUBMIT_REVIEW: {
@@ -322,12 +322,12 @@ async function handleMessage(message, services) {
           if (!vrReq.valid) {
             return { success: false, error: `Invalid request: ${vrReq.error}` };
           }
-          const reviewResponse = await browser.runtime.sendNativeMessage(payload);
+          const reviewResponse = await browser.runtime.sendNativeMessage(vrReq.data);
           const vrReview = validators.validateResponse('submitReview', reviewResponse);
           if (!vrReview.valid) {
             return { success: false, error: `Invalid response: ${vrReview.error}` };
           }
-          return reviewResponse;
+          return vrReview.data;
         } catch (error) {
           console.error('Submit review error:', error);
           return { success: false, error: error.message };
@@ -357,12 +357,12 @@ async function handleMessage(message, services) {
           if (!vrReq.valid) {
             return { success: false, error: `Invalid request: ${vrReq.error}` };
           }
-          const response = await browser.runtime.sendNativeMessage(payload);
+          const response = await browser.runtime.sendNativeMessage(vrReq.data);
           const vrRecent = validators.validateResponse('fetchRecentSearches', response);
           if (!vrRecent.valid) {
             return { success: false, error: `Invalid response: ${vrRecent.error}` };
           }
-          return response;
+          return vrRecent.data;
         } catch (error) {
           console.error('Failed to get recent searches:', error);
           return { success: true, data: [] };
@@ -376,12 +376,12 @@ async function handleMessage(message, services) {
           if (!vrReq.valid) {
             return { success: false, error: `Invalid request: ${vrReq.error}` };
           }
-          const response = await browser.runtime.sendNativeMessage(payload);
+          const response = await browser.runtime.sendNativeMessage(vrReq.data);
           const vrSettings = validators.validateResponse('fetchSettings', response);
           if (!vrSettings.valid) {
             return { success: false, error: `Invalid response: ${vrSettings.error}` };
           }
-          return response;
+          return vrSettings.data;
         } catch (error) {
           console.error('Failed to get settings:', error);
           // Return default settings on error
@@ -393,7 +393,7 @@ async function handleMessage(message, services) {
           }};
           const v = validators.validateResponse('fetchSettings', fallback);
           if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
-          return fallback;
+          return v.data;
         }
       }
 
@@ -411,12 +411,12 @@ async function handleMessage(message, services) {
           if (!vrReq.valid) {
             return { success: false, error: `Invalid request: ${vrReq.error}` };
           }
-          const response = await browser.runtime.sendNativeMessage(payload);
+          const response = await browser.runtime.sendNativeMessage(vrReq.data);
           const vrUpdateSettings = validators.validateResponse('updateSettings', response);
           if (!vrUpdateSettings.valid) {
             return { success: false, error: `Invalid response: ${vrUpdateSettings.error}` };
           }
-          return response;
+          return vrUpdateSettings.data;
         } catch (error) {
           console.error('Failed to update settings:', error);
           return { success: false, error: error.message };
@@ -444,7 +444,7 @@ async function handleMessage(message, services) {
             if (!vrResp.valid) {
               return { success: false, error: `Invalid response: ${vrResp.error}` };
             }
-            return result;
+            return vrResp.data;
           } catch (error) {
             console.error('Failed to open popup:', error);
             return { success: false, error: 'Failed to open popup' };
