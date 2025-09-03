@@ -452,7 +452,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // Mock get_settings to return popup mode
       const originalSendMessage = browser.runtime.sendMessage;
       browser.runtime.sendMessage = jest.fn((message) => {
-        if (message.action === 'getSettings') {
+        if (message.action === 'fetchSettings') {
           return Promise.resolve({ success: true, data: { textSelectionMode: 'popup' } });
         }
         return originalSendMessage(message);
