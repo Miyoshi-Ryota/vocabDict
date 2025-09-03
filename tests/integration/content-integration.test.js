@@ -26,9 +26,9 @@ describe('Content Script User Flow Integration Tests', () => {
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
-        return Promise.resolve({ 
-          vocabularyLists: [defaultList.toJSON()]
-        });
+        const j = defaultList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
       if (message.action === 'addWordToVocabularyList') {
         return Promise.resolve({ 
@@ -252,13 +252,13 @@ describe('Content Script User Flow Integration Tests', () => {
       // Wait for the add to list flow to complete
       await waitFor(() => {
         const calls = browser.runtime.sendMessage.mock.calls;
-        return calls.some(call => call[0].action === 'addToList');
+        return calls.some(call => call[0].action === 'addWordToVocabularyList');
       });
 
       // Verify that add to list message was sent
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'addToList',
+          action: 'addWordToVocabularyList',
           word: 'ephemeral'
         })
       );

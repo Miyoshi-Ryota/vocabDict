@@ -21,8 +21,11 @@ describe('Background Message Handler', () => {
     // Setup comprehensive mock for native messages
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
         return Promise.resolve({ 
-          vocabularyLists: [mockList.toJSON()]
+          success: true,
+          vocabularyLists: [{ ...rest, createdAt: created }]
         });
       }
       if (message.action === 'addWordToVocabularyList') {
@@ -50,10 +53,11 @@ describe('Background Message Handler', () => {
       }
       if (message.action === 'createVocabularyList') {
         return Promise.resolve({ 
+          success: true,
           vocabularyList: {
             id: 'new-list-id',
             name: message.name,
-            created: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             isDefault: message.isDefault || false,
             words: {}
           }
@@ -70,17 +74,27 @@ describe('Background Message Handler', () => {
         const nextReview = nextInterval ? 
           new Date(Date.now() + nextInterval * 86400000).toISOString() : 
           null;
+        const last = new Date().toISOString();
         return Promise.resolve({ 
+          success: true,
           data: {
-            word: message.word,
-            lastReviewed: new Date().toISOString(),
-            nextReview: nextReview,
-            nextInterval: nextInterval
+            word: {
+              word: message.word,
+              dateAdded: new Date().toISOString(),
+              difficulty: wordData?.difficulty || 5000,
+              customNotes: wordData?.customNotes || '',
+              lastReviewed: last,
+              nextReview,
+              reviewHistory: []
+            },
+            nextReview,
+            nextInterval
           }
         });
       }
       if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
+          success: true,
           settings: {
             theme: 'dark',  
             autoPlayPronunciation: false,
@@ -90,9 +104,7 @@ describe('Background Message Handler', () => {
         });
       }
       if (message.action === 'updateSettings') {
-        return Promise.resolve({
-          settings: message.settings
-        });
+        return Promise.resolve({ success: true, settings: message.settings });
       }
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
@@ -101,12 +113,7 @@ describe('Background Message Handler', () => {
         if (message.word === 'errorWord') {
           return Promise.resolve({ error: 'Update failed' });
         }
-        return Promise.resolve({
-          data: {
-            word: message.word,
-            ...message.updates
-          }
-        });
+        return Promise.resolve({ success: true, data: { word: message.word, difficulty: message.updates?.difficulty || 5000, updatedAt: new Date().toISOString() } });
       }
       return Promise.resolve({ success: true });
     });

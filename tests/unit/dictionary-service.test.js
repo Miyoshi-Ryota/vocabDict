@@ -263,7 +263,7 @@ describe('DictionaryService', () => {
       // Mock the response for getLookupCount
       browser.runtime.sendNativeMessage.mockImplementation((message) => {
         if (message.action === 'fetchLookupCount') {
-          return Promise.resolve({ count: 5 });
+          return Promise.resolve({ success: true, count: 5 });
         }
         return Promise.resolve({ success: true });
       });
@@ -281,7 +281,7 @@ describe('DictionaryService', () => {
       // Mock the response for getLookupCount
       browser.runtime.sendNativeMessage.mockImplementation((message) => {
         if (message.action === 'fetchLookupCount') {
-          return Promise.resolve({ count: 0 });
+          return Promise.resolve({ success: true, count: 0 });
         }
         return Promise.resolve({ success: true });
       });

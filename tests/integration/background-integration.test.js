@@ -20,9 +20,12 @@ describe('Background Service Integration Tests', () => {
     // Mock native message responses
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
-        return Promise.resolve({
-          vocabularyLists: Object.values(mockLists).map(list => list.toJSON())
+        const lists = Object.values(mockLists).map(list => {
+          const j = list.toJSON();
+          const { created, ...rest } = j;
+          return { ...rest, createdAt: created };
         });
+        return Promise.resolve({ success: true, vocabularyLists: lists });
       }
       if (message.action === 'addWordToVocabularyList') {
         const targetList = mockLists[message.listId];
@@ -51,9 +54,9 @@ describe('Background Service Integration Tests', () => {
       if (message.action === 'createVocabularyList') {
         const newList = new VocabularyList(message.name, dictionary, message.isDefault || false);
         mockLists[newList.id] = newList;
-        return Promise.resolve({
-          vocabularyList: newList.toJSON()
-        });
+        const j = newList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyList: { ...rest, createdAt: created } });
       }
       if (message.action === 'submitReview') {
         const targetList = mockLists[message.listId];
@@ -74,9 +77,17 @@ describe('Background Service Integration Tests', () => {
         wordData.nextReview = nextReview;
 
         return Promise.resolve({
+          success: true,
           data: {
-            word: message.word,
-            lastReviewed: wordData.lastReviewed,
+            word: {
+              word: message.word,
+              dateAdded: new Date().toISOString(),
+              difficulty: wordData.difficulty || 5000,
+              customNotes: wordData.customNotes || '',
+              lastReviewed: wordData.lastReviewed,
+              nextReview: wordData.nextReview,
+              reviewHistory: []
+            },
             nextReview: nextReview,
             nextInterval: nextInterval
           }
