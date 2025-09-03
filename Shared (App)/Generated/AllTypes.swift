@@ -290,7 +290,8 @@ struct FetchReviewQueueResponse: Codable {
 
 // MARK: - FetchReviewQueueResponseDatum
 struct FetchReviewQueueResponseDatum: Codable {
-    let difficulty: Difficulty?
+    /// Word difficulty (frequency) as an integer
+    let difficulty: Int?
     let listID, listName: String?
     let metadata: [String: JSONAny]?
     let nextReview: Date?
@@ -301,12 +302,6 @@ struct FetchReviewQueueResponseDatum: Codable {
         case listID = "listId"
         case listName, metadata, nextReview, word
     }
-}
-
-enum Difficulty: String, Codable {
-    case easy = "easy"
-    case hard = "hard"
-    case medium = "medium"
 }
 
 /// Request to fetch user settings.
