@@ -55,7 +55,7 @@ describe('Message Validators', () => {
         action: 'submitReview',
         listId: '123e4567-e89b-12d3-a456-426614174000',
         word: 'test',
-        reviewResult: 'good',
+        reviewResult: 'known',
         timeSpent: 10.5
       };
       

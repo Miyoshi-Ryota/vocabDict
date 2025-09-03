@@ -90,9 +90,9 @@ function createBasicRuntimeMock() {
         });
       }
       if (message.action === 'submitReview') {
-        const nextInterval = message.result === 'mastered' ? null : 
-                           message.result === 'unknown' ? 1 :
-                           message.result === 'known' ? 3 : 1;
+        const nextInterval = message.reviewResult === 'mastered' ? null : 
+                           message.reviewResult === 'unknown' ? 1 :
+                           message.reviewResult === 'known' ? 3 : 1;
         const nextReview = nextInterval ? 
           new Date(Date.now() + nextInterval * 86400000).toISOString() : 
           null;

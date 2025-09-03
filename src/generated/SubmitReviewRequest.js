@@ -181,9 +181,10 @@ const typeMap = {
         "submitReview",
     ],
     "ReviewResult": [
-        "bad",
-        "good",
-        "ok",
+        "known",
+        "mastered",
+        "skipped",
+        "unknown",
     ],
 };
 

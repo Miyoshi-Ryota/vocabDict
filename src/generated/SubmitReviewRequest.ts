@@ -33,7 +33,8 @@ export enum Action {
  * The review result indicating how well the user knew the word.
  */
 export enum ReviewResult {
-    Bad = "bad",
-    Good = "good",
-    Ok = "ok",
+    Known = "known",
+    Unknown = "unknown",
+    Mastered = "mastered",
+    Skipped = "skipped",
 }

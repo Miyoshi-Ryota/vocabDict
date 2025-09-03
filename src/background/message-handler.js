@@ -10,7 +10,7 @@ const MessageTypes = {
   UPDATE_WORD: 'updateWord',
   GET_REVIEW_QUEUE: 'getReviewQueue',
   SUBMIT_REVIEW: 'submitReview',
-  PROCESS_REVIEW: 'processReview',
+  
   GET_PENDING_CONTEXT_SEARCH: 'getPendingContextSearch',
   GET_RECENT_SEARCHES: 'getRecentSearches',
   GET_SETTINGS: 'getSettings',
@@ -268,37 +268,7 @@ async function handleMessage(message, services) {
         }
       }
 
-      case MessageTypes.PROCESS_REVIEW: {
-        const { word, reviewResult, listId } = message;
-
-        if (!word || !reviewResult || !listId) {
-          return { success: false, error: 'Word, reviewResult, and listId are required' };
-        }
-
-        try {
-          // Simply forward to native submitReview
-          const reviewResponse = await browser.runtime.sendNativeMessage({
-            action: "submitReview",
-            listId: listId,
-            word: word,
-            reviewResult: reviewResult,
-            timeSpent: 0.0
-          });
-
-
-          if (reviewResponse.error) {
-            return { success: false, error: reviewResponse.error };
-          }
-
-          return { 
-            success: true, 
-            data: reviewResponse.data 
-          };
-        } catch (error) {
-          console.error('Process review error:', error);
-          return { success: false, error: error.message };
-        }
-      }
+      
 
       case MessageTypes.GET_PENDING_CONTEXT_SEARCH: {
         if (!popupWordState) {

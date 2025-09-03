@@ -22,7 +22,7 @@
     },
     "reviewResult": {
       "type": "string",
-      "enum": ["good", "ok", "bad"],
+      "enum": ["known", "unknown", "mastered", "skipped"],
       "description": "The review result indicating how well the user knew the word."
     },
     "timeSpent": {

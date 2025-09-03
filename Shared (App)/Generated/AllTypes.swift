@@ -493,9 +493,10 @@ enum SubmitReviewRequestAction: String, Codable {
 
 /// The review result indicating how well the user knew the word.
 enum ReviewResult: String, Codable {
-    case bad = "bad"
-    case good = "good"
-    case ok = "ok"
+    case known = "known"
+    case unknown = "unknown"
+    case mastered = "mastered"
+    case skipped = "skipped"
 }
 
 /// Response from submitting a review result.

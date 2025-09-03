@@ -64,9 +64,9 @@ describe('Background Message Handler', () => {
         if (!wordData) {
           return Promise.resolve({ error: 'Word not found' });
         }
-        const nextInterval = message.result === 'mastered' ? null : 
-                           message.reviewResult === 'bad' ? 1 :
-                           message.reviewResult === 'good' ? 3 : 1;
+        const nextInterval = message.reviewResult === 'mastered' ? null :
+                             message.reviewResult === 'unknown' ? 1 :
+                             message.reviewResult === 'known' ? 3 : 1;
         const nextReview = nextInterval ? 
           new Date(Date.now() + nextInterval * 86400000).toISOString() : 
           null;
@@ -286,7 +286,7 @@ describe('Background Message Handler', () => {
         action: MessageTypes.SUBMIT_REVIEW,
         listId: listId,
         word: 'hello',
-        reviewResult: 'good',
+        reviewResult: 'known',
         timeSpent: 10
       }, { dictionary });
 
@@ -409,15 +409,16 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('PROCESS_REVIEW message', () => {
+  describe('SUBMIT_REVIEW message', () => {
     test('should forward review to native handler', async () => {
       await mockList.addWord('hello', { difficulty: 5000 });
 
       const result = await handleMessage({
-        action: MessageTypes.PROCESS_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         listId: mockList.id,
         word: 'hello',
-        reviewResult: 'good'
+        reviewResult: 'known',
+        timeSpent: 0.0
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -425,14 +426,14 @@ describe('Background Message Handler', () => {
         action: 'submitReview',
         listId: mockList.id,
         word: 'hello',
-        reviewResult: 'good',
+        reviewResult: 'known',
         timeSpent: 0.0
       });
     });
 
     test('should require all parameters', async () => {
       const result = await handleMessage({
-        action: MessageTypes.PROCESS_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         listId: mockList.id,
         word: 'hello'
       }, { dictionary });

@@ -65,7 +65,9 @@ describe('Background Service Integration Tests', () => {
           return Promise.resolve({ error: 'Word not found' });
         }
 
-        const nextInterval = message.result === 'known' ? 3 : 1;
+        const nextInterval = message.reviewResult === 'mastered' ? null :
+                             message.reviewResult === 'unknown' ? 1 :
+                             message.reviewResult === 'known' ? 3 : 1;
         const nextReview = new Date(Date.now() + nextInterval * 86400000).toISOString();
 
         wordData.lastReviewed = new Date().toISOString();
@@ -177,7 +179,7 @@ describe('Background Service Integration Tests', () => {
         action: MessageTypes.SUBMIT_REVIEW,
         listId: wordToReview.listId,
         word: wordToReview.word,
-        reviewResult: 'good',
+        reviewResult: 'known',
         timeSpent: 15
       }, services);
 

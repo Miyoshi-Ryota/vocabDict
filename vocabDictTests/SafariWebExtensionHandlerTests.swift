@@ -250,7 +250,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
             "action": "submitReview",
             "listId": listId,
             "word": "hello",
-            "reviewResult": "good",
+            "reviewResult": "known",
             "timeSpent": 10.5
         ]
         

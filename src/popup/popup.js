@@ -1039,10 +1039,11 @@ const LearnTab = {
     try {
       // Send review result to background
       await browser.runtime.sendMessage({
-        action: 'processReview',
+        action: 'submitReview',
         word: word.word,
-        result: action,
-        listId: word.listId || null
+        reviewResult: action,
+        listId: word.listId || null,
+        timeSpent: 0.0
       });
 
       // Move to next word
