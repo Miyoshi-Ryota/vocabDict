@@ -6,11 +6,19 @@
 //
 
 import CloudKit
+import Foundation
 import SwiftData
 import os.log
 
 class CloudKitStore {
-    static let shared = CloudKitStore()
+    // Use in-memory store when running under XCTest to avoid App Group access prompts
+    static let shared: CloudKitStore = {
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return CloudKitStore(inMemory: true)
+        } else {
+            return CloudKitStore()
+        }
+    }()
     let modelContext: ModelContext
     let modelContainer: ModelContainer
 
@@ -452,4 +460,3 @@ class CloudKitStore {
         }
     }
 }
-
