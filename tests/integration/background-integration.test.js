@@ -164,11 +164,11 @@ describe('Background Service Integration Tests', () => {
       });
 
       // Mock getVocabularyLists to return list with words
-      browser.runtime.sendNativeMessage.mockImplementationOnce(() =>
-        Promise.resolve({
-          vocabularyLists: [mockList.toJSON()]
-        })
-      );
+      browser.runtime.sendNativeMessage.mockImplementationOnce(() => {
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+      });
 
       // 1. Get review queue
       const queueResponse = await handleMessage({
