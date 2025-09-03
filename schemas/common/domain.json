@@ -109,16 +109,8 @@
       },
       "required": ["word", "listId", "listName", "nextReview", "difficulty"],
       "additionalProperties": false
-    },
-
-    "ApiResponseBase": {
-      "type": "object",
-      "properties": {
-        "success": { "type": "boolean" },
-        "error": { "type": "string" }
-      },
-      "required": ["success"],
-      "additionalProperties": false
     }
+
+    
   }
 }

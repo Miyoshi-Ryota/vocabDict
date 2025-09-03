@@ -4,7 +4,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { TabNames } = require('../../src/utils/constants');
+const TabNames = {
+  SEARCH: 'search',
+  LISTS: 'lists',
+  LEARN: 'learn',
+  SETTINGS: 'settings'
+};
 
 describe('Popup UI Tests', () => {
   let popupHTML;

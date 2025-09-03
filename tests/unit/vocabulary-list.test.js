@@ -1,7 +1,6 @@
 const VocabularyList = require('../../src/services/vocabulary-list');
 const DictionaryService = require('../../src/services/dictionary-service');
 const dictionaryData = require('../../src/data/dictionary.json');
-const { DifficultyLevels } = require('../../src/utils/constants');
 const DIFF = { EASY: 1000, MEDIUM: 5000, HARD: 10000 };
 
 describe('VocabularyList', () => {
@@ -140,7 +139,7 @@ describe('VocabularyList', () => {
     });
 
     test('should return null for non-existent word', () => {
-      const result = list.updateWord('nonexistent', { difficulty: DifficultyLevels.HARD });
+      const result = list.updateWord('nonexistent', { difficulty: 10000 });
       expect(result).toBeNull();
     });
   });
@@ -284,7 +283,7 @@ describe('VocabularyList', () => {
     });
 
     test('should filter by difficulty', async () => {
-      const easyWords = await list.filterBy('difficulty', DifficultyLevels.EASY);
+      const easyWords = await list.filterBy('difficulty', 'easy');
       expect(easyWords.length).toBe(2);
       expect(easyWords.every(w => typeof w.difficulty === 'number' && w.difficulty <= 3000)).toBe(true);
     });
@@ -352,9 +351,9 @@ describe('VocabularyList', () => {
       const stats = await list.getStatistics();
 
       expect(stats.totalWords).toBe(4);
-      expect(stats.byDifficulty[DifficultyLevels.EASY]).toBe(2);
-      expect(stats.byDifficulty[DifficultyLevels.MEDIUM]).toBe(1);
-      expect(stats.byDifficulty[DifficultyLevels.HARD]).toBe(1);
+      expect(stats.byDifficulty['easy']).toBe(2);
+      expect(stats.byDifficulty['medium']).toBe(1);
+      expect(stats.byDifficulty['hard']).toBe(1);
       expect(stats.totalReviews).toBe(0);
       expect(stats.wordsReviewed).toBe(0);
       expect(stats.wordsDue).toBe(0);
