@@ -10,7 +10,7 @@
       "description": "Whether the lookup was successful."
     },
     "data": {
-      "type": "object",
+      "type": ["object", "null"],
       "description": "The dictionary data for the word if found.",
       "properties": {
         "word": {

@@ -489,7 +489,6 @@ struct LookupWordResponse: Codable {
     let suggestions: [String]?
 }
 
-/// The dictionary data for the word if found.
 // MARK: - LookupWordResponseData
 struct LookupWordResponseData: Codable {
     let definitions: [[String: JSONAny]]?

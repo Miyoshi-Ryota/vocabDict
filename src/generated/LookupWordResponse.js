@@ -171,7 +171,7 @@ function r(name) {
 
 const typeMap = {
     "LookupWordResponse": o([
-        { json: "data", js: "data", typ: u(undefined, r("Data")) },
+        { json: "data", js: "data", typ: u(undefined, u(null, r("Data"))) },
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
         { json: "suggestions", js: "suggestions", typ: u(undefined, a("")) },
