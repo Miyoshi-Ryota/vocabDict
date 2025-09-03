@@ -181,7 +181,7 @@ final class VocabularyList {
         return [
             "id": id.uuidString,
             "name": name,
-            "created": ISO8601DateFormatter().string(from: created),
+            "createdAt": ISO8601DateFormatter().string(from: created),
             "isDefault": isDefault,
             "words": words.mapValues { $0.toDictionary() }
         ]
