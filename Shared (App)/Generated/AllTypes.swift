@@ -683,10 +683,10 @@ struct UpdateWordResponse: Codable {
 /// The updated word entry.
 // MARK: - UpdateWordResponseData
 struct UpdateWordResponseData: Codable {
+    /// Custom notes about the word
+    let customNotes: String?
     /// Word difficulty (frequency) as an integer
     let difficulty: Int?
-    let metadata: [String: JSONAny]?
-    let notes: String?
     let updatedAt: Date?
     let word: String?
 }
