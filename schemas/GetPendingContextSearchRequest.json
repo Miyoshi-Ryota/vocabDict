@@ -4,8 +4,8 @@
   "description": "Request to retrieve a pending word selection to search when opening popup.",
   "type": "object",
   "required": ["action"],
+  "additionalProperties": false,
   "properties": {
     "action": { "type": "string", "const": "getPendingContextSearch" }
   }
 }
-

@@ -174,7 +174,7 @@ const typeMap = {
         { json: "action", js: "action", typ: r("Action") },
         { json: "isDefault", js: "isDefault", typ: u(undefined, true) },
         { json: "name", js: "name", typ: "" },
-    ], "any"),
+    ], false),
     "Action": [
         "createVocabularyList",
     ],

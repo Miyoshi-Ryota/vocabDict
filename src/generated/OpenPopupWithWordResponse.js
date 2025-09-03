@@ -174,7 +174,7 @@ const typeMap = {
         { json: "data", js: "data", typ: u(undefined, r("Data")) },
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
-    ], "any"),
+    ], false),
     "Data": o([
         { json: "popupOpened", js: "popupOpened", typ: u(undefined, true) },
     ], "any"),

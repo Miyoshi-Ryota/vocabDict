@@ -1142,7 +1142,6 @@ const SettingsTab = {
     const settings = (response && response.success && response.settings) ? response.settings : {
       theme: 'dark',
       autoAddLookups: true,
-      dailyReviewLimit: 30,
       textSelectionMode: 'inline'
     };
 
@@ -1150,8 +1149,7 @@ const SettingsTab = {
     const autoAddToggle = document.getElementById('auto-add-toggle');
     if (autoAddToggle) autoAddToggle.checked = settings.autoAddLookups;
 
-    const reviewLimit = document.getElementById('review-limit');
-    if (reviewLimit) reviewLimit.value = settings.dailyReviewLimit;
+    // dailyReviewLimit is not part of the current settings contract; omit.
 
     // Text selection mode radio buttons
     const textSelectionMode = settings.textSelectionMode || 'inline';
@@ -1175,13 +1173,7 @@ const SettingsTab = {
       });
     }
 
-    // Review limit
-    const reviewLimit = document.getElementById('review-limit');
-    if (reviewLimit) {
-      reviewLimit.addEventListener('change', (e) => {
-        this.updateSetting('dailyReviewLimit', parseInt(e.target.value));
-      });
-    }
+    // Review limit setting removed from contract; no-op.
 
     // Text selection mode radio buttons
     const inlineRadio = document.getElementById('text-selection-inline');

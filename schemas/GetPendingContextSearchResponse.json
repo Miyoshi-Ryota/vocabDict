@@ -4,10 +4,10 @@
   "description": "Response containing a pending word for context search, if any.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": { "type": "boolean" },
     "data": { "type": ["string", "null"] },
     "error": { "type": "string" }
   }
 }
-

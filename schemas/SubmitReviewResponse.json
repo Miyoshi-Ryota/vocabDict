@@ -4,6 +4,7 @@
   "description": "Response from submitting a review result.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": {
       "type": "boolean",

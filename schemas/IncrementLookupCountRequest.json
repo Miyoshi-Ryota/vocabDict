@@ -4,6 +4,7 @@
   "description": "Request to increment the lookup count for a word.",
   "type": "object",
   "required": ["action", "word"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

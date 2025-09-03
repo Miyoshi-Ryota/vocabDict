@@ -173,7 +173,7 @@ const typeMap = {
     "FetchLookupCountRequest": o([
         { json: "action", js: "action", typ: r("Action") },
         { json: "word", js: "word", typ: "" },
-    ], "any"),
+    ], false),
     "Action": [
         "fetchLookupCount",
     ],

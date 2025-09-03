@@ -4,6 +4,7 @@
   "description": "Request to submit a review result for a word.",
   "type": "object",
   "required": ["action", "listId", "word", "reviewResult"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",
@@ -16,11 +17,7 @@
       "minLength": 1,
       "description": "The word being reviewed."
     },
-    "reviewResult": {
-      "type": "string",
-      "enum": ["known", "unknown", "mastered", "skipped"],
-      "description": "The review result indicating how well the user knew the word."
-    },
+    "reviewResult": { "$ref": "./common/domain.json#/$defs/ReviewResultDTO", "description": "The review result indicating how well the user knew the word." },
     "timeSpent": {
       "type": "number",
       "minimum": 0,

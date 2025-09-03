@@ -4,6 +4,7 @@
   "description": "Request to create a new vocabulary list.",
   "type": "object",
   "required": ["action", "name"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

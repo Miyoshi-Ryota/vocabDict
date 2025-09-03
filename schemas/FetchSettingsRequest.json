@@ -4,6 +4,7 @@
   "description": "Request to fetch user settings.",
   "type": "object",
   "required": ["action"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

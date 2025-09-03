@@ -4,6 +4,7 @@
   "description": "Response from looking up a word in the dictionary.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": {
       "type": "boolean",
@@ -19,6 +20,20 @@
         "definitions": {
           "type": "array",
           "items": { "$ref": "./common/domain.json#/$defs/DefinitionDTO" }
+        },
+        "pronunciation": {
+          "type": "string",
+          "description": "Pronunciation text for the word."
+        },
+        "synonyms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Synonyms for the word."
+        },
+        "antonyms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Antonyms for the word."
         }
       }
     },

@@ -4,6 +4,7 @@
   "description": "Response from adding a word to a vocabulary list.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": {
       "type": "boolean",

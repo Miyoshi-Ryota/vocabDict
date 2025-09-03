@@ -173,7 +173,7 @@ const typeMap = {
     "AddRecentSearchResponse": o([
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
-    ], "any"),
+    ], false),
 };
 
 module.exports = {

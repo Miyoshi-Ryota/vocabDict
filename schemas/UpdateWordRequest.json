@@ -4,6 +4,7 @@
   "description": "Request to update a word in a vocabulary list.",
   "type": "object",
   "required": ["action", "listId", "word", "updates"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",
@@ -19,6 +20,7 @@
     "updates": {
       "type": "object",
       "description": "The updates to apply to the word.",
+      "additionalProperties": false,
       "properties": {
         "difficulty": {
           "type": "integer",
@@ -28,9 +30,6 @@
         "customNotes": {
           "type": "string",
           "description": "Custom notes about the word"
-        },
-        "notes": {
-          "type": "string"
         }
       }
     }

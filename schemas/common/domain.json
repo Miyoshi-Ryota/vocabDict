@@ -17,7 +17,9 @@
         "date": { "$ref": "#/$defs/ISODateTime" },
         "result": { "$ref": "#/$defs/ReviewResultDTO" },
         "timeSpent": { "type": "number", "minimum": 0 }
-      }
+      },
+      "required": ["date", "result", "timeSpent"],
+      "additionalProperties": false
     },
 
     "UserWordDataDTO": {
@@ -30,7 +32,9 @@
         "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
         "nextReview": { "$ref": "#/$defs/ISODateTime" },
         "reviewHistory": { "type": "array", "items": { "$ref": "#/$defs/ReviewHistoryEntryDTO" } }
-      }
+      },
+      "required": ["word", "dateAdded", "difficulty", "nextReview"],
+      "additionalProperties": false
     },
 
     "VocabularyListDTO": {
@@ -44,7 +48,9 @@
           "type": "object",
           "additionalProperties": { "$ref": "#/$defs/UserWordDataDTO" }
         }
-      }
+      },
+      "required": ["id", "name", "isDefault", "createdAt", "words"],
+      "additionalProperties": false
     },
 
     "UserSettingsDTO": {
@@ -55,7 +61,8 @@
         "showExampleSentences": { "type": "boolean" },
         "textSelectionMode": { "type": "string", "enum": ["inline", "popup"] },
         "autoAddLookups": { "type": "boolean" }
-      }
+      },
+      "additionalProperties": false
     },
 
     "DefinitionDTO": {
@@ -65,7 +72,9 @@
         "meaning": { "type": "string" },
         "definition": { "type": "string" },
         "examples": { "type": "array", "items": { "type": "string" } }
-      }
+      },
+      "required": ["partOfSpeech", "meaning", "examples"],
+      "additionalProperties": false
     },
 
     "LookupStatDTO": {
@@ -75,7 +84,9 @@
         "count": { "type": "integer", "minimum": 0 },
         "firstLookup": { "$ref": "#/$defs/ISODateTime" },
         "lastLookup": { "$ref": "#/$defs/ISODateTime" }
-      }
+      },
+      "required": ["word", "count", "firstLookup", "lastLookup"],
+      "additionalProperties": false
     },
 
     "ReviewQueueItemDTO": {
@@ -86,7 +97,9 @@
         "listName": { "type": "string" },
         "nextReview": { "$ref": "#/$defs/ISODateTime" },
         "difficulty": { "type": "integer", "minimum": 1 }
-      }
+      },
+      "required": ["word", "listId", "listName", "nextReview", "difficulty"],
+      "additionalProperties": false
     },
 
     "ApiResponseBase": {
@@ -95,7 +108,8 @@
         "success": { "type": "boolean" },
         "error": { "type": "string" }
       },
-      "required": ["success"]
+      "required": ["success"],
+      "additionalProperties": false
     }
   }
 }

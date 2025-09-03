@@ -174,7 +174,7 @@ const typeMap = {
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "recentSearches", js: "recentSearches", typ: u(undefined, a("")) },
         { json: "success", js: "success", typ: true },
-    ], "any"),
+    ], false),
 };
 
 module.exports = {

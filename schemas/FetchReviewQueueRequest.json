@@ -4,6 +4,7 @@
   "description": "Request to fetch words due for review.",
   "type": "object",
   "required": ["action"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

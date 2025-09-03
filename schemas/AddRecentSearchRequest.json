@@ -4,6 +4,7 @@
   "description": "Request to add a word to recent searches.",
   "type": "object",
   "required": ["action", "word"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

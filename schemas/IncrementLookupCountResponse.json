@@ -4,6 +4,7 @@
   "description": "Response from incrementing the lookup count for a word.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": {
       "type": "boolean",

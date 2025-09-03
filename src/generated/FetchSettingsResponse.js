@@ -174,14 +174,14 @@ const typeMap = {
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "settings", js: "settings", typ: u(undefined, r("Settings")) },
         { json: "success", js: "success", typ: true },
-    ], "any"),
+    ], false),
     "Settings": o([
         { json: "autoAddLookups", js: "autoAddLookups", typ: u(undefined, true) },
         { json: "autoPlayPronunciation", js: "autoPlayPronunciation", typ: u(undefined, true) },
         { json: "showExampleSentences", js: "showExampleSentences", typ: u(undefined, true) },
         { json: "textSelectionMode", js: "textSelectionMode", typ: u(undefined, r("TextSelectionMode")) },
         { json: "theme", js: "theme", typ: u(undefined, r("Theme")) },
-    ], "any"),
+    ], false),
     "TextSelectionMode": [
         "inline",
         "popup",

@@ -173,14 +173,14 @@ const typeMap = {
     "UpdateSettingsRequest": o([
         { json: "action", js: "action", typ: r("Action") },
         { json: "settings", js: "settings", typ: r("Settings") },
-    ], "any"),
+    ], false),
     "Settings": o([
         { json: "autoAddLookups", js: "autoAddLookups", typ: u(undefined, true) },
         { json: "autoPlayPronunciation", js: "autoPlayPronunciation", typ: u(undefined, true) },
         { json: "showExampleSentences", js: "showExampleSentences", typ: u(undefined, true) },
         { json: "textSelectionMode", js: "textSelectionMode", typ: u(undefined, r("TextSelectionMode")) },
         { json: "theme", js: "theme", typ: u(undefined, r("Theme")) },
-    ], "any"),
+    ], false),
     "Action": [
         "updateSettings",
     ],

@@ -173,7 +173,7 @@ const typeMap = {
     "FetchReviewQueueRequest": o([
         { json: "action", js: "action", typ: r("Action") },
         { json: "maxWords", js: "maxWords", typ: u(undefined, 0) },
-    ], "any"),
+    ], false),
     "Action": [
         "fetchReviewQueue",
     ],

@@ -1,5 +1,6 @@
 const DictionaryService = require('../services/dictionary-service');
 const { handleMessage, MessageTypes } = require('./message-handler');
+const { sendNative } = require('../utils/native');
 const dictionaryData = require('../data/dictionary.json');
 
 // Initialize services
@@ -38,15 +39,11 @@ browser.runtime.onInstalled.addListener(async () => {
 
   // Initialize default vocabulary list if none exists
   try {
-    const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
+    const response = await sendNative('fetchAllVocabularyLists');
     const lists = response.vocabularyLists || [];
     if (lists.length === 0) {
       // Create default list via native message
-      await browser.runtime.sendNativeMessage({
-        action: "createVocabularyList",
-        name: "My Vocabulary",
-        isDefault: true
-      });
+      await sendNative('createVocabularyList', { name: 'My Vocabulary', isDefault: true });
       console.log('Created default vocabulary list');
     }
   } catch (error) {

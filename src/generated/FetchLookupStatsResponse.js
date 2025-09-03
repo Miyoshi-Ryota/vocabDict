@@ -174,13 +174,13 @@ const typeMap = {
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "stats", js: "stats", typ: u(undefined, m(r("Domain"))) },
         { json: "success", js: "success", typ: true },
-    ], "any"),
+    ], false),
     "Domain": o([
-        { json: "count", js: "count", typ: u(undefined, 0) },
-        { json: "firstLookup", js: "firstLookup", typ: u(undefined, Date) },
-        { json: "lastLookup", js: "lastLookup", typ: u(undefined, Date) },
-        { json: "word", js: "word", typ: u(undefined, "") },
-    ], "any"),
+        { json: "count", js: "count", typ: 0 },
+        { json: "firstLookup", js: "firstLookup", typ: Date },
+        { json: "lastLookup", js: "lastLookup", typ: Date },
+        { json: "word", js: "word", typ: "" },
+    ], false),
 };
 
 module.exports = {

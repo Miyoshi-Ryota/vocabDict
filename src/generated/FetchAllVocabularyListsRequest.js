@@ -172,7 +172,7 @@ function r(name) {
 const typeMap = {
     "FetchAllVocabularyListsRequest": o([
         { json: "action", js: "action", typ: r("Action") },
-    ], "any"),
+    ], false),
     "Action": [
         "fetchAllVocabularyLists",
     ],

@@ -176,7 +176,7 @@ const typeMap = {
         { json: "reviewResult", js: "reviewResult", typ: r("ReviewResult") },
         { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
         { json: "word", js: "word", typ: "" },
-    ], "any"),
+    ], false),
     "Action": [
         "submitReview",
     ],

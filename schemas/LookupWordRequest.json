@@ -4,6 +4,7 @@
   "description": "Request to lookup a word in the dictionary.",
   "type": "object",
   "required": ["action", "word"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

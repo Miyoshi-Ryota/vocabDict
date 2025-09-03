@@ -359,7 +359,6 @@ struct ProtoUpdates: Codable {
     let customNotes: String?
     /// Word frequency value (1 to ~330000)
     let difficulty: Int?
-    let notes: String?
 }
 
 /// Response from adding a word to recent searches.
@@ -388,19 +387,19 @@ struct ProtoAddWordToVocabularyListResponse: Codable {
 // MARK: - ProtoDataValue
 struct ProtoDataValue: Codable {
     let customNotes: String?
-    let dateAdded: Date?
-    let difficulty: Int?
+    let dateAdded: Date
+    let difficulty: Int
     let lastReviewed: Date?
-    let nextReview: Date?
+    let nextReview: Date
     let reviewHistory: [ProtoReviewHistoryElement]?
-    let word: String?
+    let word: String
 }
 
 // MARK: - ProtoReviewHistoryElement
 struct ProtoReviewHistoryElement: Codable {
-    let date: Date?
-    let result: ProtoReviewResult?
-    let timeSpent: Double?
+    let date: Date
+    let result: ProtoReviewResult
+    let timeSpent: Double
 }
 
 /// Response from creating a new vocabulary list.
@@ -417,11 +416,11 @@ struct ProtoCreateVocabularyListResponse: Codable {
 /// The created vocabulary list.
 // MARK: - ProtoVocabularyList
 struct ProtoVocabularyList: Codable {
-    let createdAt: Date?
-    let id: String?
-    let isDefault: Bool?
-    let name: String?
-    let words: [String: ProtoDataValue]?
+    let createdAt: Date
+    let id: String
+    let isDefault: Bool
+    let name: String
+    let words: [String: ProtoDataValue]
 }
 
 /// Response containing all vocabulary lists.
@@ -459,9 +458,9 @@ struct ProtoFetchLookupStatsResponse: Codable {
 
 // MARK: - ProtoStatValue
 struct ProtoStatValue: Codable {
-    let count: Int?
-    let firstLookup, lastLookup: Date?
-    let word: String?
+    let count: Int
+    let firstLookup, lastLookup: Date
+    let word: String
 }
 
 /// Response containing recent searches.
@@ -488,10 +487,10 @@ struct ProtoFetchReviewQueueResponse: Codable {
 
 // MARK: - ProtoDatumElement
 struct ProtoDatumElement: Codable {
-    let difficulty: Int?
-    let listID, listName: String?
-    let nextReview: Date?
-    let word: String?
+    let difficulty: Int
+    let listID, listName: String
+    let nextReview: Date
+    let word: String
 
     enum CodingKeys: String, CodingKey {
         case difficulty
@@ -562,15 +561,21 @@ struct ProtoLookupWordResponse: Codable {
 
 // MARK: - ProtoLookupWordResponseData
 struct ProtoLookupWordResponseData: Codable {
+    /// Antonyms for the word.
+    let antonyms: [String]?
     let definitions: [ProtoItems]?
+    /// Pronunciation text for the word.
+    let pronunciation: String?
+    /// Synonyms for the word.
+    let synonyms: [String]?
     let word: String?
 }
 
 // MARK: - ProtoItems
 struct ProtoItems: Codable {
     let definition: String?
-    let examples: [String]?
-    let meaning, partOfSpeech: String?
+    let examples: [String]
+    let meaning, partOfSpeech: String
 }
 
 /// Response for opening the extension popup.

@@ -173,7 +173,7 @@ const typeMap = {
     "FetchRecentSearchesRequest": o([
         { json: "action", js: "action", typ: r("Action") },
         { json: "limit", js: "limit", typ: u(undefined, 0) },
-    ], "any"),
+    ], false),
     "Action": [
         "fetchRecentSearches",
     ],

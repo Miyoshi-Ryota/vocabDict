@@ -4,6 +4,7 @@
   "description": "Request to fetch words from a specific vocabulary list.",
   "type": "object",
   "required": ["action", "listId"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

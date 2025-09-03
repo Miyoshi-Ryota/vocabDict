@@ -175,17 +175,20 @@ const typeMap = {
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
         { json: "suggestions", js: "suggestions", typ: u(undefined, a("")) },
-    ], "any"),
+    ], false),
     "Data": o([
+        { json: "antonyms", js: "antonyms", typ: u(undefined, a("")) },
         { json: "definitions", js: "definitions", typ: u(undefined, a(r("Items"))) },
+        { json: "pronunciation", js: "pronunciation", typ: u(undefined, "") },
+        { json: "synonyms", js: "synonyms", typ: u(undefined, a("")) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
     "Items": o([
         { json: "definition", js: "definition", typ: u(undefined, "") },
-        { json: "examples", js: "examples", typ: u(undefined, a("")) },
-        { json: "meaning", js: "meaning", typ: u(undefined, "") },
-        { json: "partOfSpeech", js: "partOfSpeech", typ: u(undefined, "") },
-    ], "any"),
+        { json: "examples", js: "examples", typ: a("") },
+        { json: "meaning", js: "meaning", typ: "" },
+        { json: "partOfSpeech", js: "partOfSpeech", typ: "" },
+    ], false),
 };
 
 module.exports = {

@@ -176,7 +176,7 @@ const typeMap = {
         { json: "listId", js: "listId", typ: "" },
         { json: "sortBy", js: "sortBy", typ: u(undefined, r("SortBy")) },
         { json: "sortOrder", js: "sortOrder", typ: u(undefined, r("SortOrder")) },
-    ], "any"),
+    ], false),
     "Action": [
         "fetchVocabularyListWords",
     ],

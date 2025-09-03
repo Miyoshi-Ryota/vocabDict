@@ -175,12 +175,11 @@ const typeMap = {
         { json: "listId", js: "listId", typ: "" },
         { json: "updates", js: "updates", typ: r("Updates") },
         { json: "word", js: "word", typ: "" },
-    ], "any"),
+    ], false),
     "Updates": o([
         { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
-        { json: "notes", js: "notes", typ: u(undefined, "") },
-    ], "any"),
+    ], false),
     "Action": [
         "updateWord",
     ],

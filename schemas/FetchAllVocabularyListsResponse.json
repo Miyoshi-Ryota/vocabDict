@@ -4,6 +4,7 @@
   "description": "Response containing all vocabulary lists.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": {
       "type": "boolean",

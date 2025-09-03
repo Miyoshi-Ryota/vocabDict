@@ -4,6 +4,7 @@
   "description": "Response containing words and lookup stats for a vocabulary list.",
   "type": "object",
   "required": ["success"],
+  "additionalProperties": false,
   "properties": {
     "success": {
       "type": "boolean",

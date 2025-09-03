@@ -4,6 +4,7 @@
   "description": "Request to update user settings.",
   "type": "object",
   "required": ["action", "settings"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",

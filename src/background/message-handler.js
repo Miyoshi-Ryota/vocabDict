@@ -1,5 +1,6 @@
 const VocabularyList = require('../services/vocabulary-list');
 const validators = require('../generated/validators');
+const { sendNative } = require('../utils/native');
 
 const MessageTypes = {
   LOOKUP_WORD: 'lookupWord',
@@ -47,10 +48,7 @@ async function handleMessage(message, services) {
         if (result) {
           // Add to recent searches automatically on successful lookup
           try {
-            await browser.runtime.sendNativeMessage({
-              action: "addRecentSearch",
-              word: message.word
-            });
+            await sendNative('addRecentSearch', { word: message.word });
           } catch (error) {
             console.error('Failed to add recent search:', error);
           }
@@ -87,28 +85,13 @@ async function handleMessage(message, services) {
         }
 
         try {
-          const payload = {
-            action: "addWordToVocabularyList",
+          const resp = await sendNative('addWordToVocabularyList', {
             listId: message.listId,
             word: message.word,
             metadata: message.metadata || {}
-          };
-          const vrReq = validators.validateRequest('addWordToVocabularyList', payload);
-          if (!vrReq.valid) {
-            return { success: false, error: `Invalid request: ${vrReq.error}` };
-          }
-          // Send to native handler to add word to SwiftData/CloudKit
-          const response = await browser.runtime.sendNativeMessage(vrReq.data);
-          const vrAdd = validators.validateResponse('addWordToVocabularyList', response);
-          if (!vrAdd.valid) {
-            return { success: false, error: `Invalid response: ${vrAdd.error}` };
-          }
-
-          if (response.error) {
-            return { success: false, error: response.error };
-          }
-
-          return vrAdd.data;
+          });
+          if (resp.error) return { success: false, error: resp.error };
+          return resp;
         } catch (error) {
           return { success: false, error: error.message };
         }
@@ -116,18 +99,9 @@ async function handleMessage(message, services) {
 
       case MessageTypes.FETCH_ALL_VOCABULARY_LISTS: {
         console.log("Fetching vocabulary lists from native messaging");
-        const payload = { action: "fetchAllVocabularyLists" };
-        const vrReq = validators.validateRequest('fetchAllVocabularyLists', payload);
-        if (!vrReq.valid) {
-          return { success: false, error: `Invalid request: ${vrReq.error}` };
-        }
-        const response = await browser.runtime.sendNativeMessage(vrReq.data);
-        const vrLists = validators.validateResponse('fetchAllVocabularyLists', response);
-        if (!vrLists.valid) {
-          return { success: false, error: `Invalid response: ${vrLists.error}` };
-        }
-        console.log("Received vocabulary lists:", response);
-        return vrLists.data;
+        const resp = await sendNative('fetchAllVocabularyLists');
+        console.log("Received vocabulary lists:", resp);
+        return resp;
       }
 
       case MessageTypes.FETCH_VOCABULARY_LIST_WORDS: {
@@ -135,23 +109,13 @@ async function handleMessage(message, services) {
           return { success: false, error: 'ListId is required' };
         }
         // Forward to native handler to build words + lookupStats
-        const payload = {
-          action: 'fetchVocabularyListWords',
+        const resp = await sendNative('fetchVocabularyListWords', {
           listId: message.listId,
           filterBy: message.filterBy,
           sortBy: message.sortBy,
           sortOrder: message.sortOrder
-        };
-        const vrReq = validators.validateRequest('fetchVocabularyListWords', payload);
-        if (!vrReq.valid) {
-          return { success: false, error: `Invalid request: ${vrReq.error}` };
-        }
-        const response = await browser.runtime.sendNativeMessage(vrReq.data);
-        const vrResp = validators.validateResponse('fetchVocabularyListWords', response);
-        if (!vrResp.valid) {
-          return { success: false, error: `Invalid response: ${vrResp.error}` };
-        }
-        return vrResp.data;
+        });
+        return resp;
       }
 
       case MessageTypes.CREATE_VOCABULARY_LIST: {
@@ -164,21 +128,11 @@ async function handleMessage(message, services) {
           return { success: false, error: 'List name cannot be empty' };
         }
 
-        const payload = { 
-          action: "createVocabularyList",
+        const resp = await sendNative('createVocabularyList', {
           name: trimmedName,
           isDefault: message.isDefault || false
-        };
-        const vrReq = validators.validateRequest('createVocabularyList', payload);
-        if (!vrReq.valid) {
-          return { success: false, error: `Invalid request: ${vrReq.error}` };
-        }
-        const response = await browser.runtime.sendNativeMessage(vrReq.data);
-        const vrCreate = validators.validateResponse('createVocabularyList', response);
-        if (!vrCreate.valid) {
-          return { success: false, error: `Invalid response: ${vrCreate.error}` };
-        }
-        return vrCreate.data;
+        });
+        return resp;
       }
 
       case MessageTypes.UPDATE_WORD: {
@@ -187,26 +141,13 @@ async function handleMessage(message, services) {
         }
 
         try {
-          const payload = {
-            action: "updateWord",
+          const resp = await sendNative('updateWord', {
             listId: message.listId,
             word: message.word,
             updates: message.updates
-          };
-          const vrReq = validators.validateRequest('updateWord', payload);
-          if (!vrReq.valid) {
-            return { success: false, error: `Invalid request: ${vrReq.error}` };
-          }
-          const response = await browser.runtime.sendNativeMessage(vrReq.data);
-          const vrUpd = validators.validateResponse('updateWord', response);
-          if (!vrUpd.valid) {
-            return { success: false, error: `Invalid response: ${vrUpd.error}` };
-          }
-          if (response.error) {
-            return { success: false, error: response.error };
-          }
-
-          return vrUpd.data;
+          });
+          if (resp.error) return { success: false, error: resp.error };
+          return resp;
         } catch (error) {
           return { success: false, error: error.message };
         }
@@ -214,15 +155,7 @@ async function handleMessage(message, services) {
 
       case MessageTypes.FETCH_REVIEW_QUEUE: {
         const payload = { action: "fetchAllVocabularyLists" };
-        const vrReq = validators.validateRequest('fetchAllVocabularyLists', payload);
-        if (!vrReq.valid) {
-          return { success: false, error: `Invalid request: ${vrReq.error}` };
-        }
-        const response = await browser.runtime.sendNativeMessage(vrReq.data);
-        const vrLists3 = validators.validateResponse('fetchAllVocabularyLists', response);
-        if (!vrLists3.valid) {
-          return { success: false, error: `Invalid response: ${vrLists3.error}` };
-        }
+        const response = await sendNative('fetchAllVocabularyLists');
         const lists = response.vocabularyLists || [];
         const maxWords = message.maxWords || 30;
         const now = new Date();
@@ -269,24 +202,13 @@ async function handleMessage(message, services) {
         }
 
         try {
-          // Simply forward to native submitReview
-          const payload = {
-            action: "submitReview",
+          const resp = await sendNative('submitReview', {
             listId: message.listId,
             word: message.word,
             reviewResult: message.reviewResult,
             timeSpent: message.timeSpent || 0.0
-          };
-          const vrReq = validators.validateRequest('submitReview', payload);
-          if (!vrReq.valid) {
-            return { success: false, error: `Invalid request: ${vrReq.error}` };
-          }
-          const reviewResponse = await browser.runtime.sendNativeMessage(vrReq.data);
-          const vrReview = validators.validateResponse('submitReview', reviewResponse);
-          if (!vrReview.valid) {
-            return { success: false, error: `Invalid response: ${vrReview.error}` };
-          }
-          return vrReview.data;
+          });
+          return resp;
         } catch (error) {
           console.error('Submit review error:', error);
           return { success: false, error: error.message };
@@ -311,17 +233,8 @@ async function handleMessage(message, services) {
 
       case MessageTypes.FETCH_RECENT_SEARCHES: {
         try {
-          const payload = { action: "fetchRecentSearches" };
-          const vrReq = validators.validateRequest('fetchRecentSearches', payload);
-          if (!vrReq.valid) {
-            return { success: false, error: `Invalid request: ${vrReq.error}` };
-          }
-          const response = await browser.runtime.sendNativeMessage(vrReq.data);
-          const vrRecent = validators.validateResponse('fetchRecentSearches', response);
-          if (!vrRecent.valid) {
-            return { success: false, error: `Invalid response: ${vrRecent.error}` };
-          }
-          return vrRecent.data;
+          const resp = await sendNative('fetchRecentSearches');
+          return resp;
         } catch (error) {
           console.error('Failed to get recent searches:', error);
           return { success: true, data: [] };
@@ -330,17 +243,8 @@ async function handleMessage(message, services) {
 
       case MessageTypes.FETCH_SETTINGS: {
         try {
-          const payload = { action: "fetchSettings" };
-          const vrReq = validators.validateRequest('fetchSettings', payload);
-          if (!vrReq.valid) {
-            return { success: false, error: `Invalid request: ${vrReq.error}` };
-          }
-          const response = await browser.runtime.sendNativeMessage(vrReq.data);
-          const vrSettings = validators.validateResponse('fetchSettings', response);
-          if (!vrSettings.valid) {
-            return { success: false, error: `Invalid response: ${vrSettings.error}` };
-          }
-          return vrSettings.data;
+          const resp = await sendNative('fetchSettings');
+          return resp;
         } catch (error) {
           console.error('Failed to get settings:', error);
           // Return default settings on error
@@ -362,20 +266,8 @@ async function handleMessage(message, services) {
         }
 
         try {
-          const payload = {
-            action: "updateSettings",
-            settings: message.settings
-          };
-          const vrReq = validators.validateRequest('updateSettings', payload);
-          if (!vrReq.valid) {
-            return { success: false, error: `Invalid request: ${vrReq.error}` };
-          }
-          const response = await browser.runtime.sendNativeMessage(vrReq.data);
-          const vrUpdateSettings = validators.validateResponse('updateSettings', response);
-          if (!vrUpdateSettings.valid) {
-            return { success: false, error: `Invalid response: ${vrUpdateSettings.error}` };
-          }
-          return vrUpdateSettings.data;
+          const resp = await sendNative('updateSettings', { settings: message.settings });
+          return resp;
         } catch (error) {
           console.error('Failed to update settings:', error);
           return { success: false, error: error.message };

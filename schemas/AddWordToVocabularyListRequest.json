@@ -4,6 +4,7 @@
   "description": "Request to add a word to a vocabulary list. It's used for all of UI->(background)->(SwiftWebExtensionHandler)->SwiftData",
   "type": "object",
   "required": ["action", "word", "listId"],
+  "additionalProperties": false,
   "properties": {
     "action": {
       "type": "string",
