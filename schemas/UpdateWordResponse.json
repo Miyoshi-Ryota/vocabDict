@@ -17,8 +17,8 @@
           "type": "string"
         },
         "difficulty": {
-          "type": "string",
-          "enum": ["easy", "medium", "hard"]
+          "type": "integer",
+          "description": "Word difficulty (frequency) as an integer"
         },
         "metadata": {
           "type": "object"
