@@ -219,18 +219,7 @@ describe('Popup UI Tests', () => {
       expect(label.textContent).toContain('Automatically add looked up words');
     });
 
-    test('should have review limit input', () => {
-      const reviewLimit = document.getElementById('review-limit');
-      const label = document.querySelector('label[for="review-limit"]');
-
-      expect(reviewLimit).toBeTruthy();
-      expect(reviewLimit.type).toBe('number');
-      expect(reviewLimit.value).toBe('30');
-      expect(reviewLimit.min).toBe('5');
-      expect(reviewLimit.max).toBe('100');
-      expect(label).toBeTruthy();
-      expect(label.textContent).toBe('Daily review limit');
-    });
+    // Daily review limit UI removed per schema/contract simplification.
 
     test('should have export and import buttons', () => {
       const exportBtn = document.getElementById('export-data');

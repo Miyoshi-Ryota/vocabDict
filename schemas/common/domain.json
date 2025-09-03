@@ -96,7 +96,16 @@
         "listId": { "$ref": "#/$defs/UUID" },
         "listName": { "type": "string" },
         "nextReview": { "$ref": "#/$defs/ISODateTime" },
-        "difficulty": { "type": "integer", "minimum": 1 }
+        "difficulty": { "type": "integer", "minimum": 1 },
+
+        "pronunciation": { "type": "string" },
+        "definitions": { "type": "array", "items": { "$ref": "#/$defs/DefinitionDTO" } },
+        "synonyms": { "type": "array", "items": { "type": "string" } },
+        "antonyms": { "type": "array", "items": { "type": "string" } },
+        "dateAdded": { "$ref": "#/$defs/ISODateTime" },
+        "customNotes": { "type": "string" },
+        "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+        "reviewHistory": { "type": "array", "items": { "$ref": "#/$defs/ReviewHistoryEntryDTO" } }
       },
       "required": ["word", "listId", "listName", "nextReview", "difficulty"],
       "additionalProperties": false

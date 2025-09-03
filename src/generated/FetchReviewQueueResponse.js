@@ -171,17 +171,42 @@ function r(name) {
 
 const typeMap = {
     "FetchReviewQueueResponse": o([
-        { json: "data", js: "data", typ: u(undefined, a(r("Domain"))) },
+        { json: "data", js: "data", typ: u(undefined, a(r("DatumElement"))) },
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
     ], false),
-    "Domain": o([
+    "DatumElement": o([
+        { json: "antonyms", js: "antonyms", typ: u(undefined, a("")) },
+        { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
+        { json: "dateAdded", js: "dateAdded", typ: u(undefined, Date) },
+        { json: "definitions", js: "definitions", typ: u(undefined, a(r("Items"))) },
         { json: "difficulty", js: "difficulty", typ: 0 },
+        { json: "lastReviewed", js: "lastReviewed", typ: u(undefined, u(Date, null)) },
         { json: "listId", js: "listId", typ: "" },
         { json: "listName", js: "listName", typ: "" },
         { json: "nextReview", js: "nextReview", typ: Date },
+        { json: "pronunciation", js: "pronunciation", typ: u(undefined, "") },
+        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("ReviewHistoryElement"))) },
+        { json: "synonyms", js: "synonyms", typ: u(undefined, a("")) },
         { json: "word", js: "word", typ: "" },
     ], false),
+    "Items": o([
+        { json: "definition", js: "definition", typ: u(undefined, "") },
+        { json: "examples", js: "examples", typ: a("") },
+        { json: "meaning", js: "meaning", typ: "" },
+        { json: "partOfSpeech", js: "partOfSpeech", typ: "" },
+    ], false),
+    "ReviewHistoryElement": o([
+        { json: "date", js: "date", typ: Date },
+        { json: "result", js: "result", typ: r("Result") },
+        { json: "timeSpent", js: "timeSpent", typ: 3.14 },
+    ], false),
+    "Result": [
+        "known",
+        "mastered",
+        "skipped",
+        "unknown",
+    ],
 };
 
 module.exports = {

@@ -37,7 +37,13 @@ describe('Background Message Handler', () => {
         // Lookup stats map (simple counts for the test)
         const lookupStats = {};
         for (const w of filtered) {
-          lookupStats[w.word] = { word: w.word, count: w.word === 'hello' ? 5 : (w.word === 'world' ? 2 : 0) };
+          const now = new Date();
+          lookupStats[w.word] = {
+            word: w.word,
+            count: w.word === 'hello' ? 5 : (w.word === 'world' ? 2 : 0),
+            firstLookup: new Date(now.getTime() - 7 * 86400000).toISOString(),
+            lastLookup: now.toISOString()
+          };
         }
         // Sort by lookupCount desc if requested
         let words = [...filtered];
@@ -135,7 +141,18 @@ describe('Background Message Handler', () => {
         if (message.word === 'errorWord') {
           return Promise.resolve({ success: false, error: 'Update failed' });
         }
-        return Promise.resolve({ success: true, data: { word: message.word, difficulty: message.updates?.difficulty || 5000, updatedAt: new Date().toISOString() } });
+        return Promise.resolve({
+          success: true,
+          data: {
+            word: message.word,
+            dateAdded: new Date().toISOString(),
+            difficulty: message.updates?.difficulty || 5000,
+            customNotes: '',
+            lastReviewed: null,
+            nextReview: new Date(Date.now() + 86400000).toISOString(),
+            reviewHistory: []
+          }
+        });
       }
       return Promise.resolve({ success: true });
     });

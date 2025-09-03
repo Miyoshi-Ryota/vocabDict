@@ -487,16 +487,31 @@ struct ProtoFetchReviewQueueResponse: Codable {
 
 // MARK: - ProtoDatumElement
 struct ProtoDatumElement: Codable {
+    let antonyms: [String]?
+    let customNotes: String?
+    let dateAdded: Date?
+    let definitions: [ProtoItems]?
     let difficulty: Int
+    let lastReviewed: Date?
     let listID, listName: String
     let nextReview: Date
+    let pronunciation: String?
+    let reviewHistory: [ProtoReviewHistoryElement]?
+    let synonyms: [String]?
     let word: String
 
     enum CodingKeys: String, CodingKey {
-        case difficulty
+        case antonyms, customNotes, dateAdded, definitions, difficulty, lastReviewed
         case listID = "listId"
-        case listName, nextReview, word
+        case listName, nextReview, pronunciation, reviewHistory, synonyms, word
     }
+}
+
+// MARK: - ProtoItems
+struct ProtoItems: Codable {
+    let definition: String?
+    let examples: [String]
+    let meaning, partOfSpeech: String
 }
 
 /// Response containing user settings.
@@ -569,13 +584,6 @@ struct ProtoLookupWordResponseData: Codable {
     /// Synonyms for the word.
     let synonyms: [String]?
     let word: String?
-}
-
-// MARK: - ProtoItems
-struct ProtoItems: Codable {
-    let definition: String?
-    let examples: [String]
-    let meaning, partOfSpeech: String
 }
 
 /// Response for opening the extension popup.
