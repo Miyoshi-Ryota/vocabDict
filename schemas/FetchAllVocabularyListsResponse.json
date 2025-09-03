@@ -15,28 +15,11 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "wordCount": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "isDefault": { "type": "boolean" },
+          "created": { "type": "string", "format": "date-time" },
+          "words": { "type": "object" }
         }
       }
     },

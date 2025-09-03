@@ -11,21 +11,24 @@
     },
     "data": {
       "type": "object",
-      "description": "The word entry data if successfully added.",
+      "description": "The user-specific word entry as stored.",
       "properties": {
-        "id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "word": {
-          "type": "string"
-        },
-        "metadata": {
-          "type": "object"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
+        "word": { "type": "string" },
+        "dateAdded": { "type": "string", "format": "date-time" },
+        "difficulty": { "type": "integer", "minimum": 1 },
+        "customNotes": { "type": "string" },
+        "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+        "nextReview": { "type": "string", "format": "date-time" },
+        "reviewHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": { "type": "string", "format": "date-time" },
+              "result": { "type": "string" },
+              "timeSpent": { "type": "number", "minimum": 0 }
+            }
+          }
         }
       }
     },

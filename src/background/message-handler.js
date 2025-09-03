@@ -104,6 +104,10 @@ async function handleMessage(message, services) {
       case MessageTypes.GET_LISTS: {
         console.log("Fetching vocabulary lists from native messaging");
         const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
+        const vrLists = validators.validateResponse('fetchAllVocabularyLists', response);
+        if (!vrLists.valid) {
+          console.warn('Invalid fetchAllVocabularyLists response:', vrLists.error);
+        }
         console.log("Received vocabulary lists:", response);
         return { success: true, data: response.vocabularyLists || [] };
       }
@@ -114,6 +118,10 @@ async function handleMessage(message, services) {
         }
 
         const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
+        const vrLists2 = validators.validateResponse('fetchAllVocabularyLists', response);
+        if (!vrLists2.valid) {
+          console.warn('Invalid fetchAllVocabularyLists response:', vrLists2.error);
+        }
         const lists = response.vocabularyLists || [];
         const listData = lists.find(l => l.id === message.listId);
 
@@ -171,6 +179,10 @@ async function handleMessage(message, services) {
           name: trimmedName,
           isDefault: message.isDefault || false
         });
+        const vrCreate = validators.validateResponse('createVocabularyList', response);
+        if (!vrCreate.valid) {
+          console.warn('Invalid createVocabularyList response:', vrCreate.error);
+        }
         
         if (response.error) {
           return { success: false, error: response.error };
@@ -252,6 +264,10 @@ async function handleMessage(message, services) {
             reviewResult: message.reviewResult,
             timeSpent: message.timeSpent || 0.0
           });
+          const vrReview = validators.validateResponse('submitReview', reviewResponse);
+          if (!vrReview.valid) {
+            console.warn('Invalid submitReview response:', vrReview.error);
+          }
 
 
           if (reviewResponse.error) {
@@ -284,6 +300,10 @@ async function handleMessage(message, services) {
           const response = await browser.runtime.sendNativeMessage({
             action: "fetchRecentSearches"
           });
+          const vrRecent = validators.validateResponse('fetchRecentSearches', response);
+          if (!vrRecent.valid) {
+            console.warn('Invalid fetchRecentSearches response:', vrRecent.error);
+          }
           return { success: true, data: response.recentSearches || [] };
         } catch (error) {
           console.error('Failed to get recent searches:', error);
@@ -296,6 +316,10 @@ async function handleMessage(message, services) {
           const response = await browser.runtime.sendNativeMessage({
             action: "fetchSettings"
           });
+          const vrSettings = validators.validateResponse('fetchSettings', response);
+          if (!vrSettings.valid) {
+            console.warn('Invalid fetchSettings response:', vrSettings.error);
+          }
           return { success: true, data: response.settings || {
             theme: 'dark',
             autoPlayPronunciation: false,
@@ -324,6 +348,10 @@ async function handleMessage(message, services) {
             action: "updateSettings",
             settings: message.settings
           });
+          const vrUpdateSettings = validators.validateResponse('updateSettings', response);
+          if (!vrUpdateSettings.valid) {
+            console.warn('Invalid updateSettings response:', vrUpdateSettings.error);
+          }
           return { success: true, data: response.settings };
         } catch (error) {
           console.error('Failed to update settings:', error);

@@ -176,18 +176,20 @@ const typeMap = {
         { json: "success", js: "success", typ: true },
     ], "any"),
     "Datum": o([
-        { json: "createdAt", js: "createdAt", typ: u(undefined, Date) },
-        { json: "difficulty", js: "difficulty", typ: u(undefined, r("Difficulty")) },
+        { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
+        { json: "dateAdded", js: "dateAdded", typ: u(undefined, Date) },
+        { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
+        { json: "lastReviewed", js: "lastReviewed", typ: u(undefined, u(Date, null)) },
         { json: "lookupCount", js: "lookupCount", typ: u(undefined, 0) },
-        { json: "metadata", js: "metadata", typ: u(undefined, m("any")) },
         { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
+        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("ReviewHistory"))) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
-    "Difficulty": [
-        "easy",
-        "hard",
-        "medium",
-    ],
+    "ReviewHistory": o([
+        { json: "date", js: "date", typ: u(undefined, Date) },
+        { json: "result", js: "result", typ: u(undefined, "") },
+        { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
+    ], "any"),
 };
 
 module.exports = {

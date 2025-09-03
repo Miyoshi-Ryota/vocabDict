@@ -15,28 +15,24 @@
       "items": {
         "type": "object",
         "properties": {
-          "word": {
-            "type": "string"
+          "word": { "type": "string" },
+          "difficulty": { "type": "integer", "minimum": 1 },
+          "customNotes": { "type": "string" },
+          "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+          "nextReview": { "type": "string", "format": "date-time" },
+          "reviewHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": { "type": "string", "format": "date-time" },
+                "result": { "type": "string" },
+                "timeSpent": { "type": "number", "minimum": 0 }
+              }
+            }
           },
-          "metadata": {
-            "type": "object"
-          },
-          "difficulty": {
-            "type": "string",
-            "enum": ["easy", "medium", "hard"]
-          },
-          "nextReview": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lookupCount": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
+          "lookupCount": { "type": "integer", "minimum": 0 },
+          "dateAdded": { "type": "string", "format": "date-time" }
         }
       }
     },

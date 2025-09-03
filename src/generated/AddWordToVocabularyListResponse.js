@@ -176,10 +176,18 @@ const typeMap = {
         { json: "success", js: "success", typ: true },
     ], "any"),
     "Data": o([
-        { json: "createdAt", js: "createdAt", typ: u(undefined, Date) },
-        { json: "id", js: "id", typ: u(undefined, "") },
-        { json: "metadata", js: "metadata", typ: u(undefined, m("any")) },
+        { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
+        { json: "dateAdded", js: "dateAdded", typ: u(undefined, Date) },
+        { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
+        { json: "lastReviewed", js: "lastReviewed", typ: u(undefined, u(Date, null)) },
+        { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
+        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("ReviewHistory"))) },
         { json: "word", js: "word", typ: u(undefined, "") },
+    ], "any"),
+    "ReviewHistory": o([
+        { json: "date", js: "date", typ: u(undefined, Date) },
+        { json: "result", js: "result", typ: u(undefined, "") },
+        { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
     ], "any"),
 };
 

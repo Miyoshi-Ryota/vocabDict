@@ -90,7 +90,7 @@ struct Metadata: Codable {
 /// Response from adding a word to a vocabulary list.
 // MARK: - AddWordToVocabularyListResponse
 struct AddWordToVocabularyListResponse: Codable {
-    /// The word entry data if successfully added.
+    /// The user-specific word entry as stored.
     let data: AddWordToVocabularyListResponseData?
     /// Error message if the operation failed.
     let error: String?
@@ -98,13 +98,23 @@ struct AddWordToVocabularyListResponse: Codable {
     let success: Bool
 }
 
-/// The word entry data if successfully added.
+/// The user-specific word entry as stored.
 // MARK: - AddWordToVocabularyListResponseData
 struct AddWordToVocabularyListResponseData: Codable {
-    let createdAt: Date?
-    let id: String?
-    let metadata: [String: JSONAny]?
+    let customNotes: String?
+    let dateAdded: Date?
+    let difficulty: Int?
+    let lastReviewed: Date?
+    let nextReview: Date?
+    let reviewHistory: [DataReviewHistory]?
     let word: String?
+}
+
+// MARK: - DataReviewHistory
+struct DataReviewHistory: Codable {
+    let date: Date?
+    let result: String?
+    let timeSpent: Double?
 }
 
 /// Request to create a new vocabulary list.
@@ -166,12 +176,11 @@ struct FetchAllVocabularyListsResponse: Codable {
 
 // MARK: - VocabularyListElement
 struct VocabularyListElement: Codable {
-    let createdAt: Date?
+    let created: Date?
     let id: String?
     let isDefault: Bool?
     let name: String?
-    let updatedAt: Date?
-    let wordCount: Int?
+    let words: [String: JSONAny]?
 }
 
 /// Request to fetch the lookup count for a specific word.
@@ -403,12 +412,21 @@ struct FetchVocabularyListWordsResponse: Codable {
 
 // MARK: - FetchVocabularyListWordsResponseDatum
 struct FetchVocabularyListWordsResponseDatum: Codable {
-    let createdAt: Date?
-    let difficulty: Difficulty?
+    let customNotes: String?
+    let dateAdded: Date?
+    let difficulty: Int?
+    let lastReviewed: Date?
     let lookupCount: Int?
-    let metadata: [String: JSONAny]?
     let nextReview: Date?
+    let reviewHistory: [DatumReviewHistory]?
     let word: String?
+}
+
+// MARK: - DatumReviewHistory
+struct DatumReviewHistory: Codable {
+    let date: Date?
+    let result: String?
+    let timeSpent: Double?
 }
 
 /// Request to increment the lookup count for a word.
