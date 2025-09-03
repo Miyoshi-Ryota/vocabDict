@@ -544,7 +544,7 @@ const ListsTab = {
       alphabetical: 'Alphabetical (A-Z)',
       dateAdded: 'Date Added (newest first)',
       lastReviewed: 'Last Reviewed (newest first)',
-      difficulty: 'Difficulty (easy to hard)',
+      difficulty: 'Difficulty (low to high)',
       lookupCount: 'Lookup Count (least to most)'
     };
     sortIndicator.textContent = `Sorted by: ${sortLabels[this.currentSort] || 'Most Recent'}`;
