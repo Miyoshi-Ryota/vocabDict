@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "FetchVocabularyListWordsResponse",
-  "description": "Response containing words from a vocabulary list.",
+  "description": "Response containing words and lookup stats for a vocabulary list.",
   "type": "object",
   "required": ["success"],
   "properties": {
@@ -10,29 +10,18 @@
       "description": "Whether the fetch was successful."
     },
     "data": {
-      "type": "array",
-      "description": "Array of word entries.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "word": { "type": "string" },
-          "difficulty": { "type": "integer", "minimum": 1 },
-          "customNotes": { "type": "string" },
-          "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
-          "nextReview": { "type": "string", "format": "date-time" },
-          "reviewHistory": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "date": { "type": "string", "format": "date-time" },
-                "result": { "type": "string" },
-                "timeSpent": { "type": "number", "minimum": 0 }
-              }
-            }
-          },
-          "lookupCount": { "type": "integer", "minimum": 0 },
-          "dateAdded": { "type": "string", "format": "date-time" }
+      "type": "object",
+      "description": "Words and aggregated lookup statistics.",
+      "properties": {
+        "words": {
+          "type": "array",
+          "description": "Array of user-specific word entries.",
+          "items": { "$ref": "./common/domain.json#/$defs/UserWordDataDTO" }
+        },
+        "lookupStats": {
+          "type": "object",
+          "description": "Lookup statistics keyed by word.",
+          "additionalProperties": { "$ref": "./common/domain.json#/$defs/LookupStatDTO" }
         }
       }
     },

@@ -10,11 +10,7 @@
       "const": "fetchVocabularyListWords",
       "description": "The action to be performed. Must be 'fetchVocabularyListWords'."
     },
-    "listId": {
-      "type": "string",
-      "format": "uuid",
-      "description": "The ID of the vocabulary list to fetch words from."
-    },
+    "listId": { "$ref": "./common/domain.json#/$defs/UUID", "description": "The ID of the vocabulary list to fetch words from." },
     "filterBy": {
       "type": "string",
       "enum": ["all", "easy", "medium", "hard"],

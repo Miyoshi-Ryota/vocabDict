@@ -9,29 +9,7 @@
       "type": "boolean",
       "description": "Whether the settings were successfully updated."
     },
-    "settings": {
-      "type": "object",
-      "description": "Updated settings.",
-      "properties": {
-        "theme": {
-          "type": "string",
-          "enum": ["light", "dark", "auto"]
-        },
-        "autoPlayPronunciation": {
-          "type": "boolean"
-        },
-        "showExampleSentences": {
-          "type": "boolean"
-        },
-        "textSelectionMode": {
-          "type": "string",
-          "enum": ["inline", "popup"]
-        },
-        "autoAddLookups": {
-          "type": "boolean"
-        }
-      }
-    },
+    "settings": { "$ref": "./common/domain.json#/$defs/UserSettingsDTO" },
     "error": {
       "type": "string",
       "description": "Error message if the operation failed."

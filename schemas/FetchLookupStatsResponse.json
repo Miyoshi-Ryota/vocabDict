@@ -12,15 +12,7 @@
     "stats": {
       "type": "object",
       "description": "Lookup statistics by word.",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "word": { "type": "string" },
-          "count": { "type": "integer", "minimum": 0 },
-          "firstLookup": { "type": "string", "format": "date-time" },
-          "lastLookup": { "type": "string", "format": "date-time" }
-        }
-      }
+      "additionalProperties": { "$ref": "./common/domain.json#/$defs/LookupStatDTO" }
     },
     "error": {
       "type": "string",

@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DomainTypes",
+  "description": "Common domain types shared across requests and responses.",
+  "$defs": {
+    "UUID": { "type": "string", "format": "uuid" },
+    "ISODateTime": { "type": "string", "format": "date-time" },
+
+    "ReviewResultDTO": {
+      "type": "string",
+      "enum": ["known", "unknown", "mastered", "skipped"]
+    },
+
+    "ReviewHistoryEntryDTO": {
+      "type": "object",
+      "properties": {
+        "date": { "$ref": "#/$defs/ISODateTime" },
+        "result": { "$ref": "#/$defs/ReviewResultDTO" },
+        "timeSpent": { "type": "number", "minimum": 0 }
+      }
+    },
+
+    "UserWordDataDTO": {
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "dateAdded": { "$ref": "#/$defs/ISODateTime" },
+        "difficulty": { "type": "integer", "minimum": 1 },
+        "customNotes": { "type": "string" },
+        "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+        "nextReview": { "$ref": "#/$defs/ISODateTime" },
+        "reviewHistory": { "type": "array", "items": { "$ref": "#/$defs/ReviewHistoryEntryDTO" } }
+      }
+    },
+
+    "VocabularyListDTO": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/UUID" },
+        "name": { "type": "string" },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "$ref": "#/$defs/ISODateTime" },
+        "words": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/UserWordDataDTO" }
+        }
+      }
+    },
+
+    "UserSettingsDTO": {
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string", "enum": ["light", "dark", "auto"] },
+        "autoPlayPronunciation": { "type": "boolean" },
+        "showExampleSentences": { "type": "boolean" },
+        "textSelectionMode": { "type": "string", "enum": ["inline", "popup"] },
+        "autoAddLookups": { "type": "boolean" }
+      }
+    },
+
+    "DefinitionDTO": {
+      "type": "object",
+      "properties": {
+        "partOfSpeech": { "type": "string" },
+        "meaning": { "type": "string" },
+        "definition": { "type": "string" },
+        "examples": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "LookupStatDTO": {
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 },
+        "firstLookup": { "$ref": "#/$defs/ISODateTime" },
+        "lastLookup": { "$ref": "#/$defs/ISODateTime" }
+      }
+    },
+
+    "ReviewQueueItemDTO": {
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "listId": { "$ref": "#/$defs/UUID" },
+        "listName": { "type": "string" },
+        "nextReview": { "$ref": "#/$defs/ISODateTime" },
+        "difficulty": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "ApiResponseBase": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "error": { "type": "string" }
+      },
+      "required": ["success"]
+    }
+  }
+}

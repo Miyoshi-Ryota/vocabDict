@@ -171,25 +171,40 @@ function r(name) {
 
 const typeMap = {
     "FetchVocabularyListWordsResponse": o([
-        { json: "data", js: "data", typ: u(undefined, a(r("Datum"))) },
+        { json: "data", js: "data", typ: u(undefined, r("Data")) },
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
     ], "any"),
-    "Datum": o([
+    "Data": o([
+        { json: "lookupStats", js: "lookupStats", typ: u(undefined, m(r("LookupStatValue"))) },
+        { json: "words", js: "words", typ: u(undefined, a(r("WordElement"))) },
+    ], "any"),
+    "LookupStatValue": o([
+        { json: "count", js: "count", typ: u(undefined, 0) },
+        { json: "firstLookup", js: "firstLookup", typ: u(undefined, Date) },
+        { json: "lastLookup", js: "lastLookup", typ: u(undefined, Date) },
+        { json: "word", js: "word", typ: u(undefined, "") },
+    ], "any"),
+    "WordElement": o([
         { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
         { json: "dateAdded", js: "dateAdded", typ: u(undefined, Date) },
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
         { json: "lastReviewed", js: "lastReviewed", typ: u(undefined, u(Date, null)) },
-        { json: "lookupCount", js: "lookupCount", typ: u(undefined, 0) },
         { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
-        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("ReviewHistory"))) },
+        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("ReviewHistoryElement"))) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
-    "ReviewHistory": o([
+    "ReviewHistoryElement": o([
         { json: "date", js: "date", typ: u(undefined, Date) },
-        { json: "result", js: "result", typ: u(undefined, "") },
+        { json: "result", js: "result", typ: u(undefined, r("Result")) },
         { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
     ], "any"),
+    "Result": [
+        "known",
+        "mastered",
+        "skipped",
+        "unknown",
+    ],
 };
 
 module.exports = {

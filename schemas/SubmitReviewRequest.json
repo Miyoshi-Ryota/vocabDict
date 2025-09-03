@@ -10,11 +10,7 @@
       "const": "submitReview",
       "description": "The action to be performed. Must be 'submitReview'."
     },
-    "listId": {
-      "type": "string",
-      "format": "uuid",
-      "description": "The ID of the vocabulary list containing the word."
-    },
+    "listId": { "$ref": "./common/domain.json#/$defs/UUID", "description": "The ID of the vocabulary list containing the word." },
     "word": {
       "type": "string",
       "minLength": 1,

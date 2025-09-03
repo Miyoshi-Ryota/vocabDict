@@ -12,30 +12,7 @@
     "data": {
       "type": "array",
       "description": "Array of words due for review.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "word": {
-            "type": "string"
-          },
-          "listId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "listName": {
-            "type": "string"
-          },
-          "nextReview": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "difficulty": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Word difficulty (frequency) as an integer"
-          }
-        }
-      }
+      "items": { "$ref": "./common/domain.json#/$defs/ReviewQueueItemDTO" }
     },
     "error": {
       "type": "string",

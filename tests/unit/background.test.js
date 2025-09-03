@@ -371,9 +371,11 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(2);
-      expect(result.data[0].word).toBe('hello');
-      expect(result.data[1].word).toBe('world');
+      // New response shape: { words: UserWordData[], lookupStats: { [word]: LookupStat } }
+      expect(Array.isArray(result.data.words)).toBe(true);
+      expect(result.data.words).toHaveLength(2);
+      expect(result.data.words[0].word).toBe('hello');
+      expect(result.data.words[1].word).toBe('world');
       expect(dictionary.getLookupCount).toHaveBeenCalledWith('hello');
     });
 

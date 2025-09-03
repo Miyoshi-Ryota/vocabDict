@@ -177,9 +177,24 @@ const typeMap = {
     ], "any"),
     "Data": o([
         { json: "customNotes", js: "customNotes", typ: u(undefined, "") },
+        { json: "dateAdded", js: "dateAdded", typ: u(undefined, Date) },
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
+        { json: "lastReviewed", js: "lastReviewed", typ: u(undefined, u(Date, null)) },
+        { json: "nextReview", js: "nextReview", typ: u(undefined, Date) },
+        { json: "reviewHistory", js: "reviewHistory", typ: u(undefined, a(r("Domain"))) },
         { json: "word", js: "word", typ: u(undefined, "") },
     ], "any"),
+    "Domain": o([
+        { json: "date", js: "date", typ: u(undefined, Date) },
+        { json: "result", js: "result", typ: u(undefined, r("Result")) },
+        { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
+    ], "any"),
+    "Result": [
+        "known",
+        "mastered",
+        "skipped",
+        "unknown",
+    ],
 };
 
 module.exports = {

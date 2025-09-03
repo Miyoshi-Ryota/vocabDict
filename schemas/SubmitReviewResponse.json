@@ -13,32 +13,9 @@
       "type": "object",
       "description": "Updated word data and scheduling after review.",
       "properties": {
-        "word": {
-          "type": "object",
-          "description": "Full user-specific word entry after update.",
-          "properties": {
-            "word": { "type": "string" },
-            "dateAdded": { "type": "string", "format": "date-time" },
-            "difficulty": { "type": "integer" },
-            "customNotes": { "type": "string" },
-            "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
-            "nextReview": { "type": "string", "format": "date-time" },
-            "reviewHistory": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "date": { "type": "string", "format": "date-time" },
-                  "result": { "type": "string" },
-                  "timeSpent": { "type": "number" }
-                }
-              }
-            }
-          }
-        },
+        "word": { "$ref": "./common/domain.json#/$defs/UserWordDataDTO" },
         "nextReview": {
-          "type": "string",
-          "format": "date-time",
+          "$ref": "./common/domain.json#/$defs/ISODateTime",
           "description": "Next scheduled review date."
         },
         "nextInterval": {

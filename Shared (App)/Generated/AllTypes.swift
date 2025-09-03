@@ -1,74 +1,65 @@
 // This file was generated from JSON Schema using quicktype, do not modify it directly.
 // To parse the JSON, add this file to your project and do:
 //
-//   let addRecentSearchRequest = try? JSONDecoder().decode(AddRecentSearchRequest.self, from: jsonData)
-//   let addRecentSearchResponse = try? JSONDecoder().decode(AddRecentSearchResponse.self, from: jsonData)
-//   let addWordToVocabularyListRequest = try? JSONDecoder().decode(AddWordToVocabularyListRequest.self, from: jsonData)
-//   let addWordToVocabularyListResponse = try? JSONDecoder().decode(AddWordToVocabularyListResponse.self, from: jsonData)
-//   let createVocabularyListRequest = try? JSONDecoder().decode(CreateVocabularyListRequest.self, from: jsonData)
-//   let createVocabularyListResponse = try? JSONDecoder().decode(CreateVocabularyListResponse.self, from: jsonData)
-//   let fetchAllVocabularyListsRequest = try? JSONDecoder().decode(FetchAllVocabularyListsRequest.self, from: jsonData)
-//   let fetchAllVocabularyListsResponse = try? JSONDecoder().decode(FetchAllVocabularyListsResponse.self, from: jsonData)
-//   let fetchLookupCountRequest = try? JSONDecoder().decode(FetchLookupCountRequest.self, from: jsonData)
-//   let fetchLookupCountResponse = try? JSONDecoder().decode(FetchLookupCountResponse.self, from: jsonData)
-//   let fetchLookupStatsRequest = try? JSONDecoder().decode(FetchLookupStatsRequest.self, from: jsonData)
-//   let fetchLookupStatsResponse = try? JSONDecoder().decode(FetchLookupStatsResponse.self, from: jsonData)
-//   let fetchRecentSearchesRequest = try? JSONDecoder().decode(FetchRecentSearchesRequest.self, from: jsonData)
-//   let fetchRecentSearchesResponse = try? JSONDecoder().decode(FetchRecentSearchesResponse.self, from: jsonData)
-//   let fetchReviewQueueRequest = try? JSONDecoder().decode(FetchReviewQueueRequest.self, from: jsonData)
-//   let fetchReviewQueueResponse = try? JSONDecoder().decode(FetchReviewQueueResponse.self, from: jsonData)
-//   let fetchSettingsRequest = try? JSONDecoder().decode(FetchSettingsRequest.self, from: jsonData)
-//   let fetchSettingsResponse = try? JSONDecoder().decode(FetchSettingsResponse.self, from: jsonData)
-//   let fetchVocabularyListWordsRequest = try? JSONDecoder().decode(FetchVocabularyListWordsRequest.self, from: jsonData)
-//   let fetchVocabularyListWordsResponse = try? JSONDecoder().decode(FetchVocabularyListWordsResponse.self, from: jsonData)
-//   let getPendingContextSearchRequest = try? JSONDecoder().decode(GetPendingContextSearchRequest.self, from: jsonData)
-//   let getPendingContextSearchResponse = try? JSONDecoder().decode(GetPendingContextSearchResponse.self, from: jsonData)
-//   let incrementLookupCountRequest = try? JSONDecoder().decode(IncrementLookupCountRequest.self, from: jsonData)
-//   let incrementLookupCountResponse = try? JSONDecoder().decode(IncrementLookupCountResponse.self, from: jsonData)
-//   let lookupWordRequest = try? JSONDecoder().decode(LookupWordRequest.self, from: jsonData)
-//   let lookupWordResponse = try? JSONDecoder().decode(LookupWordResponse.self, from: jsonData)
-//   let openPopupWithWordRequest = try? JSONDecoder().decode(OpenPopupWithWordRequest.self, from: jsonData)
-//   let openPopupWithWordResponse = try? JSONDecoder().decode(OpenPopupWithWordResponse.self, from: jsonData)
-//   let submitReviewRequest = try? JSONDecoder().decode(SubmitReviewRequest.self, from: jsonData)
-//   let submitReviewResponse = try? JSONDecoder().decode(SubmitReviewResponse.self, from: jsonData)
-//   let updateSettingsRequest = try? JSONDecoder().decode(UpdateSettingsRequest.self, from: jsonData)
-//   let updateSettingsResponse = try? JSONDecoder().decode(UpdateSettingsResponse.self, from: jsonData)
-//   let updateWordRequest = try? JSONDecoder().decode(UpdateWordRequest.self, from: jsonData)
-//   let updateWordResponse = try? JSONDecoder().decode(UpdateWordResponse.self, from: jsonData)
+//   let protoAddRecentSearchRequest = try? JSONDecoder().decode(ProtoAddRecentSearchRequest.self, from: jsonData)
+//   let protoAddWordToVocabularyListRequest = try? JSONDecoder().decode(ProtoAddWordToVocabularyListRequest.self, from: jsonData)
+//   let protoCreateVocabularyListRequest = try? JSONDecoder().decode(ProtoCreateVocabularyListRequest.self, from: jsonData)
+//   let protoFetchAllVocabularyListsRequest = try? JSONDecoder().decode(ProtoFetchAllVocabularyListsRequest.self, from: jsonData)
+//   let protoFetchLookupCountRequest = try? JSONDecoder().decode(ProtoFetchLookupCountRequest.self, from: jsonData)
+//   let protoFetchLookupStatsRequest = try? JSONDecoder().decode(ProtoFetchLookupStatsRequest.self, from: jsonData)
+//   let protoFetchRecentSearchesRequest = try? JSONDecoder().decode(ProtoFetchRecentSearchesRequest.self, from: jsonData)
+//   let protoFetchReviewQueueRequest = try? JSONDecoder().decode(ProtoFetchReviewQueueRequest.self, from: jsonData)
+//   let protoFetchSettingsRequest = try? JSONDecoder().decode(ProtoFetchSettingsRequest.self, from: jsonData)
+//   let protoFetchVocabularyListWordsRequest = try? JSONDecoder().decode(ProtoFetchVocabularyListWordsRequest.self, from: jsonData)
+//   let protoGetPendingContextSearchRequest = try? JSONDecoder().decode(ProtoGetPendingContextSearchRequest.self, from: jsonData)
+//   let protoIncrementLookupCountRequest = try? JSONDecoder().decode(ProtoIncrementLookupCountRequest.self, from: jsonData)
+//   let protoLookupWordRequest = try? JSONDecoder().decode(ProtoLookupWordRequest.self, from: jsonData)
+//   let protoOpenPopupWithWordRequest = try? JSONDecoder().decode(ProtoOpenPopupWithWordRequest.self, from: jsonData)
+//   let protoSubmitReviewRequest = try? JSONDecoder().decode(ProtoSubmitReviewRequest.self, from: jsonData)
+//   let protoUpdateSettingsRequest = try? JSONDecoder().decode(ProtoUpdateSettingsRequest.self, from: jsonData)
+//   let protoUpdateWordRequest = try? JSONDecoder().decode(ProtoUpdateWordRequest.self, from: jsonData)
+//   let protoAddRecentSearchResponse = try? JSONDecoder().decode(ProtoAddRecentSearchResponse.self, from: jsonData)
+//   let protoAddWordToVocabularyListResponse = try? JSONDecoder().decode(ProtoAddWordToVocabularyListResponse.self, from: jsonData)
+//   let protoCreateVocabularyListResponse = try? JSONDecoder().decode(ProtoCreateVocabularyListResponse.self, from: jsonData)
+//   let protoFetchAllVocabularyListsResponse = try? JSONDecoder().decode(ProtoFetchAllVocabularyListsResponse.self, from: jsonData)
+//   let protoFetchLookupCountResponse = try? JSONDecoder().decode(ProtoFetchLookupCountResponse.self, from: jsonData)
+//   let protoFetchLookupStatsResponse = try? JSONDecoder().decode(ProtoFetchLookupStatsResponse.self, from: jsonData)
+//   let protoFetchRecentSearchesResponse = try? JSONDecoder().decode(ProtoFetchRecentSearchesResponse.self, from: jsonData)
+//   let protoFetchReviewQueueResponse = try? JSONDecoder().decode(ProtoFetchReviewQueueResponse.self, from: jsonData)
+//   let protoFetchSettingsResponse = try? JSONDecoder().decode(ProtoFetchSettingsResponse.self, from: jsonData)
+//   let protoFetchVocabularyListWordsResponse = try? JSONDecoder().decode(ProtoFetchVocabularyListWordsResponse.self, from: jsonData)
+//   let protoGetPendingContextSearchResponse = try? JSONDecoder().decode(ProtoGetPendingContextSearchResponse.self, from: jsonData)
+//   let protoIncrementLookupCountResponse = try? JSONDecoder().decode(ProtoIncrementLookupCountResponse.self, from: jsonData)
+//   let protoLookupWordResponse = try? JSONDecoder().decode(ProtoLookupWordResponse.self, from: jsonData)
+//   let protoOpenPopupWithWordResponse = try? JSONDecoder().decode(ProtoOpenPopupWithWordResponse.self, from: jsonData)
+//   let protoSubmitReviewResponse = try? JSONDecoder().decode(ProtoSubmitReviewResponse.self, from: jsonData)
+//   let protoUpdateSettingsResponse = try? JSONDecoder().decode(ProtoUpdateSettingsResponse.self, from: jsonData)
+//   let protoUpdateWordResponse = try? JSONDecoder().decode(ProtoUpdateWordResponse.self, from: jsonData)
 
 import Foundation
 
 /// Request to add a word to recent searches.
-// MARK: - AddRecentSearchRequest
-struct AddRecentSearchRequest: Codable {
+// MARK: - ProtoAddRecentSearchRequest
+struct ProtoAddRecentSearchRequest: Codable {
     /// The action to be performed. Must be 'addRecentSearch'.
-    let action: AddRecentSearchRequestAction
+    let action: ProtoAddRecentSearchRequestAction
     /// The word to add to recent searches.
     let word: String
 }
 
-enum AddRecentSearchRequestAction: String, Codable {
+enum ProtoAddRecentSearchRequestAction: String, Codable {
     case addRecentSearch = "addRecentSearch"
-}
-
-/// Response from adding a word to recent searches.
-// MARK: - AddRecentSearchResponse
-struct AddRecentSearchResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the word was successfully added to recent searches.
-    let success: Bool
 }
 
 /// Request to add a word to a vocabulary list. It's used for all of
 /// UI->(background)->(SwiftWebExtensionHandler)->SwiftData
-// MARK: - AddWordToVocabularyListRequest
-struct AddWordToVocabularyListRequest: Codable {
+// MARK: - ProtoAddWordToVocabularyListRequest
+struct ProtoAddWordToVocabularyListRequest: Codable {
     /// The action to be performed. Must be 'addWordToVocabularyList'.
-    let action: AddWordToVocabularyListRequestAction
+    let action: ProtoAddWordToVocabularyListRequestAction
     /// The ID of the vocabulary list to which the word will be added.
     let listID: String
-    let metadata: Metadata?
+    let metadata: ProtoMetadata?
     /// The word to be added to the vocabulary list.
     let word: String
 
@@ -79,302 +70,118 @@ struct AddWordToVocabularyListRequest: Codable {
     }
 }
 
-enum AddWordToVocabularyListRequestAction: String, Codable {
+enum ProtoAddWordToVocabularyListRequestAction: String, Codable {
     case addWordToVocabularyList = "addWordToVocabularyList"
 }
 
-// MARK: - Metadata
-struct Metadata: Codable {
+// MARK: - ProtoMetadata
+struct ProtoMetadata: Codable {
     /// Custom notes about the word
     let customNotes: String?
     /// Word frequency value (1 to ~330000)
     let difficulty: Int?
 }
 
-/// Response from adding a word to a vocabulary list.
-// MARK: - AddWordToVocabularyListResponse
-struct AddWordToVocabularyListResponse: Codable {
-    /// The user-specific word entry as stored.
-    let data: AddWordToVocabularyListResponseData?
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the word was successfully added.
-    let success: Bool
-}
-
-/// The user-specific word entry as stored.
-// MARK: - AddWordToVocabularyListResponseData
-struct AddWordToVocabularyListResponseData: Codable {
-    let customNotes: String?
-    let dateAdded: Date?
-    let difficulty: Int?
-    let lastReviewed: Date?
-    let nextReview: Date?
-    let reviewHistory: [DataReviewHistory]?
-    let word: String?
-}
-
-// MARK: - DataReviewHistory
-struct DataReviewHistory: Codable {
-    let date: Date?
-    let result: String?
-    let timeSpent: Double?
-}
-
 /// Request to create a new vocabulary list.
-// MARK: - CreateVocabularyListRequest
-struct CreateVocabularyListRequest: Codable {
+// MARK: - ProtoCreateVocabularyListRequest
+struct ProtoCreateVocabularyListRequest: Codable {
     /// The action to be performed. Must be 'createVocabularyList'.
-    let action: CreateVocabularyListRequestAction
+    let action: ProtoCreateVocabularyListRequestAction
     /// Whether this list should be the default list.
     let isDefault: Bool?
     /// The name of the new vocabulary list.
     let name: String
 }
 
-enum CreateVocabularyListRequestAction: String, Codable {
+enum ProtoCreateVocabularyListRequestAction: String, Codable {
     case createVocabularyList = "createVocabularyList"
 }
 
-/// Response from creating a new vocabulary list.
-// MARK: - CreateVocabularyListResponse
-struct CreateVocabularyListResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the list was successfully created.
-    let success: Bool
-    /// The created vocabulary list.
-    let vocabularyList: CreateVocabularyListResponseVocabularyList?
-}
-
-/// The created vocabulary list.
-// MARK: - CreateVocabularyListResponseVocabularyList
-struct CreateVocabularyListResponseVocabularyList: Codable {
-    let createdAt: Date?
-    let id: String?
-    let isDefault: Bool?
-    let name: String?
-}
-
 /// Request to fetch all vocabulary lists.
-// MARK: - FetchAllVocabularyListsRequest
-struct FetchAllVocabularyListsRequest: Codable {
+// MARK: - ProtoFetchAllVocabularyListsRequest
+struct ProtoFetchAllVocabularyListsRequest: Codable {
     /// The action to be performed. Must be 'fetchAllVocabularyLists'.
-    let action: FetchAllVocabularyListsRequestAction
+    let action: ProtoFetchAllVocabularyListsRequestAction
 }
 
-enum FetchAllVocabularyListsRequestAction: String, Codable {
+enum ProtoFetchAllVocabularyListsRequestAction: String, Codable {
     case fetchAllVocabularyLists = "fetchAllVocabularyLists"
 }
 
-/// Response containing all vocabulary lists.
-// MARK: - FetchAllVocabularyListsResponse
-struct FetchAllVocabularyListsResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the fetch was successful.
-    let success: Bool
-    /// Array of vocabulary lists.
-    let vocabularyLists: [VocabularyListElement]?
-}
-
-// MARK: - VocabularyListElement
-struct VocabularyListElement: Codable {
-    let createdAt: Date?
-    let id: String?
-    let isDefault: Bool?
-    let name: String?
-    let words: [String: WordValue]?
-}
-
-// MARK: - WordValue
-struct WordValue: Codable {
-    let customNotes: String?
-    let dateAdded: Date?
-    let difficulty: Int?
-    let lastReviewed: Date?
-    let nextReview: Date?
-    let reviewHistory: [ReviewHistoryElement]?
-    let word: String?
-}
-
-// MARK: - ReviewHistoryElement
-struct ReviewHistoryElement: Codable {
-    let date: Date?
-    let result: String?
-    let timeSpent: Double?
-}
-
 /// Request to fetch the lookup count for a specific word.
-// MARK: - FetchLookupCountRequest
-struct FetchLookupCountRequest: Codable {
+// MARK: - ProtoFetchLookupCountRequest
+struct ProtoFetchLookupCountRequest: Codable {
     /// The action to be performed. Must be 'fetchLookupCount'.
-    let action: FetchLookupCountRequestAction
+    let action: ProtoFetchLookupCountRequestAction
     /// The word to get the lookup count for.
     let word: String
 }
 
-enum FetchLookupCountRequestAction: String, Codable {
+enum ProtoFetchLookupCountRequestAction: String, Codable {
     case fetchLookupCount = "fetchLookupCount"
 }
 
-/// Response containing the lookup count for a word.
-// MARK: - FetchLookupCountResponse
-struct FetchLookupCountResponse: Codable {
-    /// The number of times the word has been looked up.
-    let count: Int?
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the fetch was successful.
-    let success: Bool
-}
-
 /// Request to fetch lookup statistics.
-// MARK: - FetchLookupStatsRequest
-struct FetchLookupStatsRequest: Codable {
+// MARK: - ProtoFetchLookupStatsRequest
+struct ProtoFetchLookupStatsRequest: Codable {
     /// The action to be performed. Must be 'fetchLookupStats'.
-    let action: FetchLookupStatsRequestAction
+    let action: ProtoFetchLookupStatsRequestAction
 }
 
-enum FetchLookupStatsRequestAction: String, Codable {
+enum ProtoFetchLookupStatsRequestAction: String, Codable {
     case fetchLookupStats = "fetchLookupStats"
 }
 
-/// Response containing lookup statistics.
-// MARK: - FetchLookupStatsResponse
-struct FetchLookupStatsResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Lookup statistics by word.
-    let stats: [String: Stat]?
-    /// Whether the fetch was successful.
-    let success: Bool
-}
-
-// MARK: - Stat
-struct Stat: Codable {
-    let count: Int?
-    let firstLookup, lastLookup: Date?
-    let word: String?
-}
-
 /// Request to fetch recent searches.
-// MARK: - FetchRecentSearchesRequest
-struct FetchRecentSearchesRequest: Codable {
+// MARK: - ProtoFetchRecentSearchesRequest
+struct ProtoFetchRecentSearchesRequest: Codable {
     /// The action to be performed. Must be 'fetchRecentSearches'.
-    let action: FetchRecentSearchesRequestAction
+    let action: ProtoFetchRecentSearchesRequestAction
     /// Maximum number of recent searches to return.
     let limit: Int?
 }
 
-enum FetchRecentSearchesRequestAction: String, Codable {
+enum ProtoFetchRecentSearchesRequestAction: String, Codable {
     case fetchRecentSearches = "fetchRecentSearches"
 }
 
-/// Response containing recent searches.
-// MARK: - FetchRecentSearchesResponse
-struct FetchRecentSearchesResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Array of recent search words.
-    let recentSearches: [String]?
-    /// Whether the fetch was successful.
-    let success: Bool
-}
-
 /// Request to fetch words due for review.
-// MARK: - FetchReviewQueueRequest
-struct FetchReviewQueueRequest: Codable {
+// MARK: - ProtoFetchReviewQueueRequest
+struct ProtoFetchReviewQueueRequest: Codable {
     /// The action to be performed. Must be 'fetchReviewQueue'.
-    let action: FetchReviewQueueRequestAction
+    let action: ProtoFetchReviewQueueRequestAction
     /// Maximum number of words to return in the review queue.
     let maxWords: Int?
 }
 
-enum FetchReviewQueueRequestAction: String, Codable {
+enum ProtoFetchReviewQueueRequestAction: String, Codable {
     case fetchReviewQueue = "fetchReviewQueue"
 }
 
-/// Response containing words due for review.
-// MARK: - FetchReviewQueueResponse
-struct FetchReviewQueueResponse: Codable {
-    /// Array of words due for review.
-    let data: [FetchReviewQueueResponseDatum]?
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the fetch was successful.
-    let success: Bool
-}
-
-// MARK: - FetchReviewQueueResponseDatum
-struct FetchReviewQueueResponseDatum: Codable {
-    /// Word difficulty (frequency) as an integer
-    let difficulty: Int?
-    let listID, listName: String?
-    let nextReview: Date?
-    let word: String?
-
-    enum CodingKeys: String, CodingKey {
-        case difficulty
-        case listID = "listId"
-        case listName, nextReview, word
-    }
-}
-
 /// Request to fetch user settings.
-// MARK: - FetchSettingsRequest
-struct FetchSettingsRequest: Codable {
+// MARK: - ProtoFetchSettingsRequest
+struct ProtoFetchSettingsRequest: Codable {
     /// The action to be performed. Must be 'fetchSettings'.
-    let action: FetchSettingsRequestAction
+    let action: ProtoFetchSettingsRequestAction
 }
 
-enum FetchSettingsRequestAction: String, Codable {
+enum ProtoFetchSettingsRequestAction: String, Codable {
     case fetchSettings = "fetchSettings"
 }
 
-/// Response containing user settings.
-// MARK: - FetchSettingsResponse
-struct FetchSettingsResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// User settings.
-    let settings: FetchSettingsResponseSettings?
-    /// Whether the fetch was successful.
-    let success: Bool
-}
-
-/// User settings.
-// MARK: - FetchSettingsResponseSettings
-struct FetchSettingsResponseSettings: Codable {
-    let autoAddLookups, autoPlayPronunciation, showExampleSentences: Bool?
-    let textSelectionMode: TextSelectionMode?
-    let theme: Theme?
-}
-
-enum TextSelectionMode: String, Codable {
-    case inline = "inline"
-    case popup = "popup"
-}
-
-enum Theme: String, Codable {
-    case auto = "auto"
-    case dark = "dark"
-    case light = "light"
-}
-
 /// Request to fetch words from a specific vocabulary list.
-// MARK: - FetchVocabularyListWordsRequest
-struct FetchVocabularyListWordsRequest: Codable {
+// MARK: - ProtoFetchVocabularyListWordsRequest
+struct ProtoFetchVocabularyListWordsRequest: Codable {
     /// The action to be performed. Must be 'fetchVocabularyListWords'.
-    let action: FetchVocabularyListWordsRequestAction
+    let action: ProtoFetchVocabularyListWordsRequestAction
     /// Filter words by difficulty level.
-    let filterBy: FilterBy?
+    let filterBy: ProtoFilterBy?
     /// The ID of the vocabulary list to fetch words from.
     let listID: String
     /// Sort words by specified criteria.
-    let sortBy: SortBy?
+    let sortBy: ProtoSortBy?
     /// Sort order (ascending or descending).
-    let sortOrder: SortOrder?
+    let sortOrder: ProtoSortOrder?
 
     enum CodingKeys: String, CodingKey {
         case action, filterBy
@@ -383,12 +190,12 @@ struct FetchVocabularyListWordsRequest: Codable {
     }
 }
 
-enum FetchVocabularyListWordsRequestAction: String, Codable {
+enum ProtoFetchVocabularyListWordsRequestAction: String, Codable {
     case fetchVocabularyListWords = "fetchVocabularyListWords"
 }
 
 /// Filter words by difficulty level.
-enum FilterBy: String, Codable {
+enum ProtoFilterBy: String, Codable {
     case all = "all"
     case easy = "easy"
     case hard = "hard"
@@ -396,7 +203,7 @@ enum FilterBy: String, Codable {
 }
 
 /// Sort words by specified criteria.
-enum SortBy: String, Codable {
+enum ProtoSortBy: String, Codable {
     case alphabetical = "alphabetical"
     case dateAdded = "dateAdded"
     case difficulty = "difficulty"
@@ -405,153 +212,67 @@ enum SortBy: String, Codable {
 }
 
 /// Sort order (ascending or descending).
-enum SortOrder: String, Codable {
+enum ProtoSortOrder: String, Codable {
     case asc = "asc"
     case desc = "desc"
 }
 
-/// Response containing words from a vocabulary list.
-// MARK: - FetchVocabularyListWordsResponse
-struct FetchVocabularyListWordsResponse: Codable {
-    /// Array of word entries.
-    let data: [FetchVocabularyListWordsResponseDatum]?
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the fetch was successful.
-    let success: Bool
-}
-
-// MARK: - FetchVocabularyListWordsResponseDatum
-struct FetchVocabularyListWordsResponseDatum: Codable {
-    let customNotes: String?
-    let dateAdded: Date?
-    let difficulty: Int?
-    let lastReviewed: Date?
-    let lookupCount: Int?
-    let nextReview: Date?
-    let reviewHistory: [DatumReviewHistory]?
-    let word: String?
-}
-
-// MARK: - DatumReviewHistory
-struct DatumReviewHistory: Codable {
-    let date: Date?
-    let result: String?
-    let timeSpent: Double?
-}
-
 /// Request to retrieve a pending word selection to search when opening popup.
-// MARK: - GetPendingContextSearchRequest
-struct GetPendingContextSearchRequest: Codable {
-    let action: GetPendingContextSearchRequestAction
+// MARK: - ProtoGetPendingContextSearchRequest
+struct ProtoGetPendingContextSearchRequest: Codable {
+    let action: ProtoGetPendingContextSearchRequestAction
 }
 
-enum GetPendingContextSearchRequestAction: String, Codable {
+enum ProtoGetPendingContextSearchRequestAction: String, Codable {
     case getPendingContextSearch = "getPendingContextSearch"
 }
 
-/// Response containing a pending word for context search, if any.
-// MARK: - GetPendingContextSearchResponse
-struct GetPendingContextSearchResponse: Codable {
-    let data: String?
-    let error: String?
-    let success: Bool
-}
-
 /// Request to increment the lookup count for a word.
-// MARK: - IncrementLookupCountRequest
-struct IncrementLookupCountRequest: Codable {
+// MARK: - ProtoIncrementLookupCountRequest
+struct ProtoIncrementLookupCountRequest: Codable {
     /// The action to be performed. Must be 'incrementLookupCount'.
-    let action: IncrementLookupCountRequestAction
+    let action: ProtoIncrementLookupCountRequestAction
     /// The word whose lookup count should be incremented.
     let word: String
 }
 
-enum IncrementLookupCountRequestAction: String, Codable {
+enum ProtoIncrementLookupCountRequestAction: String, Codable {
     case incrementLookupCount = "incrementLookupCount"
 }
 
-/// Response from incrementing the lookup count for a word.
-// MARK: - IncrementLookupCountResponse
-struct IncrementLookupCountResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the lookup count was successfully incremented.
-    let success: Bool
-}
-
 /// Request to lookup a word in the dictionary.
-// MARK: - LookupWordRequest
-struct LookupWordRequest: Codable {
+// MARK: - ProtoLookupWordRequest
+struct ProtoLookupWordRequest: Codable {
     /// The action to be performed. Must be 'lookupWord'.
-    let action: LookupWordRequestAction
+    let action: ProtoLookupWordRequestAction
     /// The word to lookup in the dictionary.
     let word: String
 }
 
-enum LookupWordRequestAction: String, Codable {
+enum ProtoLookupWordRequestAction: String, Codable {
     case lookupWord = "lookupWord"
 }
 
-/// Response from looking up a word in the dictionary.
-// MARK: - LookupWordResponse
-struct LookupWordResponse: Codable {
-    /// The dictionary data for the word if found.
-    let data: LookupWordResponseData?
-    /// Error message if the lookup failed.
-    let error: String?
-    /// Whether the lookup was successful.
-    let success: Bool
-    /// Suggested words if the exact word was not found.
-    let suggestions: [String]?
-}
-
-// MARK: - LookupWordResponseData
-struct LookupWordResponseData: Codable {
-    let definitions: [Items]?
-    let word: String?
-}
-
-// MARK: - Items
-struct Items: Codable {
-    let definition: String?
-    let examples: [String]?
-    let meaning, partOfSpeech: String?
-}
-
 /// Request to open the extension popup with a prefilled word.
-// MARK: - OpenPopupWithWordRequest
-struct OpenPopupWithWordRequest: Codable {
-    let action: OpenPopupWithWordRequestAction
+// MARK: - ProtoOpenPopupWithWordRequest
+struct ProtoOpenPopupWithWordRequest: Codable {
+    let action: ProtoOpenPopupWithWordRequestAction
     let word: String
 }
 
-enum OpenPopupWithWordRequestAction: String, Codable {
+enum ProtoOpenPopupWithWordRequestAction: String, Codable {
     case openPopupWithWord = "openPopupWithWord"
 }
 
-/// Response for opening the extension popup.
-// MARK: - OpenPopupWithWordResponse
-struct OpenPopupWithWordResponse: Codable {
-    let data: OpenPopupWithWordResponseData?
-    let error: String?
-    let success: Bool
-}
-
-// MARK: - OpenPopupWithWordResponseData
-struct OpenPopupWithWordResponseData: Codable {
-    let popupOpened: Bool?
-}
-
 /// Request to submit a review result for a word.
-// MARK: - SubmitReviewRequest
-struct SubmitReviewRequest: Codable {
+// MARK: - ProtoSubmitReviewRequest
+struct ProtoSubmitReviewRequest: Codable {
     /// The action to be performed. Must be 'submitReview'.
-    let action: SubmitReviewRequestAction
+    let action: ProtoSubmitReviewRequestAction
     /// The ID of the vocabulary list containing the word.
     let listID: String
     /// The review result indicating how well the user knew the word.
-    let reviewResult: ReviewResult
+    let reviewResult: ProtoReviewResult
     /// Time spent on the review in seconds.
     let timeSpent: Double?
     /// The word being reviewed.
@@ -564,110 +285,59 @@ struct SubmitReviewRequest: Codable {
     }
 }
 
-enum SubmitReviewRequestAction: String, Codable {
+enum ProtoSubmitReviewRequestAction: String, Codable {
     case submitReview = "submitReview"
 }
 
 /// The review result indicating how well the user knew the word.
-enum ReviewResult: String, Codable {
+enum ProtoReviewResult: String, Codable {
     case known = "known"
     case mastered = "mastered"
     case skipped = "skipped"
     case unknown = "unknown"
 }
 
-/// Response from submitting a review result.
-// MARK: - SubmitReviewResponse
-struct SubmitReviewResponse: Codable {
-    /// Updated word data and scheduling after review.
-    let data: SubmitReviewResponseData?
-    /// Error message if the operation failed.
-    let error: String?
-    /// Whether the review was successfully submitted.
-    let success: Bool
-}
-
-/// Updated word data and scheduling after review.
-// MARK: - SubmitReviewResponseData
-struct SubmitReviewResponseData: Codable {
-    /// Days until next review; null if mastered.
-    let nextInterval: Int?
-    /// Next scheduled review date.
-    let nextReview: Date?
-    /// Full user-specific word entry after update.
-    let word: Word?
-}
-
-/// Full user-specific word entry after update.
-// MARK: - Word
-struct Word: Codable {
-    let customNotes: String?
-    let dateAdded: Date?
-    let difficulty: Int?
-    let lastReviewed: Date?
-    let nextReview: Date?
-    let reviewHistory: [WordReviewHistory]?
-    let word: String?
-}
-
-// MARK: - WordReviewHistory
-struct WordReviewHistory: Codable {
-    let date: Date?
-    let result: String?
-    let timeSpent: Double?
-}
-
 /// Request to update user settings.
-// MARK: - UpdateSettingsRequest
-struct UpdateSettingsRequest: Codable {
+// MARK: - ProtoUpdateSettingsRequest
+struct ProtoUpdateSettingsRequest: Codable {
     /// The action to be performed. Must be 'updateSettings'.
-    let action: UpdateSettingsRequestAction
+    let action: ProtoUpdateSettingsRequestAction
     /// Settings to update.
-    let settings: UpdateSettingsRequestSettings
+    let settings: ProtoSettings
 }
 
-enum UpdateSettingsRequestAction: String, Codable {
+enum ProtoUpdateSettingsRequestAction: String, Codable {
     case updateSettings = "updateSettings"
 }
 
 /// Settings to update.
-// MARK: - UpdateSettingsRequestSettings
-struct UpdateSettingsRequestSettings: Codable {
-    /// Automatically add looked-up words to the default list.
-    let autoAddLookups: Bool?
-    let autoPlayPronunciation, showExampleSentences: Bool?
-    let textSelectionMode: TextSelectionMode?
-    let theme: Theme?
-}
-
-/// Response from updating user settings.
-// MARK: - UpdateSettingsResponse
-struct UpdateSettingsResponse: Codable {
-    /// Error message if the operation failed.
-    let error: String?
-    /// Updated settings.
-    let settings: UpdateSettingsResponseSettings?
-    /// Whether the settings were successfully updated.
-    let success: Bool
-}
-
-/// Updated settings.
-// MARK: - UpdateSettingsResponseSettings
-struct UpdateSettingsResponseSettings: Codable {
+// MARK: - ProtoSettings
+struct ProtoSettings: Codable {
     let autoAddLookups, autoPlayPronunciation, showExampleSentences: Bool?
-    let textSelectionMode: TextSelectionMode?
-    let theme: Theme?
+    let textSelectionMode: ProtoTextSelectionMode?
+    let theme: ProtoTheme?
+}
+
+enum ProtoTextSelectionMode: String, Codable {
+    case inline = "inline"
+    case popup = "popup"
+}
+
+enum ProtoTheme: String, Codable {
+    case auto = "auto"
+    case dark = "dark"
+    case light = "light"
 }
 
 /// Request to update a word in a vocabulary list.
-// MARK: - UpdateWordRequest
-struct UpdateWordRequest: Codable {
+// MARK: - ProtoUpdateWordRequest
+struct ProtoUpdateWordRequest: Codable {
     /// The action to be performed. Must be 'updateWord'.
-    let action: UpdateWordRequestAction
+    let action: ProtoUpdateWordRequestAction
     /// The ID of the vocabulary list containing the word.
     let listID: String
     /// The updates to apply to the word.
-    let updates: Updates
+    let updates: ProtoUpdates
     /// The word to update.
     let word: String
 
@@ -678,13 +348,13 @@ struct UpdateWordRequest: Codable {
     }
 }
 
-enum UpdateWordRequestAction: String, Codable {
+enum ProtoUpdateWordRequestAction: String, Codable {
     case updateWord = "updateWord"
 }
 
 /// The updates to apply to the word.
-// MARK: - Updates
-struct Updates: Codable {
+// MARK: - ProtoUpdates
+struct ProtoUpdates: Codable {
     /// Custom notes about the word
     let customNotes: String?
     /// Word frequency value (1 to ~330000)
@@ -692,23 +362,268 @@ struct Updates: Codable {
     let notes: String?
 }
 
+/// Response from adding a word to recent searches.
+// MARK: - ProtoAddRecentSearchResponse
+struct ProtoAddRecentSearchResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the word was successfully added to recent searches.
+    let success: Bool
+}
+
+/// Response from adding a word to a vocabulary list.
+// MARK: - ProtoAddWordToVocabularyListResponse
+struct ProtoAddWordToVocabularyListResponse: Codable {
+    /// The user-specific word entry as stored.
+    let data: ProtoDataValue?
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the word was successfully added.
+    let success: Bool
+}
+
+/// The user-specific word entry as stored.
+///
+/// The updated word entry.
+// MARK: - ProtoDataValue
+struct ProtoDataValue: Codable {
+    let customNotes: String?
+    let dateAdded: Date?
+    let difficulty: Int?
+    let lastReviewed: Date?
+    let nextReview: Date?
+    let reviewHistory: [ProtoReviewHistoryElement]?
+    let word: String?
+}
+
+// MARK: - ProtoReviewHistoryElement
+struct ProtoReviewHistoryElement: Codable {
+    let date: Date?
+    let result: ProtoReviewResult?
+    let timeSpent: Double?
+}
+
+/// Response from creating a new vocabulary list.
+// MARK: - ProtoCreateVocabularyListResponse
+struct ProtoCreateVocabularyListResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the list was successfully created.
+    let success: Bool
+    /// The created vocabulary list.
+    let vocabularyList: ProtoVocabularyList?
+}
+
+/// The created vocabulary list.
+// MARK: - ProtoVocabularyList
+struct ProtoVocabularyList: Codable {
+    let createdAt: Date?
+    let id: String?
+    let isDefault: Bool?
+    let name: String?
+    let words: [String: ProtoDataValue]?
+}
+
+/// Response containing all vocabulary lists.
+// MARK: - ProtoFetchAllVocabularyListsResponse
+struct ProtoFetchAllVocabularyListsResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the fetch was successful.
+    let success: Bool
+    /// Array of vocabulary lists.
+    let vocabularyLists: [ProtoVocabularyList]?
+}
+
+/// Response containing the lookup count for a word.
+// MARK: - ProtoFetchLookupCountResponse
+struct ProtoFetchLookupCountResponse: Codable {
+    /// The number of times the word has been looked up.
+    let count: Int?
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the fetch was successful.
+    let success: Bool
+}
+
+/// Response containing lookup statistics.
+// MARK: - ProtoFetchLookupStatsResponse
+struct ProtoFetchLookupStatsResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    /// Lookup statistics by word.
+    let stats: [String: ProtoStatValue]?
+    /// Whether the fetch was successful.
+    let success: Bool
+}
+
+// MARK: - ProtoStatValue
+struct ProtoStatValue: Codable {
+    let count: Int?
+    let firstLookup, lastLookup: Date?
+    let word: String?
+}
+
+/// Response containing recent searches.
+// MARK: - ProtoFetchRecentSearchesResponse
+struct ProtoFetchRecentSearchesResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    /// Array of recent search words.
+    let recentSearches: [String]?
+    /// Whether the fetch was successful.
+    let success: Bool
+}
+
+/// Response containing words due for review.
+// MARK: - ProtoFetchReviewQueueResponse
+struct ProtoFetchReviewQueueResponse: Codable {
+    /// Array of words due for review.
+    let data: [ProtoDatumElement]?
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the fetch was successful.
+    let success: Bool
+}
+
+// MARK: - ProtoDatumElement
+struct ProtoDatumElement: Codable {
+    let difficulty: Int?
+    let listID, listName: String?
+    let nextReview: Date?
+    let word: String?
+
+    enum CodingKeys: String, CodingKey {
+        case difficulty
+        case listID = "listId"
+        case listName, nextReview, word
+    }
+}
+
+/// Response containing user settings.
+// MARK: - ProtoFetchSettingsResponse
+struct ProtoFetchSettingsResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    let settings: ProtoSettings?
+    /// Whether the fetch was successful.
+    let success: Bool
+}
+
+/// Response containing words and lookup stats for a vocabulary list.
+// MARK: - ProtoFetchVocabularyListWordsResponse
+struct ProtoFetchVocabularyListWordsResponse: Codable {
+    /// Words and aggregated lookup statistics.
+    let data: ProtoFetchVocabularyListWordsResponseData?
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the fetch was successful.
+    let success: Bool
+}
+
+/// Words and aggregated lookup statistics.
+// MARK: - ProtoFetchVocabularyListWordsResponseData
+struct ProtoFetchVocabularyListWordsResponseData: Codable {
+    /// Lookup statistics keyed by word.
+    let lookupStats: [String: ProtoStatValue]?
+    /// Array of user-specific word entries.
+    let words: [ProtoDataValue]?
+}
+
+/// Response containing a pending word for context search, if any.
+// MARK: - ProtoGetPendingContextSearchResponse
+struct ProtoGetPendingContextSearchResponse: Codable {
+    let data: String?
+    let error: String?
+    let success: Bool
+}
+
+/// Response from incrementing the lookup count for a word.
+// MARK: - ProtoIncrementLookupCountResponse
+struct ProtoIncrementLookupCountResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the lookup count was successfully incremented.
+    let success: Bool
+}
+
+/// Response from looking up a word in the dictionary.
+// MARK: - ProtoLookupWordResponse
+struct ProtoLookupWordResponse: Codable {
+    /// The dictionary data for the word if found.
+    let data: ProtoLookupWordResponseData?
+    /// Error message if the lookup failed.
+    let error: String?
+    /// Whether the lookup was successful.
+    let success: Bool
+    /// Suggested words if the exact word was not found.
+    let suggestions: [String]?
+}
+
+// MARK: - ProtoLookupWordResponseData
+struct ProtoLookupWordResponseData: Codable {
+    let definitions: [ProtoItems]?
+    let word: String?
+}
+
+// MARK: - ProtoItems
+struct ProtoItems: Codable {
+    let definition: String?
+    let examples: [String]?
+    let meaning, partOfSpeech: String?
+}
+
+/// Response for opening the extension popup.
+// MARK: - ProtoOpenPopupWithWordResponse
+struct ProtoOpenPopupWithWordResponse: Codable {
+    let data: ProtoOpenPopupWithWordResponseData?
+    let error: String?
+    let success: Bool
+}
+
+// MARK: - ProtoOpenPopupWithWordResponseData
+struct ProtoOpenPopupWithWordResponseData: Codable {
+    let popupOpened: Bool?
+}
+
+/// Response from submitting a review result.
+// MARK: - ProtoSubmitReviewResponse
+struct ProtoSubmitReviewResponse: Codable {
+    /// Updated word data and scheduling after review.
+    let data: ProtoSubmitReviewResponseData?
+    /// Error message if the operation failed.
+    let error: String?
+    /// Whether the review was successfully submitted.
+    let success: Bool
+}
+
+/// Updated word data and scheduling after review.
+// MARK: - ProtoSubmitReviewResponseData
+struct ProtoSubmitReviewResponseData: Codable {
+    /// Days until next review; null if mastered.
+    let nextInterval: Int?
+    /// Next scheduled review date.
+    let nextReview: Date?
+    let word: ProtoDataValue?
+}
+
+/// Response from updating user settings.
+// MARK: - ProtoUpdateSettingsResponse
+struct ProtoUpdateSettingsResponse: Codable {
+    /// Error message if the operation failed.
+    let error: String?
+    let settings: ProtoSettings?
+    /// Whether the settings were successfully updated.
+    let success: Bool
+}
+
 /// Response from updating a word in a vocabulary list.
-// MARK: - UpdateWordResponse
-struct UpdateWordResponse: Codable {
+// MARK: - ProtoUpdateWordResponse
+struct ProtoUpdateWordResponse: Codable {
     /// The updated word entry.
-    let data: UpdateWordResponseData?
+    let data: ProtoDataValue?
     /// Error message if the operation failed.
     let error: String?
     /// Whether the word was successfully updated.
     let success: Bool
-}
-
-/// The updated word entry.
-// MARK: - UpdateWordResponseData
-struct UpdateWordResponseData: Codable {
-    /// Custom notes about the word
-    let customNotes: String?
-    /// Word difficulty (frequency) as an integer
-    let difficulty: Int?
-    let word: String?
 }

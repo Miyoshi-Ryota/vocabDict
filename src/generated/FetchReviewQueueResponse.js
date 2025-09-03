@@ -171,11 +171,11 @@ function r(name) {
 
 const typeMap = {
     "FetchReviewQueueResponse": o([
-        { json: "data", js: "data", typ: u(undefined, a(r("Datum"))) },
+        { json: "data", js: "data", typ: u(undefined, a(r("Domain"))) },
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
     ], "any"),
-    "Datum": o([
+    "Domain": o([
         { json: "difficulty", js: "difficulty", typ: u(undefined, 0) },
         { json: "listId", js: "listId", typ: u(undefined, "") },
         { json: "listName", js: "listName", typ: u(undefined, "") },

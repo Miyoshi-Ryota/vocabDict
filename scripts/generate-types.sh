@@ -22,11 +22,12 @@ done
 # Generate Swift Codable types in a single file
 echo "📝 Generating Swift types..."
 echo "  - Combining all schemas into AllTypes.swift"
-quicktype schemas/*.json \
+quicktype schemas/*Request.json schemas/*Response.json \
   -o "Shared (App)/Generated/AllTypes.swift" \
   --lang swift \
   --src-lang schema \
   --swift-5-support \
+  --type-prefix Proto \
   --no-initializers \
   --alphabetize-properties
 

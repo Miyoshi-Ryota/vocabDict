@@ -10,21 +10,8 @@
       "description": "Whether the word was successfully updated."
     },
     "data": {
-      "type": "object",
-      "description": "The updated word entry.",
-      "properties": {
-        "word": {
-          "type": "string"
-        },
-        "difficulty": {
-          "type": "integer",
-          "description": "Word difficulty (frequency) as an integer"
-        },
-        "customNotes": {
-          "type": "string",
-          "description": "Custom notes about the word"
-        }
-      }
+      "$ref": "./common/domain.json#/$defs/UserWordDataDTO",
+      "description": "The updated word entry."
     },
     "error": {
       "type": "string",

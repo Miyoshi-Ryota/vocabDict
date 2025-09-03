@@ -9,34 +9,7 @@
       "type": "boolean",
       "description": "Whether the fetch was successful."
     },
-    "settings": {
-      "type": "object",
-      "description": "User settings.",
-      "properties": {
-        "theme": {
-          "type": "string",
-          "enum": ["light", "dark", "auto"],
-          "default": "dark"
-        },
-        "autoPlayPronunciation": {
-          "type": "boolean",
-          "default": false
-        },
-        "showExampleSentences": {
-          "type": "boolean",
-          "default": true
-        },
-        "textSelectionMode": {
-          "type": "string",
-          "enum": ["inline", "popup"],
-          "default": "inline"
-        },
-        "autoAddLookups": {
-          "type": "boolean",
-          "default": false
-        }
-      }
-    },
+    "settings": { "$ref": "./common/domain.json#/$defs/UserSettingsDTO" },
     "error": {
       "type": "string",
       "description": "Error message if the operation failed."

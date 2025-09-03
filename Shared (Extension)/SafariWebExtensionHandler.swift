@@ -81,7 +81,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         case "fetchAllVocabularyLists":
             // Validate request using Codable
             do {
-                _ = try JSONDecoder().decode(FetchAllVocabularyListsRequest.self, from: jsonData)
+                _ = try JSONDecoder().decode(ProtoFetchAllVocabularyListsRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -90,13 +90,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
-            validateAndComplete([ "success": true, "vocabularyLists": listsData ], as: FetchAllVocabularyListsResponse.self)
+            validateAndComplete([ "success": true, "vocabularyLists": listsData ], as: ProtoFetchAllVocabularyListsResponse.self)
             
         case "createVocabularyList":
             // Decode and validate request
-            let createRequest: CreateVocabularyListRequest
+            let createRequest: ProtoCreateVocabularyListRequest
             do {
-                createRequest = try JSONDecoder().decode(CreateVocabularyListRequest.self, from: jsonData)
+                createRequest = try JSONDecoder().decode(ProtoCreateVocabularyListRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -105,13 +105,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let newList = cloudKitStore.createVocabularyList(name: createRequest.name, isDefault: createRequest.isDefault ?? false)
-            validateAndComplete([ "success": true, "vocabularyList": newList.toDictionary() ], as: CreateVocabularyListResponse.self)
+            validateAndComplete([ "success": true, "vocabularyList": newList.toDictionary() ], as: ProtoCreateVocabularyListResponse.self)
             
         case "addWordToVocabularyList":
             // Decode and validate request
-            let addWordRequest: AddWordToVocabularyListRequest
+            let addWordRequest: ProtoAddWordToVocabularyListRequest
             do {
-                addWordRequest = try JSONDecoder().decode(AddWordToVocabularyListRequest.self, from: jsonData)
+                addWordRequest = try JSONDecoder().decode(ProtoAddWordToVocabularyListRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -137,7 +137,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             
             // Add word to list
             if let wordEntry = cloudKitStore.addWordToVocabularyList(word: addWordRequest.word, metadata: metadata, to: listUUID) {
-                validateAndComplete([ "success": true, "data": wordEntry.toDictionary() ], as: AddWordToVocabularyListResponse.self)
+                validateAndComplete([ "success": true, "data": wordEntry.toDictionary() ], as: ProtoAddWordToVocabularyListResponse.self)
             } else {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to add word to list" ] ]
@@ -146,9 +146,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             
         case "addRecentSearch":
             // Decode and validate request
-            let recentSearchRequest: AddRecentSearchRequest
+            let recentSearchRequest: ProtoAddRecentSearchRequest
             do {
-                recentSearchRequest = try JSONDecoder().decode(AddRecentSearchRequest.self, from: jsonData)
+                recentSearchRequest = try JSONDecoder().decode(ProtoAddRecentSearchRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -157,12 +157,12 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             cloudKitStore.addRecentSearch(word: recentSearchRequest.word)
-            validateAndComplete([ "success": true ], as: AddRecentSearchResponse.self)
+            validateAndComplete([ "success": true ], as: ProtoAddRecentSearchResponse.self)
             
         case "fetchRecentSearches":
             // Validate request using Codable
             do {
-                _ = try JSONDecoder().decode(FetchRecentSearchesRequest.self, from: jsonData)
+                _ = try JSONDecoder().decode(ProtoFetchRecentSearchesRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -171,12 +171,12 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let searches = cloudKitStore.getRecentSearches()
-            validateAndComplete([ "success": true, "recentSearches": searches ], as: FetchRecentSearchesResponse.self)
+            validateAndComplete([ "success": true, "recentSearches": searches ], as: ProtoFetchRecentSearchesResponse.self)
             
         case "fetchSettings":
             // Validate request using Codable
             do {
-                _ = try JSONDecoder().decode(FetchSettingsRequest.self, from: jsonData)
+                _ = try JSONDecoder().decode(ProtoFetchSettingsRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -185,13 +185,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let settings = cloudKitStore.getSettings()
-            validateAndComplete([ "success": true, "settings": settings.toDictionary() ], as: FetchSettingsResponse.self)
+            validateAndComplete([ "success": true, "settings": settings.toDictionary() ], as: ProtoFetchSettingsResponse.self)
             
         case "updateSettings":
             // Decode and validate request
-            let updateSettingsRequest: UpdateSettingsRequest
+            let updateSettingsRequest: ProtoUpdateSettingsRequest
             do {
-                updateSettingsRequest = try JSONDecoder().decode(UpdateSettingsRequest.self, from: jsonData)
+                updateSettingsRequest = try JSONDecoder().decode(ProtoUpdateSettingsRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -218,13 +218,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let updatedSettings = cloudKitStore.updateSettings(updates)
-            validateAndComplete([ "success": true, "settings": updatedSettings.toDictionary() ], as: UpdateSettingsResponse.self)
+            validateAndComplete([ "success": true, "settings": updatedSettings.toDictionary() ], as: ProtoUpdateSettingsResponse.self)
             
         case "incrementLookupCount":
             // Decode and validate request
-            let incrementRequest: IncrementLookupCountRequest
+            let incrementRequest: ProtoIncrementLookupCountRequest
             do {
-                incrementRequest = try JSONDecoder().decode(IncrementLookupCountRequest.self, from: jsonData)
+                incrementRequest = try JSONDecoder().decode(ProtoIncrementLookupCountRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -233,12 +233,12 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             cloudKitStore.incrementLookupCount(for: incrementRequest.word)
-            validateAndComplete([ "success": true ], as: IncrementLookupCountResponse.self)
+            validateAndComplete([ "success": true ], as: ProtoIncrementLookupCountResponse.self)
             
         case "fetchLookupStats": // Currently not used from JS side, reserved for future use
             // Validate request using Codable
             do {
-                _ = try JSONDecoder().decode(FetchLookupStatsRequest.self, from: jsonData)
+                _ = try JSONDecoder().decode(ProtoFetchLookupStatsRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -247,13 +247,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let stats = cloudKitStore.getLookupStats()
-            validateAndComplete([ "success": true, "stats": stats ], as: FetchLookupStatsResponse.self)
+            validateAndComplete([ "success": true, "stats": stats ], as: ProtoFetchLookupStatsResponse.self)
             
         case "fetchLookupCount":
             // Decode and validate request
-            let lookupCountRequest: FetchLookupCountRequest
+            let lookupCountRequest: ProtoFetchLookupCountRequest
             do {
-                lookupCountRequest = try JSONDecoder().decode(FetchLookupCountRequest.self, from: jsonData)
+                lookupCountRequest = try JSONDecoder().decode(ProtoFetchLookupCountRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -262,13 +262,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             let count = cloudKitStore.getLookupCount(for: lookupCountRequest.word)
-            validateAndComplete([ "success": true, "count": count ], as: FetchLookupCountResponse.self)
+            validateAndComplete([ "success": true, "count": count ], as: ProtoFetchLookupCountResponse.self)
             
         case "submitReview":
             // Decode and validate request
-            let submitReviewRequest: SubmitReviewRequest
+            let submitReviewRequest: ProtoSubmitReviewRequest
             do {
-                submitReviewRequest = try JSONDecoder().decode(SubmitReviewRequest.self, from: jsonData)
+                submitReviewRequest = try JSONDecoder().decode(ProtoSubmitReviewRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -289,13 +289,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 timeSpent: submitReviewRequest.timeSpent ?? 0.0,
                 in: listUUID
             )
-            validateAndComplete(reviewResponse, as: SubmitReviewResponse.self)
+            validateAndComplete(reviewResponse, as: ProtoSubmitReviewResponse.self)
             
         case "updateWord":
             // Decode and validate request
-            let updateWordRequest: UpdateWordRequest
+            let updateWordRequest: ProtoUpdateWordRequest
             do {
-                updateWordRequest = try JSONDecoder().decode(UpdateWordRequest.self, from: jsonData)
+                updateWordRequest = try JSONDecoder().decode(ProtoUpdateWordRequest.self, from: jsonData)
             } catch {
                 let response = NSExtensionItem()
                 response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
@@ -320,7 +320,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
             if let updatedWord = cloudKitStore.updateWord(word: updateWordRequest.word, updates: updates, in: listUUID) {
-                validateAndComplete([ "success": true, "data": updatedWord.toDictionary() ], as: UpdateWordResponse.self)
+                validateAndComplete([ "success": true, "data": updatedWord.toDictionary() ], as: ProtoUpdateWordResponse.self)
             } else {
                 fail("Failed to update word")
             }

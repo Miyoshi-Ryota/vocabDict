@@ -18,7 +18,7 @@
         },
         "definitions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/Definition" }
+          "items": { "$ref": "./common/domain.json#/$defs/DefinitionDTO" }
         }
       }
     },
@@ -32,17 +32,6 @@
     "error": {
       "type": "string",
       "description": "Error message if the lookup failed."
-    }
-  },
-  "$defs": {
-    "Definition": {
-      "type": "object",
-      "properties": {
-        "partOfSpeech": { "type": "string" },
-        "meaning": { "type": "string" },
-        "definition": { "type": "string" },
-        "examples": { "type": "array", "items": { "type": "string" } }
-      }
     }
   }
 }

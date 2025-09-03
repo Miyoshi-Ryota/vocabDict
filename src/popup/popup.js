@@ -509,7 +509,9 @@ const ListsTab = {
         return;
       }
 
-      const words = response.data || [];
+      const { words = [], lookupStats = {} } = response.data || {};
+      // Keep current lookup stats for rendering (e.g., when sortBy is lookupCount)
+      this.currentLookupStats = lookupStats;
 
       // Show status section
       this.updateStatusSection(words.length);
@@ -580,7 +582,7 @@ const ListsTab = {
 
     // Add sort-specific information
     if (sortBy === 'lookupCount') {
-      const count = word.lookupCount || 0;
+      const count = (this.currentLookupStats && this.currentLookupStats[word.word] && this.currentLookupStats[word.word].count) || 0;
       wordItem += `
         <span class="lookup-count">${count} lookup${count !== 1 ? 's' : ''}</span>
       `;

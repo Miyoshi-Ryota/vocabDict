@@ -10,29 +10,6 @@
       "const": "updateSettings",
       "description": "The action to be performed. Must be 'updateSettings'."
     },
-    "settings": {
-      "type": "object",
-      "description": "Settings to update.",
-      "properties": {
-        "theme": {
-          "type": "string",
-          "enum": ["light", "dark", "auto"]
-        },
-        "autoPlayPronunciation": {
-          "type": "boolean"
-        },
-        "showExampleSentences": {
-          "type": "boolean"
-        },
-        "textSelectionMode": {
-          "type": "string",
-          "enum": ["inline", "popup"]
-        },
-        "autoAddLookups": {
-          "type": "boolean",
-          "description": "Automatically add looked-up words to the default list."
-        }
-      }
-    }
+    "settings": { "$ref": "./common/domain.json#/$defs/UserSettingsDTO", "description": "Settings to update." }
   }
 }

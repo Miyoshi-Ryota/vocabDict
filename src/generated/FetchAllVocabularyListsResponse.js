@@ -173,9 +173,9 @@ const typeMap = {
     "FetchAllVocabularyListsResponse": o([
         { json: "error", js: "error", typ: u(undefined, "") },
         { json: "success", js: "success", typ: true },
-        { json: "vocabularyLists", js: "vocabularyLists", typ: u(undefined, a(r("VocabularyList"))) },
+        { json: "vocabularyLists", js: "vocabularyLists", typ: u(undefined, a(r("VocabularyListElement"))) },
     ], "any"),
-    "VocabularyList": o([
+    "VocabularyListElement": o([
         { json: "createdAt", js: "createdAt", typ: u(undefined, Date) },
         { json: "id", js: "id", typ: u(undefined, "") },
         { json: "isDefault", js: "isDefault", typ: u(undefined, true) },
@@ -193,9 +193,15 @@ const typeMap = {
     ], "any"),
     "ReviewHistoryElement": o([
         { json: "date", js: "date", typ: u(undefined, Date) },
-        { json: "result", js: "result", typ: u(undefined, "") },
+        { json: "result", js: "result", typ: u(undefined, r("Result")) },
         { json: "timeSpent", js: "timeSpent", typ: u(undefined, 3.14) },
     ], "any"),
+    "Result": [
+        "known",
+        "mastered",
+        "skipped",
+        "unknown",
+    ],
 };
 
 module.exports = {

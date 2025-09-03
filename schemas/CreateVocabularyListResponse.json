@@ -9,26 +9,7 @@
       "type": "boolean",
       "description": "Whether the list was successfully created."
     },
-    "vocabularyList": {
-      "type": "object",
-      "description": "The created vocabulary list.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "name": {
-          "type": "string"
-        },
-        "isDefault": {
-          "type": "boolean"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
+    "vocabularyList": { "$ref": "./common/domain.json#/$defs/VocabularyListDTO", "description": "The created vocabulary list." },
     "error": {
       "type": "string",
       "description": "Error message if the operation failed."

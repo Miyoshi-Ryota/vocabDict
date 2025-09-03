@@ -12,48 +12,11 @@
     "vocabularyLists": {
       "type": "array",
       "description": "Array of vocabulary lists.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "isDefault": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "words": {
-            "type": "object",
-            "additionalProperties": { "$ref": "#/$defs/UserWordData" }
-          }
-        }
-      }
+      "items": { "$ref": "./common/domain.json#/$defs/VocabularyListDTO" }
     },
     "error": {
       "type": "string",
       "description": "Error message if the operation failed."
-    }
-  },
-  "$defs": {
-    "ReviewHistoryEntry": {
-      "type": "object",
-      "properties": {
-        "date": { "type": "string", "format": "date-time" },
-        "result": { "type": "string" },
-        "timeSpent": { "type": "number" }
-      }
-    },
-    "UserWordData": {
-      "type": "object",
-      "properties": {
-        "word": { "type": "string" },
-        "dateAdded": { "type": "string", "format": "date-time" },
-        "difficulty": { "type": "integer", "minimum": 1 },
-        "customNotes": { "type": "string" },
-        "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
-        "nextReview": { "type": "string", "format": "date-time" },
-        "reviewHistory": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/ReviewHistoryEntry" }
-        }
-      }
     }
   }
 }
