@@ -176,6 +176,7 @@ const typeMap = {
         { json: "success", js: "success", typ: true },
     ], "any"),
     "Settings": o([
+        { json: "autoAddLookups", js: "autoAddLookups", typ: u(undefined, true) },
         { json: "autoPlayPronunciation", js: "autoPlayPronunciation", typ: u(undefined, true) },
         { json: "showExampleSentences", js: "showExampleSentences", typ: u(undefined, true) },
         { json: "textSelectionMode", js: "textSelectionMode", typ: u(undefined, r("TextSelectionMode")) },

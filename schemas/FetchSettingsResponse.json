@@ -30,6 +30,10 @@
           "type": "string",
           "enum": ["inline", "popup"],
           "default": "inline"
+        },
+        "autoAddLookups": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

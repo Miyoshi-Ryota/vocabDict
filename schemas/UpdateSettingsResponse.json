@@ -26,6 +26,9 @@
         "textSelectionMode": {
           "type": "string",
           "enum": ["inline", "popup"]
+        },
+        "autoAddLookups": {
+          "type": "boolean"
         }
       }
     },

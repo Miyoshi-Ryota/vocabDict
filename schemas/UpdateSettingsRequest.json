@@ -27,6 +27,10 @@
         "textSelectionMode": {
           "type": "string",
           "enum": ["inline", "popup"]
+        },
+        "autoAddLookups": {
+          "type": "boolean",
+          "description": "Automatically add looked-up words to the default list."
         }
       }
     }

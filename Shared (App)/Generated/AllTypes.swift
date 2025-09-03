@@ -327,7 +327,7 @@ struct FetchSettingsResponse: Codable {
 /// User settings.
 // MARK: - FetchSettingsResponseSettings
 struct FetchSettingsResponseSettings: Codable {
-    let autoPlayPronunciation, showExampleSentences: Bool?
+    let autoAddLookups, autoPlayPronunciation, showExampleSentences: Bool?
     let textSelectionMode: TextSelectionMode?
     let theme: Theme?
 }
@@ -494,9 +494,9 @@ enum SubmitReviewRequestAction: String, Codable {
 /// The review result indicating how well the user knew the word.
 enum ReviewResult: String, Codable {
     case known = "known"
-    case unknown = "unknown"
     case mastered = "mastered"
     case skipped = "skipped"
+    case unknown = "unknown"
 }
 
 /// Response from submitting a review result.
@@ -540,6 +540,8 @@ enum UpdateSettingsRequestAction: String, Codable {
 /// Settings to update.
 // MARK: - UpdateSettingsRequestSettings
 struct UpdateSettingsRequestSettings: Codable {
+    /// Automatically add looked-up words to the default list.
+    let autoAddLookups: Bool?
     let autoPlayPronunciation, showExampleSentences: Bool?
     let textSelectionMode: TextSelectionMode?
     let theme: Theme?
@@ -559,7 +561,7 @@ struct UpdateSettingsResponse: Codable {
 /// Updated settings.
 // MARK: - UpdateSettingsResponseSettings
 struct UpdateSettingsResponseSettings: Codable {
-    let autoPlayPronunciation, showExampleSentences: Bool?
+    let autoAddLookups, autoPlayPronunciation, showExampleSentences: Bool?
     let textSelectionMode: TextSelectionMode?
     let theme: Theme?
 }

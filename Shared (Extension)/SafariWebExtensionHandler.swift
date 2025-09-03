@@ -198,6 +198,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             if let selectionMode = updateSettingsRequest.settings.textSelectionMode {
                 updates["textSelectionMode"] = selectionMode.rawValue
             }
+            if let autoAdd = updateSettingsRequest.settings.autoAddLookups {
+                updates["autoAddLookups"] = autoAdd
+            }
             
             let updatedSettings = cloudKitStore.updateSettings(updates)
             let response = NSExtensionItem()
