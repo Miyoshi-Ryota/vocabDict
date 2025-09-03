@@ -457,6 +457,8 @@ describe('Content Script User Flow Integration Tests', () => {
         }
         if (message.action === 'openPopupWithWord') {
           browser.action.openPopup.mockResolvedValue();
+          // Simulate background actually opening the popup
+          browser.action.openPopup();
           return Promise.resolve({ success: true, data: { popupOpened: true } });
         }
         return originalSendMessage(message);
