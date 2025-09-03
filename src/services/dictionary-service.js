@@ -51,7 +51,7 @@ class DictionaryService {
           console.warn('Invalid incrementLookupCount request:', vrReq.error);
           return;
         }
-        const resp = await browser.runtime.sendNativeMessage(payload);
+        const resp = await browser.runtime.sendNativeMessage(vrReq.data);
         const vr = validators.validateResponse('incrementLookupCount', resp);
         if (!vr.valid) {
           console.warn('Invalid incrementLookupCount response:', vr.error);
@@ -102,7 +102,7 @@ class DictionaryService {
           console.warn('Invalid fetchLookupCount request:', vrReq.error);
           return 0;
         }
-        const response = await browser.runtime.sendNativeMessage(payload);
+        const response = await browser.runtime.sendNativeMessage(vrReq.data);
         const vr = validators.validateResponse('fetchLookupCount', response);
         if (!vr.valid) {
           console.warn('Invalid fetchLookupCount response:', vr.error);

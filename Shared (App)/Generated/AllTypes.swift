@@ -381,9 +381,9 @@ enum FilterBy: String, Codable {
 /// Sort words by specified criteria.
 enum SortBy: String, Codable {
     case alphabetical = "alphabetical"
-    case date = "date"
+    case dateAdded = "dateAdded"
     case difficulty = "difficulty"
-    case frequency = "frequency"
+    case lastReviewed = "lastReviewed"
     case lookupCount = "lookupCount"
 }
 

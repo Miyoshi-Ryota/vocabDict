@@ -347,7 +347,7 @@ async function handleMessage(message, services) {
         if (!vrResp.valid) {
           return { success: false, error: `Invalid response: ${vrResp.error}` };
         }
-        return result;
+        return vrResp.data;
       }
 
       case MessageTypes.FETCH_RECENT_SEARCHES: {

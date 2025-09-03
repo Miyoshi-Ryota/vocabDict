@@ -188,9 +188,9 @@ const typeMap = {
     ],
     "SortBy": [
         "alphabetical",
-        "date",
+        "dateAdded",
         "difficulty",
-        "frequency",
+        "lastReviewed",
         "lookupCount",
     ],
     "SortOrder": [
