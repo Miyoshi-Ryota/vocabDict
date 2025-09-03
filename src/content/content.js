@@ -290,9 +290,9 @@ async function addWordToList(word) {
       action: 'fetchAllVocabularyLists'
     });
 
-    if (listsResponse.success && listsResponse.data.length > 0) {
+    if (listsResponse.success && (listsResponse.vocabularyLists || []).length > 0) {
       // Use the first available list (default list)
-      const listId = listsResponse.data[0].id;
+      const listId = listsResponse.vocabularyLists[0].id;
 
       const addResponse = await browser.runtime.sendMessage({
         action: 'addWordToVocabularyList',

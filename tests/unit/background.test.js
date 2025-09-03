@@ -31,10 +31,10 @@ describe('Background Message Handler', () => {
       if (message.action === 'addWordToVocabularyList') {
         const word = message.word;
         if (!dictionary.getDictionaryData(word)) {
-          return Promise.resolve({ error: 'Word not found in dictionary' });
+          return Promise.resolve({ success: false, error: 'Word not found in dictionary' });
         }
         if (mockList.words[word.toLowerCase()]) {
-          return Promise.resolve({ error: 'Word already exists in list' });
+          return Promise.resolve({ success: false, error: 'Word already exists in list' });
         }
         const wordEntry = {
           word: word,
@@ -109,9 +109,12 @@ describe('Background Message Handler', () => {
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
       }
+      if (message.action === 'fetchRecentSearches') {
+        return Promise.resolve({ success: true, recentSearches: [] });
+      }
       if (message.action === 'updateWord') {
         if (message.word === 'errorWord') {
-          return Promise.resolve({ error: 'Update failed' });
+          return Promise.resolve({ success: false, error: 'Update failed' });
         }
         return Promise.resolve({ success: true, data: { word: message.word, difficulty: message.updates?.difficulty || 5000, updatedAt: new Date().toISOString() } });
       }
@@ -206,8 +209,8 @@ describe('Background Message Handler', () => {
 
     test('should handle list not found', async () => {
       browser.runtime.sendNativeMessage
-        .mockImplementationOnce(() => Promise.resolve({})) // incrementLookupCount
-        .mockImplementationOnce(() => Promise.resolve({ error: 'List not found' }));
+        .mockImplementationOnce(() => Promise.resolve({ success: true })) // incrementLookupCount
+        .mockImplementationOnce(() => Promise.resolve({ success: false, error: 'List not found' }));
 
       await expect(handleMessage({
         action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
@@ -227,14 +230,14 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].name).toBe('My Vocabulary');
-      expect(result.data[0].isDefault).toBe(true);
+      expect(result.vocabularyLists).toHaveLength(1);
+      expect(result.vocabularyLists[0].name).toBe('My Vocabulary');
+      expect(result.vocabularyLists[0].isDefault).toBe(true);
     });
 
     test('should return empty array if no lists', async () => {
       browser.runtime.sendNativeMessage.mockImplementationOnce(() => 
-        Promise.resolve({ vocabularyLists: [] })
+        Promise.resolve({ success: true, vocabularyLists: [] })
       );
       
       const result = await handleMessage({
@@ -242,7 +245,7 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual([]);
+      expect(result.vocabularyLists).toEqual([]);
     });
   });
 
@@ -254,9 +257,9 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(result.data.name).toBe('New List');
-      expect(result.data.id).toBeDefined();
+      expect(result.vocabularyList).toBeDefined();
+      expect(result.vocabularyList.name).toBe('New List');
+      expect(result.vocabularyList.id).toBeDefined();
     });
 
     test('should require list name', async () => {
@@ -299,7 +302,7 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(result.data.lastReviewed).toBeDefined();
+      expect(result.data.word.lastReviewed).toBeDefined();
       expect(result.data.nextReview).toBeDefined();
     });
 
@@ -321,9 +324,9 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(result.data.theme).toBeDefined();
-      expect(result.data.autoPlayPronunciation).toBeDefined();
+      expect(result.settings).toBeDefined();
+      expect(result.settings.theme).toBeDefined();
+      expect(result.settings.autoPlayPronunciation).toBeDefined();
     });
   });
 
@@ -335,8 +338,8 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(result.data.theme).toBe('light');
+      expect(result.settings).toBeDefined();
+      expect(result.settings.theme).toBe('light');
     });
 
     test('should require settings object', async () => {
@@ -505,8 +508,8 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(Array.isArray(result.data)).toBe(true);
+      expect(result.recentSearches).toBeDefined();
+      expect(Array.isArray(result.recentSearches)).toBe(true);
     });
   });
 

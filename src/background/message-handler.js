@@ -127,7 +127,7 @@ async function handleMessage(message, services) {
           return { success: false, error: `Invalid response: ${vrLists.error}` };
         }
         console.log("Received vocabulary lists:", response);
-        return { success: true, data: response.vocabularyLists || [] };
+        return response;
       }
 
       case MessageTypes.FETCH_VOCABULARY_LIST_WORDS: {
@@ -219,12 +219,7 @@ async function handleMessage(message, services) {
         if (!vrCreate.valid) {
           return { success: false, error: `Invalid response: ${vrCreate.error}` };
         }
-        
-        if (response.error) {
-          return { success: false, error: response.error };
-        }
-
-        return { success: true, data: response.vocabularyList };
+        return response;
       }
 
       case MessageTypes.UPDATE_WORD: {
@@ -332,15 +327,7 @@ async function handleMessage(message, services) {
           if (!vrReview.valid) {
             return { success: false, error: `Invalid response: ${vrReview.error}` };
           }
-
-
-          if (reviewResponse.error) {
-            return { success: false, error: reviewResponse.error };
-          }
-
-          const d = reviewResponse.data || {};
-          const flattened = { lastReviewed: d.word?.lastReviewed, nextReview: d.nextReview };
-          return { success: true, data: flattened };
+          return reviewResponse;
         } catch (error) {
           console.error('Submit review error:', error);
           return { success: false, error: error.message };
@@ -375,7 +362,7 @@ async function handleMessage(message, services) {
           if (!vrRecent.valid) {
             return { success: false, error: `Invalid response: ${vrRecent.error}` };
           }
-          return { success: true, data: response.recentSearches || [] };
+          return response;
         } catch (error) {
           console.error('Failed to get recent searches:', error);
           return { success: true, data: [] };
@@ -394,21 +381,19 @@ async function handleMessage(message, services) {
           if (!vrSettings.valid) {
             return { success: false, error: `Invalid response: ${vrSettings.error}` };
           }
-          return { success: true, data: response.settings || {
-            theme: 'dark',
-            autoPlayPronunciation: false,
-            showExampleSentences: true,
-            textSelectionMode: 'inline'
-          }};
+          return response;
         } catch (error) {
           console.error('Failed to get settings:', error);
           // Return default settings on error
-          return { success: true, data: {
+          const fallback = { success: true, settings: {
             theme: 'dark',
             autoPlayPronunciation: false,
             showExampleSentences: true,
             textSelectionMode: 'inline'
           }};
+          const v = validators.validateResponse('fetchSettings', fallback);
+          if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
+          return fallback;
         }
       }
 
@@ -431,7 +416,7 @@ async function handleMessage(message, services) {
           if (!vrUpdateSettings.valid) {
             return { success: false, error: `Invalid response: ${vrUpdateSettings.error}` };
           }
-          return { success: true, data: response.settings };
+          return response;
         } catch (error) {
           console.error('Failed to update settings:', error);
           return { success: false, error: error.message };

@@ -122,8 +122,8 @@ describe('Background Service Integration Tests', () => {
       }, services);
 
       expect(listsResponse.success).toBe(true);
-      expect(listsResponse.data).toHaveLength(1);
-      const listId = listsResponse.data[0].id;
+      expect(listsResponse.vocabularyLists).toHaveLength(1);
+      const listId = listsResponse.vocabularyLists[0].id;
 
       // 3. Add word to list
       const addResponse = await handleMessage({
@@ -146,7 +146,7 @@ describe('Background Service Integration Tests', () => {
       const listsResponse = await handleMessage({
         action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
-      const listId = listsResponse.data[0].id;
+      const listId = listsResponse.vocabularyLists[0].id;
 
       // Add multiple words
       const words = ['hello', 'eloquent', 'serendipity'];
@@ -196,7 +196,7 @@ describe('Background Service Integration Tests', () => {
 
       expect(reviewResponse.success).toBe(true);
       expect(reviewResponse.data.nextReview).toBeDefined();
-      expect(reviewResponse.data.lastReviewed).toBeDefined();
+      expect(reviewResponse.data.word.lastReviewed).toBeDefined();
     });
   });
 
@@ -209,13 +209,13 @@ describe('Background Service Integration Tests', () => {
       }, services);
 
       expect(createResponse.success).toBe(true);
-      const techListId = createResponse.data.id;
+      const techListId = createResponse.vocabularyList.id;
 
       // Add word to first list
       const listsResponse = await handleMessage({
         action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
-      const defaultListId = listsResponse.data[0].id;
+      const defaultListId = listsResponse.vocabularyLists[0].id;
 
       await handleMessage({
         action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
@@ -236,8 +236,8 @@ describe('Background Service Integration Tests', () => {
       const listsAfterAdds = await handleMessage({
         action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
-      const defaultList = listsAfterAdds.data.find(l => l.id === defaultListId);
-      const techList = listsAfterAdds.data.find(l => l.id === techListId);
+      const defaultList = listsAfterAdds.vocabularyLists.find(l => l.id === defaultListId);
+      const techList = listsAfterAdds.vocabularyLists.find(l => l.id === techListId);
 
       expect(defaultList.words).toHaveProperty('algorithm');
       expect(defaultList.words).not.toHaveProperty('recursion');
@@ -261,7 +261,7 @@ describe('Background Service Integration Tests', () => {
       const listsResponse = await handleMessage({
         action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, services);
-      const listId = listsResponse.data[0].id;
+      const listId = listsResponse.vocabularyLists[0].id;
 
       const response = await handleMessage({
         action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,

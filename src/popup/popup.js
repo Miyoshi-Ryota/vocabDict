@@ -24,7 +24,7 @@ const ThemeManager = {
     browser.runtime.sendMessage({
       action: 'fetchSettings'
     }).then(response => {
-      const theme = (response && response.success && response.data && response.data.theme) ? response.data.theme : 'dark';
+      const theme = (response && response.success && response.settings && response.settings.theme) ? response.settings.theme : 'dark';
       this.applyTheme(theme);
 
       // Update theme selector if it exists
@@ -338,7 +338,7 @@ const SearchTab = {
       const listsResponse = await browser.runtime.sendMessage({
         action: 'fetchAllVocabularyLists'
       });
-      const lists = listsResponse.success ? listsResponse.data : [];
+      const lists = listsResponse && listsResponse.success ? (listsResponse.vocabularyLists || []) : [];
       const defaultList = lists.find(l => l.isDefault) || lists[0];
 
       if (!defaultList) {
@@ -370,7 +370,7 @@ const SearchTab = {
         action: 'fetchRecentSearches'
       });
     if (response.success) {
-      this.recentSearches = response.data;
+      this.recentSearches = response.recentSearches || [];
       this.displayRecentSearches();
     }
   },
@@ -414,7 +414,7 @@ const ListsTab = {
       });
 
       if (response.success) {
-        this.displayLists(response.data);
+        this.displayLists(response.vocabularyLists || []);
       }
     } catch (error) {
       console.error('Load lists error:', error);
@@ -436,7 +436,7 @@ const ListsTab = {
           <span class="list-name">${list.name}</span>
           <span class="list-count">${Object.keys(list.words).length} words</span>
         </div>
-        <div class="list-updated">Last updated: ${this.formatDate(list.updated || list.created)}</div>
+        <div class="list-updated">Last updated: ${this.formatDate(list.createdAt || list.created)}</div>
       </div>
     `).join('');
 
@@ -466,7 +466,7 @@ const ListsTab = {
       });
 
       if (response.success) {
-        const list = response.data.find(l => l.id === listId);
+        const list = (response.vocabularyLists || []).find(l => l.id === listId);
         if (list) {
           this.currentList = list;
           this.displayListWords(list);
@@ -1137,7 +1137,7 @@ const SettingsTab = {
     try {
       response = await browser.runtime.sendMessage({ action: 'fetchSettings' });
     } catch (_) { /* ignore */ }
-    const settings = (response && response.success && response.data) ? response.data : {
+    const settings = (response && response.success && response.settings) ? response.settings : {
       theme: 'dark',
       autoAddLookups: true,
       dailyReviewLimit: 30,

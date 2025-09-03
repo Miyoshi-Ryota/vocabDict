@@ -39,9 +39,9 @@ describe('Popup Integration Tests', () => {
     // Mock native messages and browser runtime
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
-        return Promise.resolve({ 
-          vocabularyLists: [mockList.toJSON()]
-        });
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
       if (message.action === 'addWordToVocabularyList') {
         const wordEntry = {
@@ -91,7 +91,9 @@ describe('Popup Integration Tests', () => {
         return Promise.resolve({ success: false, error: 'Word not found' });
       }
       if (message.action === 'fetchAllVocabularyLists') {
-        return Promise.resolve({ success: true, data: [mockList.toJSON()] });
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
       if (message.action === 'addWordToVocabularyList') {
         return browser.runtime.sendNativeMessage({
@@ -108,11 +110,11 @@ describe('Popup Integration Tests', () => {
       }
       if (message.action === 'fetchRecentSearches') {
         return browser.runtime.sendNativeMessage({ action: 'fetchRecentSearches' })
-          .then(response => ({ success: true, data: response.recentSearches || [] }));
+          .then(response => ({ success: true, recentSearches: response.recentSearches || [] }));
       }
       if (message.action === 'fetchSettings') {
         return browser.runtime.sendNativeMessage({ action: 'fetchSettings' })
-          .then(response => ({ success: true, data: response.settings }));
+          .then(response => ({ success: true, settings: response.settings }));
       }
       if (message.action === 'fetchReviewQueue') {
         return Promise.resolve({ success: true, data: [] });

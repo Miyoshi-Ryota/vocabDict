@@ -49,7 +49,9 @@ describe('Content Script User Flow Integration Tests', () => {
         return Promise.resolve(result ? { success: true, data: result } : { success: false, error: 'Word not found' });
       }
       if (message.action === 'fetchAllVocabularyLists') {
-        return Promise.resolve({ success: true, data: [defaultList.toJSON()] });
+        const j = defaultList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
       if (message.action === 'addWordToVocabularyList') {
         return browser.runtime.sendNativeMessage({
