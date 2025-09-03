@@ -220,6 +220,10 @@ async function handleMessage(message, services) {
 
       case MessageTypes.GET_REVIEW_QUEUE: {
         const response = await browser.runtime.sendNativeMessage({ action: "fetchAllVocabularyLists" });
+        const vrLists3 = validators.validateResponse('fetchAllVocabularyLists', response);
+        if (!vrLists3.valid) {
+          console.warn('Invalid fetchAllVocabularyLists response:', vrLists3.error);
+        }
         const lists = response.vocabularyLists || [];
         const maxWords = message.maxWords || 30;
         const now = new Date();

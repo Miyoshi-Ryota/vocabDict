@@ -72,6 +72,28 @@ JSのbackground <----> SwiftのSafariWebExtensionHandler
 ## 依頼
 既存のsendMessage, sendNativeMessageを読んで、実際に今送っている内容と、今回作っていただいたJSON Schemaの内容が合っているかを確認してもらえますか？注意深く複数回確認してください。
 
+## スキーマとコード生成の運用
+
+- 変更手順
+  - `schemas/*.json` を編集して契約（request/response）を更新します。
+  - `npm run generate:types` で以下を自動生成します。
+    - Swift Codable 型: `Shared (App)/Generated/AllTypes.swift`
+    - JS バリデータ/型: `src/generated/*.js`
+    - バリデータ・インデックス: `src/generated/validators.js`（schemas から自動生成）
+  - 生成物は手動編集しないでください。`.ts` 生成物は廃止し、`.gitignore` で無視しています。
+
+- 検証方針
+  - JS の UI→background、background→native の両方で、`validators.validateRequest/validateResponse` を適用します。
+  - Swift 側は `SafariWebExtensionHandler` が `Codable` でデコードし、エラー時は `{ success:false, error:... }` で返します。
+
+- CI/フック
+  - `pretest:js` と `prebuild` で `generate:types` を実行します。スキーマ変更の取りこぼしを防ぎます。
+
+- 命名・語彙の統一
+  - action 名は camelCase。
+  - reviewResult は `{ known, unknown, mastered, skipped }` に統一。
+  - difficulty は数値（頻度）で保持。UI の表示は必要に応じてバケット化（easy/medium/hard）。
+
 ただし、Actionの名前は現状少し異なっているのは許容しているので良いです。例えばAddWordToVocabularyListが、現状ではadd_wordになっているのはすでにわかっています。
 
 
@@ -104,4 +126,3 @@ JSのbackground <----> SwiftのSafariWebExtensionHandler
   - JSON Schema: format: "uuid"として定義
   - 現状: 文字列として扱い、Swift側でUUID変換
 -> コード側も可能であるならばUUIDにしてください。JSなので無理なら今のままでも良いと思っています。JSON Schemaもstringであるが、formatがuuidであるということなので別に型の不一致ではないでしょう。
-

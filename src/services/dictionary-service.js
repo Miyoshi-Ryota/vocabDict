@@ -1,3 +1,5 @@
+const validators = require('../generated/validators');
+
 class DictionaryService {
   constructor(dictionaryData) {
     this.data = {};
@@ -40,10 +42,14 @@ class DictionaryService {
     // Send to native storage
     try {
       if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendNativeMessage) {
-        await browser.runtime.sendNativeMessage({
+        const resp = await browser.runtime.sendNativeMessage({
           action: "incrementLookupCount",
           word: normalizedWord
         });
+        const vr = validators.validateResponse('incrementLookupCount', resp);
+        if (!vr.valid) {
+          console.warn('Invalid incrementLookupCount response:', vr.error);
+        }
       }
     } catch (error) {
       console.error('Failed to increment lookup count:', error);
@@ -85,6 +91,10 @@ class DictionaryService {
           action: "fetchLookupCount",
           word: normalizedWord
         });
+        const vr = validators.validateResponse('fetchLookupCount', response);
+        if (!vr.valid) {
+          console.warn('Invalid fetchLookupCount response:', vr.error);
+        }
         return response.count || 0;
       }
     } catch (error) {

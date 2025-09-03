@@ -55,7 +55,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 context.completeRequest(returningItems: [ response ], completionHandler: nil)
                 return
             }
-            
             let lists = cloudKitStore.getVocabularyLists()
             let listsData = lists.map { $0.toDictionary() }
             
