@@ -8,7 +8,7 @@ class VocabularyList {
 
     this.id = uuidv4();
     this.name = name;
-    this.created = new Date().toISOString();
+    this.createdAt = new Date().toISOString();
     this.isDefault = isDefault;
     this.words = {}; // Key: word (lowercase), Value: user-specific data
     this.dictionary = dictionary;
@@ -308,7 +308,7 @@ class VocabularyList {
     return {
       id: this.id,
       name: this.name,
-      created: this.created,
+      createdAt: this.createdAt,
       isDefault: this.isDefault,
       words: this.words
     };
@@ -323,7 +323,8 @@ class VocabularyList {
   static fromJSON(json, dictionary) {
     const list = new VocabularyList(json.name, dictionary, json.isDefault);
     list.id = json.id;
-    list.created = json.created;
+    // Accept both createdAt (new) and created (legacy) for robustness
+    list.createdAt = json.createdAt || json.created;
     list.words = json.words || {};
     return list;
   }

@@ -12,7 +12,7 @@ import os.log
 
 class CloudKitStore {
     // Use in-memory store when running under XCTest to avoid App Group access prompts
-    static let shared: CloudKitStore = {
+    static var shared: CloudKitStore = {
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
             return CloudKitStore(inMemory: true)
         } else {
@@ -21,6 +21,7 @@ class CloudKitStore {
     }()
     let modelContext: ModelContext
     let modelContainer: ModelContainer
+    let storeURL: URL?
 
     init(inMemory: Bool = false) {
         do {
@@ -38,6 +39,7 @@ class CloudKitStore {
                     isStoredInMemoryOnly: true,
                     cloudKitDatabase: .none
                 )
+                self.storeURL = nil
             } else {
                 guard let appGroupURL = FileManager.default.containerURL(
                     forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared"
@@ -51,6 +53,7 @@ class CloudKitStore {
                     url: storeURL,
                     cloudKitDatabase: .automatic
                 )
+                self.storeURL = storeURL
             }
 
             modelContainer = try ModelContainer(
@@ -65,6 +68,48 @@ class CloudKitStore {
         }
     }
 
+    // Development utility: fully reset the persistent store files and reopen a fresh store.
+    // Returns a small summary dictionary of actions performed.
+    static func resetPersistentStoreAndReopen() -> [String: Any] {
+        var summary: [String: Any] = [:]
+
+        // Step 1: swap to in-memory to release any file locks
+        CloudKitStore.shared = CloudKitStore(inMemory: true)
+        summary["swap"] = "inMemory"
+
+        // Step 2: remove on-disk store files
+        if let appGroupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared") {
+            let base = appGroupURL.appendingPathComponent("VocabDict.store")
+            let candidates = [base, URL(fileURLWithPath: base.path + "-wal"), URL(fileURLWithPath: base.path + "-shm")]
+            var removed: [String] = []
+            var notFound: [String] = []
+            var errors: [String] = []
+            for url in candidates {
+                if FileManager.default.fileExists(atPath: url.path) {
+                    do {
+                        try FileManager.default.removeItem(at: url)
+                        removed.append(url.lastPathComponent)
+                    } catch {
+                        errors.append("\(url.lastPathComponent): \(error.localizedDescription)")
+                    }
+                } else {
+                    notFound.append(url.lastPathComponent)
+                }
+            }
+            summary["removed"] = removed
+            if !notFound.isEmpty { summary["notFound"] = notFound }
+            if !errors.isEmpty { summary["errors"] = errors }
+        } else {
+            summary["appGroup"] = "not_found"
+        }
+
+        // Step 3: reopen persistent store
+        CloudKitStore.shared = CloudKitStore()
+        summary["reopen"] = "ok"
+
+        return summary
+    }
+
     func save() {
         do {
             if modelContext.hasChanges {
@@ -73,6 +118,99 @@ class CloudKitStore {
         } catch {
             os_log(.default, "Failed to save context: \(error)")
         }
+    }
+
+    /// Prefer official container-level deletion when available.
+    /// Returns a short status string.
+    func deleteAllDataUsingContainer() -> String {
+        if #available(macOS 15.0, iOS 18.0, *) {
+            do {
+                try modelContainer.deleteAllData()
+                return "ok"
+            } catch {
+                return "error: \(error.localizedDescription)"
+            }
+        } else {
+            return "unavailable"
+        }
+    }
+
+    /// Delete all SwiftData entities using the official ModelContext API.
+    /// This propagates deletions to CloudKit when mirroring is enabled.
+    func wipeAllSwiftDataObjects() -> [String: Any] {
+        var summary: [String: Any] = [:]
+        var deletedCounts: [String: Int] = [:]
+
+        // VocabularyList
+        do {
+            var total = 0
+            var descriptor = FetchDescriptor<VocabularyList>()
+            descriptor.fetchLimit = 200
+            while true {
+                let batch = try modelContext.fetch(descriptor)
+                if batch.isEmpty { break }
+                for obj in batch { modelContext.delete(obj); total += 1 }
+                try modelContext.save()
+            }
+            deletedCounts["VocabularyList"] = total
+        } catch {
+            deletedCounts["VocabularyList"] = -1
+            os_log(.default, "Wipe failed for VocabularyList: %{public}@", error.localizedDescription)
+        }
+
+        // RecentSearchHistory
+        do {
+            var total = 0
+            var descriptor = FetchDescriptor<RecentSearchHistory>()
+            descriptor.fetchLimit = 200
+            while true {
+                let batch = try modelContext.fetch(descriptor)
+                if batch.isEmpty { break }
+                for obj in batch { modelContext.delete(obj); total += 1 }
+                try modelContext.save()
+            }
+            deletedCounts["RecentSearchHistory"] = total
+        } catch {
+            deletedCounts["RecentSearchHistory"] = -1
+            os_log(.default, "Wipe failed for RecentSearchHistory: %{public}@", error.localizedDescription)
+        }
+
+        // UserSettings
+        do {
+            var total = 0
+            var descriptor = FetchDescriptor<UserSettings>()
+            descriptor.fetchLimit = 200
+            while true {
+                let batch = try modelContext.fetch(descriptor)
+                if batch.isEmpty { break }
+                for obj in batch { modelContext.delete(obj); total += 1 }
+                try modelContext.save()
+            }
+            deletedCounts["UserSettings"] = total
+        } catch {
+            deletedCounts["UserSettings"] = -1
+            os_log(.default, "Wipe failed for UserSettings: %{public}@", error.localizedDescription)
+        }
+
+        // DictionaryLookupStats
+        do {
+            var total = 0
+            var descriptor = FetchDescriptor<DictionaryLookupStats>()
+            descriptor.fetchLimit = 200
+            while true {
+                let batch = try modelContext.fetch(descriptor)
+                if batch.isEmpty { break }
+                for obj in batch { modelContext.delete(obj); total += 1 }
+                try modelContext.save()
+            }
+            deletedCounts["DictionaryLookupStats"] = total
+        } catch {
+            deletedCounts["DictionaryLookupStats"] = -1
+            os_log(.default, "Wipe failed for DictionaryLookupStats: %{public}@", error.localizedDescription)
+        }
+
+        summary["deleted"] = deletedCounts
+        return summary
     }
 
     func getVocabularyLists() -> [VocabularyList] {
