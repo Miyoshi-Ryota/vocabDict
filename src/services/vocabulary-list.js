@@ -323,8 +323,8 @@ class VocabularyList {
   static fromJSON(json, dictionary) {
     const list = new VocabularyList(json.name, dictionary, json.isDefault);
     list.id = json.id;
-    // Accept both createdAt (new) and created (legacy) for robustness
-    list.createdAt = json.createdAt || json.created;
+    // Strict: only accept createdAt
+    list.createdAt = json.createdAt;
     list.words = json.words || {};
     return list;
   }

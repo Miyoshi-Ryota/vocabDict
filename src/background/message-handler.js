@@ -98,20 +98,7 @@ async function handleMessage(message, services) {
       }
 
       case MessageTypes.FETCH_ALL_VOCABULARY_LISTS: {
-        console.log("Fetching vocabulary lists from native messaging");
-        let resp = await sendNative('fetchAllVocabularyLists');
-        console.log("Received vocabulary lists:", resp);
-        try {
-          const lists = resp && resp.vocabularyLists ? resp.vocabularyLists : [];
-          if (lists.length === 0) {
-            console.log("No lists found. Creating default list...");
-            await sendNative('createVocabularyList', { name: 'My Vocabulary', isDefault: true });
-            // refetch to return the created list to UI callers
-            resp = await sendNative('fetchAllVocabularyLists');
-          }
-        } catch (e) {
-          console.warn('Default list ensure failed:', e);
-        }
+        const resp = await sendNative('fetchAllVocabularyLists');
         return resp;
       }
 
