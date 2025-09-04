@@ -1,20 +1,22 @@
 const VocabularyList = require('../services/vocabulary-list');
+const validators = require('../generated/validators');
+const { sendNative } = require('../utils/native');
 
 const MessageTypes = {
-  LOOKUP_WORD: 'lookup_word',
-  ADD_TO_LIST: 'add_to_list',
-  GET_LISTS: 'get_lists',
-  GET_LIST_WORDS: 'get_list_words',
-  CREATE_LIST: 'create_list',
-  UPDATE_WORD: 'update_word',  // どこでも使われてないかも？不要？
-  GET_REVIEW_QUEUE: 'get_review_queue',
-  SUBMIT_REVIEW: 'submit_review',
-  PROCESS_REVIEW: 'process_review',  // 追加
-  GET_PENDING_CONTEXT_SEARCH: 'get_pending_context_search',
-  GET_RECENT_SEARCHES: 'get_recent_searches',
-  GET_SETTINGS: 'get_settings',
-  UPDATE_SETTINGS: 'update_settings',
-  OPEN_POPUP_WITH_WORD: 'open_popup_with_word'
+  LOOKUP_WORD: 'lookupWord',
+  ADD_WORD_TO_VOCABULARY_LIST: 'addWordToVocabularyList',
+  FETCH_ALL_VOCABULARY_LISTS: 'fetchAllVocabularyLists',
+  FETCH_VOCABULARY_LIST_WORDS: 'fetchVocabularyListWords',
+  CREATE_VOCABULARY_LIST: 'createVocabularyList',
+  UPDATE_WORD: 'updateWord',
+  FETCH_REVIEW_QUEUE: 'fetchReviewQueue',
+  SUBMIT_REVIEW: 'submitReview',
+
+  GET_PENDING_CONTEXT_SEARCH: 'getPendingContextSearch',
+  FETCH_RECENT_SEARCHES: 'fetchRecentSearches',
+  FETCH_SETTINGS: 'fetchSettings',
+  UPDATE_SETTINGS: 'updateSettings',
+  OPEN_POPUP_WITH_WORD: 'openPopupWithWord'
 };
 
 /**
@@ -26,8 +28,17 @@ const MessageTypes = {
 async function handleMessage(message, services) {
   const { dictionary, popupWordState } = services;
 
+  // Validate incoming request if validators are available
+  if (validators && message.action) {
+    const validation = validators.validateRequest(message.action, message);
+    if (!validation.valid) {
+      console.error(`Request validation failed for ${message.action}:`, validation.error);
+      return { success: false, error: `Invalid request: ${validation.error}` };
+    }
+  }
+
   try {
-    switch (message.type) {
+    switch (message.action) {
       case MessageTypes.LOOKUP_WORD: {
         if (!message.word) {
           return { success: false, error: 'Word parameter is required' };
@@ -37,31 +48,32 @@ async function handleMessage(message, services) {
         if (result) {
           // Add to recent searches automatically on successful lookup
           try {
-            await browser.runtime.sendNativeMessage({
-              action: "addRecentSearch",
-              word: message.word
-            });
+            await sendNative('addRecentSearch', { word: message.word });
           } catch (error) {
             console.error('Failed to add recent search:', error);
           }
-
-          return { success: true, data: result };
+          const out = { success: true, data: result };
+          const v = validators.validateResponse('lookupWord', out);
+          if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
+          return v.data;
         }
 
         // Try fuzzy search using the fuzzy match method
         const suggestions = dictionary.fuzzyMatch(message.word, 5);
         if (suggestions.length > 0) {
-          return {
-            success: true,
-            data: null,
-            suggestions
-          };
+          const out = { success: true, data: null, suggestions };
+          const v = validators.validateResponse('lookupWord', out);
+          if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
+          return v.data;
         }
 
-        return { success: false, error: 'Word not found' };
+        const out = { success: false, error: 'Word not found' };
+        const v = validators.validateResponse('lookupWord', out);
+        if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
+        return v.data;
       }
 
-      case MessageTypes.ADD_TO_LIST: {
+      case MessageTypes.ADD_WORD_TO_VOCABULARY_LIST: {
         if (!message.word || !message.listId) {
           return { success: false, error: 'Word and listId are required' };
         }
@@ -73,80 +85,38 @@ async function handleMessage(message, services) {
         }
 
         try {
-          // Send to native handler to add word to SwiftData/CloudKit
-          const response = await browser.runtime.sendNativeMessage({ 
-            action: "addWordToList",
+          const resp = await sendNative('addWordToVocabularyList', {
             listId: message.listId,
             word: message.word,
             metadata: message.metadata || {}
           });
-
-          if (response.error) {
-            return { success: false, error: response.error };
-          }
-
-          return { success: true, data: response.data };
+          if (resp.error) return { success: false, error: resp.error };
+          return resp;
         } catch (error) {
           return { success: false, error: error.message };
         }
       }
 
-      case MessageTypes.GET_LISTS: {
-        console.log("Fetching vocabulary lists from native messaging");
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        console.log("Received vocabulary lists:", response);
-        return { success: true, data: response.vocabularyLists || [] };
+      case MessageTypes.FETCH_ALL_VOCABULARY_LISTS: {
+        const resp = await sendNative('fetchAllVocabularyLists');
+        return resp;
       }
 
-      case MessageTypes.GET_LIST_WORDS: {
+      case MessageTypes.FETCH_VOCABULARY_LIST_WORDS: {
         if (!message.listId) {
           return { success: false, error: 'ListId is required' };
         }
-
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
-        const lists = response.vocabularyLists || [];
-        const listData = lists.find(l => l.id === message.listId);
-
-        if (!listData) {
-          return { success: false, error: 'List not found' };
-        }
-
-        // Create VocabularyList instance
-        const list = VocabularyList.fromJSON(listData, dictionary);
-
-        // Get all words
-        let words = await list.getWords();
-
-        // Apply filtering first
-        if (message.filterBy && message.filterBy !== 'all') {
-          words = await list.filterBy('difficulty', message.filterBy);
-        }
-
-        // Enhance words with lookup count data BEFORE sorting
-        const enhancedWords = await Promise.all(words.map(async word => ({
-          ...word,
-          lookupCount: await dictionary.getLookupCount(word.word)
-        })));
-
-        // Apply sorting to the filtered and enhanced results
-        if (message.sortBy && enhancedWords.length > 0) {
-          const sortOrder = message.sortOrder || 'asc';
-
-          // Create a temporary list with the enhanced words
-          const tempList = new VocabularyList('temp', dictionary);
-          enhancedWords.forEach(word => {
-            tempList.words[word.word] = word;
-          });
-
-          // Sort using the temporary list
-          const sortedWords = await tempList.sortBy(message.sortBy, sortOrder);
-          return { success: true, data: sortedWords };
-        }
-
-        return { success: true, data: enhancedWords };
+        // Forward to native handler to build words + lookupStats
+        const resp = await sendNative('fetchVocabularyListWords', {
+          listId: message.listId,
+          filterBy: message.filterBy,
+          sortBy: message.sortBy,
+          sortOrder: message.sortOrder
+        });
+        return resp;
       }
 
-      case MessageTypes.CREATE_LIST: {
+      case MessageTypes.CREATE_VOCABULARY_LIST: {
         if (!message.name) {
           return { success: false, error: 'List name is required' };
         }
@@ -156,17 +126,11 @@ async function handleMessage(message, services) {
           return { success: false, error: 'List name cannot be empty' };
         }
 
-        const response = await browser.runtime.sendNativeMessage({ 
-          action: "createVocabularyList",
+        const resp = await sendNative('createVocabularyList', {
           name: trimmedName,
           isDefault: message.isDefault || false
         });
-        
-        if (response.error) {
-          return { success: false, error: response.error };
-        }
-
-        return { success: true, data: response.vocabularyList };
+        return resp;
       }
 
       case MessageTypes.UPDATE_WORD: {
@@ -175,25 +139,21 @@ async function handleMessage(message, services) {
         }
 
         try {
-          const response = await browser.runtime.sendNativeMessage({
-            action: "updateWord",
+          const resp = await sendNative('updateWord', {
             listId: message.listId,
             word: message.word,
             updates: message.updates
           });
-
-          if (response.error) {
-            return { success: false, error: response.error };
-          }
-
-          return { success: true, data: response.data };
+          if (resp.error) return { success: false, error: resp.error };
+          return resp;
         } catch (error) {
           return { success: false, error: error.message };
         }
       }
 
-      case MessageTypes.GET_REVIEW_QUEUE: {
-        const response = await browser.runtime.sendNativeMessage({ action: "getVocabularyLists" });
+      case MessageTypes.FETCH_REVIEW_QUEUE: {
+        const payload = { action: "fetchAllVocabularyLists" };
+        const response = await sendNative('fetchAllVocabularyLists');
         const lists = response.vocabularyLists || [];
         const maxWords = message.maxWords || 30;
         const now = new Date();
@@ -224,7 +184,13 @@ async function handleMessage(message, services) {
           return new Date(a.nextReview) - new Date(b.nextReview);
         }).slice(0, maxWords);
 
-        return { success: true, data: queue };
+        const result = { success: true, data: queue };
+        const vrResp = validators.validateResponse('fetchReviewQueue', result);
+        if (!vrResp.valid) {
+          console.error('fetchReviewQueue response validation error:', vrResp.error, JSON.stringify(result).slice(0,200));
+          return { success: false, error: `Invalid response: ${vrResp.error}` };
+        }
+        return vrResp.data;
       }
 
       case MessageTypes.SUBMIT_REVIEW: {
@@ -234,61 +200,20 @@ async function handleMessage(message, services) {
         }
 
         try {
-          // Simply forward to native submitReview
-          const reviewResponse = await browser.runtime.sendNativeMessage({
-            action: "submitReview",
+          const resp = await sendNative('submitReview', {
             listId: message.listId,
             word: message.word,
-            result: message.reviewResult,
+            reviewResult: message.reviewResult,
             timeSpent: message.timeSpent || 0.0
           });
-
-
-          if (reviewResponse.error) {
-            return { success: false, error: reviewResponse.error };
-          }
-
-          return { 
-            success: true, 
-            data: reviewResponse.data 
-          };
+          return resp;
         } catch (error) {
           console.error('Submit review error:', error);
           return { success: false, error: error.message };
         }
       }
 
-      case MessageTypes.PROCESS_REVIEW: {
-        const { word, result, listId } = message;
-
-        if (!word || !result || !listId) {
-          return { success: false, error: 'Word, result, and listId are required' };
-        }
-
-        try {
-          // Simply forward to native submitReview
-          const reviewResponse = await browser.runtime.sendNativeMessage({
-            action: "submitReview",
-            listId: listId,
-            word: word,
-            result: result,
-            timeSpent: 0.0
-          });
-
-
-          if (reviewResponse.error) {
-            return { success: false, error: reviewResponse.error };
-          }
-
-          return { 
-            success: true, 
-            data: reviewResponse.data 
-          };
-        } catch (error) {
-          console.error('Process review error:', error);
-          return { success: false, error: error.message };
-        }
-      }
+      
 
       case MessageTypes.GET_PENDING_CONTEXT_SEARCH: {
         if (!popupWordState) {
@@ -296,41 +221,40 @@ async function handleMessage(message, services) {
         }
 
         const pendingWord = popupWordState.getPendingSearch();
-        return { success: true, data: pendingWord };
+        const result = { success: true, data: pendingWord ?? null };
+        const vrResp = validators.validateResponse('getPendingContextSearch', result);
+        if (!vrResp.valid) {
+          return { success: false, error: `Invalid response: ${vrResp.error}` };
+        }
+        return vrResp.data;
       }
 
-      case MessageTypes.GET_RECENT_SEARCHES: {
+      case MessageTypes.FETCH_RECENT_SEARCHES: {
         try {
-          const response = await browser.runtime.sendNativeMessage({
-            action: "getRecentSearches"
-          });
-          return { success: true, data: response.recentSearches || [] };
+          const resp = await sendNative('fetchRecentSearches');
+          return resp;
         } catch (error) {
           console.error('Failed to get recent searches:', error);
           return { success: true, data: [] };
         }
       }
 
-      case MessageTypes.GET_SETTINGS: {
+      case MessageTypes.FETCH_SETTINGS: {
         try {
-          const response = await browser.runtime.sendNativeMessage({
-            action: "getSettings"
-          });
-          return { success: true, data: response.settings || {
-            theme: 'dark',
-            autoPlayPronunciation: false,
-            showExampleSentences: true,
-            textSelectionMode: 'inline'
-          }};
+          const resp = await sendNative('fetchSettings');
+          return resp;
         } catch (error) {
           console.error('Failed to get settings:', error);
           // Return default settings on error
-          return { success: true, data: {
+          const fallback = { success: true, settings: {
             theme: 'dark',
             autoPlayPronunciation: false,
             showExampleSentences: true,
             textSelectionMode: 'inline'
           }};
+          const v = validators.validateResponse('fetchSettings', fallback);
+          if (!v.valid) return { success: false, error: `Invalid response: ${v.error}` };
+          return v.data;
         }
       }
 
@@ -340,11 +264,8 @@ async function handleMessage(message, services) {
         }
 
         try {
-          const response = await browser.runtime.sendNativeMessage({
-            action: "updateSettings",
-            settings: message.settings
-          });
-          return { success: true, data: response.settings };
+          const resp = await sendNative('updateSettings', { settings: message.settings });
+          return resp;
         } catch (error) {
           console.error('Failed to update settings:', error);
           return { success: false, error: error.message };
@@ -367,7 +288,12 @@ async function handleMessage(message, services) {
         if (typeof browser !== 'undefined' && browser.action && browser.action.openPopup) {
           try {
             await browser.action.openPopup();
-            return { success: true, data: { popupOpened: true } };
+            const result = { success: true, data: { popupOpened: true } };
+            const vrResp = validators.validateResponse('openPopupWithWord', result);
+            if (!vrResp.valid) {
+              return { success: false, error: `Invalid response: ${vrResp.error}` };
+            }
+            return vrResp.data;
           } catch (error) {
             console.error('Failed to open popup:', error);
             return { success: false, error: 'Failed to open popup' };
@@ -378,7 +304,7 @@ async function handleMessage(message, services) {
       }
 
       default:
-        return { success: false, error: `Unknown message type: ${message.type}` };
+        return { success: false, error: `Unknown message action: ${message.action}` };
     }
   } catch (error) {
     console.error('Message handler error:', error);

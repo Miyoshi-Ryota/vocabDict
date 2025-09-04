@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchAllVocabularyListsResponse",
+  "description": "Response containing all vocabulary lists.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "vocabularyLists": {
+      "type": "array",
+      "description": "Array of vocabulary lists.",
+      "items": { "$ref": "./common/domain.json#/$defs/VocabularyListDTO" }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

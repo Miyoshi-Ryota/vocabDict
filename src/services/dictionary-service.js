@@ -1,3 +1,5 @@
+const { sendNative } = require('../utils/native');
+
 class DictionaryService {
   constructor(dictionaryData) {
     this.data = {};
@@ -40,10 +42,7 @@ class DictionaryService {
     // Send to native storage
     try {
       if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendNativeMessage) {
-        await browser.runtime.sendNativeMessage({
-          action: "incrementLookupCount",
-          word: normalizedWord
-        });
+        await sendNative('incrementLookupCount', { word: normalizedWord });
       }
     } catch (error) {
       console.error('Failed to increment lookup count:', error);
@@ -81,10 +80,7 @@ class DictionaryService {
     
     try {
       if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendNativeMessage) {
-        const response = await browser.runtime.sendNativeMessage({
-          action: "getLookupCount",
-          word: normalizedWord
-        });
+        const response = await sendNative('fetchLookupCount', { word: normalizedWord });
         return response.count || 0;
       }
     } catch (error) {

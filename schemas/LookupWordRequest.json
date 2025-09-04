@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LookupWordRequest",
+  "description": "Request to lookup a word in the dictionary.",
+  "type": "object",
+  "required": ["action", "word"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "lookupWord",
+      "description": "The action to be performed. Must be 'lookupWord'."
+    },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word to lookup in the dictionary."
+    }
+  }
+}

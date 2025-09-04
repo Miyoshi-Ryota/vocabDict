@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LookupWordResponse",
+  "description": "Response from looking up a word in the dictionary.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the lookup was successful."
+    },
+    "data": {
+      "type": ["object", "null"],
+      "description": "The dictionary data for the word if found.",
+      "properties": {
+        "word": {
+          "type": "string"
+        },
+        "definitions": {
+          "type": "array",
+          "items": { "$ref": "./common/domain.json#/$defs/DefinitionDTO" }
+        },
+        "pronunciation": {
+          "type": "string",
+          "description": "Pronunciation text for the word."
+        },
+        "synonyms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Synonyms for the word."
+        },
+        "antonyms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Antonyms for the word."
+        }
+      }
+    },
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Suggested words if the exact word was not found."
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the lookup failed."
+    }
+  }
+}

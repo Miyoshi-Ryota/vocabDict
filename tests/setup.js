@@ -46,33 +46,34 @@ function createBasicRuntimeMock() {
     sendMessage: jest.fn(),
     sendNativeMessage: jest.fn((message) => {
       // Mock responses for native messages matching Swift implementation
-      if (message.action === 'getRecentSearches') {
-        return Promise.resolve({ recentSearches: [] });
+      if (message.action === 'fetchRecentSearches') {
+        return Promise.resolve({ success: true, recentSearches: [] });
       }
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
       }
-      if (message.action === 'getVocabularyLists') {
-        return Promise.resolve({ vocabularyLists: [] });
+      if (message.action === 'fetchAllVocabularyLists') {
+        return Promise.resolve({ success: true, vocabularyLists: [] });
       }
       if (message.action === 'createVocabularyList') {
         return Promise.resolve({ 
+          success: true,
           vocabularyList: {
             id: 'test-list-id',
             name: message.name,
-            created: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             isDefault: message.isDefault || false,
             words: {}
           }
         });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'addWordToVocabularyList') {
         return Promise.resolve({ 
           success: true,
           data: {
             word: message.word,
             dateAdded: new Date().toISOString(),
-            difficulty: message.metadata?.difficulty || 'medium',
+            difficulty: message.metadata?.difficulty || 5000,
             customNotes: message.metadata?.customNotes || '',
             lastReviewed: null,
             nextReview: new Date(Date.now() + 86400000).toISOString(),
@@ -90,13 +91,14 @@ function createBasicRuntimeMock() {
         });
       }
       if (message.action === 'submitReview') {
-        const nextInterval = message.result === 'mastered' ? null : 
-                           message.result === 'unknown' ? 1 :
-                           message.result === 'known' ? 3 : 1;
+        const nextInterval = message.reviewResult === 'mastered' ? null : 
+                           message.reviewResult === 'unknown' ? 1 :
+                           message.reviewResult === 'known' ? 3 : 1;
         const nextReview = nextInterval ? 
           new Date(Date.now() + nextInterval * 86400000).toISOString() : 
           null;
         return Promise.resolve({ 
+          success: true,
           data: {
             word: message.word,
             lastReviewed: new Date().toISOString(),
@@ -105,8 +107,9 @@ function createBasicRuntimeMock() {
           }
         });
       }
-      if (message.action === 'getSettings') {
+      if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
+          success: true,
           settings: {
             theme: 'dark',
             autoPlayPronunciation: false,
@@ -117,18 +120,16 @@ function createBasicRuntimeMock() {
         });
       }
       if (message.action === 'updateSettings') {
-        return Promise.resolve({ 
-          settings: message.settings
-        });
+        return Promise.resolve({ success: true, settings: message.settings });
       }
       if (message.action === 'incrementLookupCount') {
         return Promise.resolve({ success: true });
       }
-      if (message.action === 'getLookupCount') {
-        return Promise.resolve({ count: 0 });
+      if (message.action === 'fetchLookupCount') {
+        return Promise.resolve({ success: true, count: 0 });
       }
-      if (message.action === 'getLookupStats') {
-        return Promise.resolve({ stats: {} });
+      if (message.action === 'fetchLookupStats') {
+        return Promise.resolve({ success: true, stats: {} });
       }
       return Promise.resolve({ success: true });
     }),

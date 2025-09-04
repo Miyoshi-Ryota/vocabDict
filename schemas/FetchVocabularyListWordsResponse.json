@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchVocabularyListWordsResponse",
+  "description": "Response containing words and lookup stats for a vocabulary list.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "data": {
+      "type": "object",
+      "description": "Words and aggregated lookup statistics.",
+      "properties": {
+        "words": {
+          "type": "array",
+          "description": "Array of user-specific word entries.",
+          "items": { "$ref": "./common/domain.json#/$defs/UserWordDataDTO" }
+        },
+        "lookupStats": {
+          "type": "object",
+          "description": "Lookup statistics keyed by word.",
+          "additionalProperties": { "$ref": "./common/domain.json#/$defs/LookupStatDTO" }
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchReviewQueueResponse",
+  "description": "Response containing words due for review.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "data": {
+      "type": "array",
+      "description": "Array of words due for review.",
+      "items": { "$ref": "./common/domain.json#/$defs/ReviewQueueItemDTO" }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

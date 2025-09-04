@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchAllVocabularyListsRequest",
+  "description": "Request to fetch all vocabulary lists.",
+  "type": "object",
+  "required": ["action"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "fetchAllVocabularyLists",
+      "description": "The action to be performed. Must be 'fetchAllVocabularyLists'."
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SubmitReviewResponse",
+  "description": "Response from submitting a review result.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the review was successfully submitted."
+    },
+    "data": {
+      "type": "object",
+      "description": "Updated word data and scheduling after review.",
+      "properties": {
+        "word": { "$ref": "./common/domain.json#/$defs/UserWordDataDTO" },
+        "nextReview": {
+          "$ref": "./common/domain.json#/$defs/ISODateTime",
+          "description": "Next scheduled review date."
+        },
+        "nextInterval": {
+          "type": ["integer", "null"],
+          "description": "Days until next review; null if mastered."
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

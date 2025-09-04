@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UpdateWordRequest",
+  "description": "Request to update a word in a vocabulary list.",
+  "type": "object",
+  "required": ["action", "listId", "word", "updates"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "updateWord",
+      "description": "The action to be performed. Must be 'updateWord'."
+    },
+    "listId": { "$ref": "./common/domain.json#/$defs/UUID", "description": "The ID of the vocabulary list containing the word." },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word to update."
+    },
+    "updates": {
+      "type": "object",
+      "description": "The updates to apply to the word.",
+      "additionalProperties": false,
+      "properties": {
+        "difficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Word frequency value (1 to ~330000)"
+        },
+        "customNotes": {
+          "type": "string",
+          "description": "Custom notes about the word"
+        }
+      }
+    }
+  }
+}

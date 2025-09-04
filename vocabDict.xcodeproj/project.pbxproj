@@ -78,6 +78,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CloudKitStore.swift,
+				Generated/AllTypes.swift,
 				Models.swift,
 			);
 			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
@@ -86,6 +87,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CloudKitStore.swift,
+				Generated/AllTypes.swift,
 				Models.swift,
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
@@ -101,6 +103,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CloudKitStore.swift,
+				Generated/AllTypes.swift,
 				Models.swift,
 			);
 			target = 2D2CBACB2E5E16E9001BEC7C /* vocabDictTests */;
@@ -111,6 +114,7 @@
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
 				CloudKitStore.swift,
+				Generated/AllTypes.swift,
 				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
@@ -138,6 +142,7 @@
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
 				CloudKitStore.swift,
+				Generated/AllTypes.swift,
 				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,

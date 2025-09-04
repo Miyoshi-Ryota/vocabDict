@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IncrementLookupCountRequest",
+  "description": "Request to increment the lookup count for a word.",
+  "type": "object",
+  "required": ["action", "word"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "incrementLookupCount",
+      "description": "The action to be performed. Must be 'incrementLookupCount'."
+    },
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The word whose lookup count should be incremented."
+    }
+  }
+}

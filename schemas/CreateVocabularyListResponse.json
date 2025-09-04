@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CreateVocabularyListResponse",
+  "description": "Response from creating a new vocabulary list.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the list was successfully created."
+    },
+    "vocabularyList": { "$ref": "./common/domain.json#/$defs/VocabularyListDTO", "description": "The created vocabulary list." },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

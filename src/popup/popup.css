@@ -674,17 +674,6 @@ h1, h2, h3, h4, h5, h6 {
   flex-shrink: 0;
 }
 
-.difficulty-easy {
-  background-color: var(--difficulty-easy);
-}
-
-.difficulty-medium {
-  background-color: var(--difficulty-medium);
-}
-
-.difficulty-hard {
-  background-color: var(--difficulty-hard);
-}
 
 .word-list-text {
   flex: 1;

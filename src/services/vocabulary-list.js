@@ -8,7 +8,7 @@ class VocabularyList {
 
     this.id = uuidv4();
     this.name = name;
-    this.created = new Date().toISOString();
+    this.createdAt = new Date().toISOString();
     this.isDefault = isDefault;
     this.words = {}; // Key: word (lowercase), Value: user-specific data
     this.dictionary = dictionary;
@@ -38,7 +38,7 @@ class VocabularyList {
     const userWordData = {
       word: dictionaryEntry.word, // Use the correct case from dictionary
       dateAdded: new Date().toISOString(),
-      difficulty: metadata.difficulty || 'medium',
+      difficulty: (typeof metadata.difficulty === 'number') ? metadata.difficulty : 5000,
       customNotes: metadata.customNotes || '',
       lastReviewed: null,
       nextReview: new Date(Date.now() + 86400000).toISOString(), // Default: review tomorrow
@@ -137,6 +137,9 @@ class VocabularyList {
   async sortBy(criteria, order = 'asc') {
     const words = await this.getWords();
 
+    // Normalize difficulty for mixed representations (string buckets vs numeric frequency)
+    const toNumericDifficulty = (d) => (typeof d === 'number') ? d : Number.MAX_SAFE_INTEGER;
+
     const sortFunctions = {
       alphabetical: (a, b) => a.word.localeCompare(b.word),
       dateAdded: (a, b) => new Date(a.dateAdded) - new Date(b.dateAdded),
@@ -147,10 +150,7 @@ class VocabularyList {
         if (!b.lastReviewed) return -1;
         return new Date(a.lastReviewed) - new Date(b.lastReviewed);
       },
-      difficulty: (a, b) => {
-        const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-      },
+      difficulty: (a, b) => toNumericDifficulty(a.difficulty) - toNumericDifficulty(b.difficulty),
       lookupCount: (a, b) => {
         // Use the lookupCount from the word object if available (pre-fetched)
         // This is populated in message-handler.js before sorting
@@ -194,7 +194,13 @@ class VocabularyList {
 
     switch (filterType) {
       case 'difficulty':
-        return words.filter(word => word.difficulty === filterValue);
+        return words.filter(word => {
+          const d = (typeof word.difficulty === 'number') ? word.difficulty : Number.MAX_SAFE_INTEGER;
+          if (typeof filterValue === 'number') return d === filterValue;
+          // label filter: bucket numeric
+          const bucket = d <= 3000 ? 'easy' : d < 10000 ? 'medium' : 'hard';
+          return bucket === filterValue;
+        });
 
       case 'reviewStatus': {
         const now = new Date();
@@ -271,7 +277,13 @@ class VocabularyList {
 
     words.forEach(word => {
       // Count by difficulty
-      stats.byDifficulty[word.difficulty]++;
+      if (typeof word.difficulty === 'number') {
+        const bucket = word.difficulty <= 3000 ? 'easy' : word.difficulty < 10000 ? 'medium' : 'hard';
+        stats.byDifficulty[bucket]++;
+      } else if (typeof word.difficulty === 'string') {
+        const label = (word.difficulty || '').toLowerCase();
+        if (label in stats.byDifficulty) stats.byDifficulty[label]++;
+      }
 
       // Count reviews
       if (word.reviewHistory && word.reviewHistory.length > 0) {
@@ -296,7 +308,7 @@ class VocabularyList {
     return {
       id: this.id,
       name: this.name,
-      created: this.created,
+      createdAt: this.createdAt,
       isDefault: this.isDefault,
       words: this.words
     };
@@ -311,7 +323,8 @@ class VocabularyList {
   static fromJSON(json, dictionary) {
     const list = new VocabularyList(json.name, dictionary, json.isDefault);
     list.id = json.id;
-    list.created = json.created;
+    // Strict: only accept createdAt
+    list.createdAt = json.createdAt;
     list.words = json.words || {};
     return list;
   }

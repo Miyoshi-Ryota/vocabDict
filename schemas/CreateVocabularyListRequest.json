@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CreateVocabularyListRequest",
+  "description": "Request to create a new vocabulary list.",
+  "type": "object",
+  "required": ["action", "name"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "createVocabularyList",
+      "description": "The action to be performed. Must be 'createVocabularyList'."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of the new vocabulary list."
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this list should be the default list."
+    }
+  }
+}

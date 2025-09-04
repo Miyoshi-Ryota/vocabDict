@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchLookupStatsResponse",
+  "description": "Response containing lookup statistics.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the fetch was successful."
+    },
+    "stats": {
+      "type": "object",
+      "description": "Lookup statistics by word.",
+      "additionalProperties": { "$ref": "./common/domain.json#/$defs/LookupStatDTO" }
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

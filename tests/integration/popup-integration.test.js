@@ -38,16 +38,16 @@ describe('Popup Integration Tests', () => {
     
     // Mock native messages and browser runtime
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
-      if (message.action === 'getVocabularyLists') {
-        return Promise.resolve({ 
-          vocabularyLists: [mockList.toJSON()]
-        });
+      if (message.action === 'fetchAllVocabularyLists') {
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'addWordToVocabularyList') {
         const wordEntry = {
           word: message.word,
           dateAdded: new Date().toISOString(),
-          difficulty: message.metadata?.difficulty || 'medium',
+          difficulty: message.metadata?.difficulty || 5000,
           customNotes: message.metadata?.customNotes || '',
           lastReviewed: null,
           nextReview: new Date(Date.now() + 86400000).toISOString(),
@@ -65,8 +65,9 @@ describe('Popup Integration Tests', () => {
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
       }
-      if (message.action === 'getSettings') {
+      if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
+          success: true,
           settings: {
             theme: 'dark',
             autoPlayPronunciation: false,
@@ -79,7 +80,7 @@ describe('Popup Integration Tests', () => {
     });
     
     browser.runtime.sendMessage.mockImplementation((message) => {
-      if (message.type === 'lookup_word') {
+      if (message.action === 'lookupWord') {
         const result = dictionary.getDictionaryData(message.word);
         if (result) {
           return Promise.resolve({ success: true, data: result });
@@ -90,12 +91,14 @@ describe('Popup Integration Tests', () => {
         }
         return Promise.resolve({ success: false, error: 'Word not found' });
       }
-      if (message.type === 'get_lists') {
-        return Promise.resolve({ success: true, data: [mockList.toJSON()] });
+      if (message.action === 'fetchAllVocabularyLists') {
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
-      if (message.type === 'add_to_list') {
+      if (message.action === 'addWordToVocabularyList') {
         return browser.runtime.sendNativeMessage({
-          action: 'addWordToList',
+          action: 'addWordToVocabularyList',
           listId: message.listId,
           word: message.word,
           metadata: message.metadata || {}
@@ -106,13 +109,16 @@ describe('Popup Integration Tests', () => {
           return { success: true, data: response.data };
         });
       }
-      if (message.type === 'get_recent_searches') {
-        return browser.runtime.sendNativeMessage({ action: 'getRecentSearches' })
-          .then(response => ({ success: true, data: response.recentSearches || [] }));
+      if (message.action === 'fetchRecentSearches') {
+        return browser.runtime.sendNativeMessage({ action: 'fetchRecentSearches' })
+          .then(response => ({ success: true, recentSearches: response.recentSearches || [] }));
       }
-      if (message.type === 'get_settings') {
-        return browser.runtime.sendNativeMessage({ action: 'getSettings' })
-          .then(response => ({ success: true, data: response.settings }));
+      if (message.action === 'fetchSettings') {
+        return browser.runtime.sendNativeMessage({ action: 'fetchSettings' })
+          .then(response => ({ success: true, settings: response.settings }));
+      }
+      if (message.action === 'fetchReviewQueue') {
+        return Promise.resolve({ success: true, data: [] });
       }
       return Promise.resolve({ success: true });
     });
@@ -274,13 +280,13 @@ describe('Popup Integration Tests', () => {
       // Wait for the word to be added (button should change)
       await waitFor(() => {
         return browser.runtime.sendMessage.mock.calls.some(
-          call => call[0].type === 'add_to_list' && call[0].word === 'hello'
+          call => call[0].action === 'addWordToVocabularyList' && call[0].word === 'hello'
         );
       });
 
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'add_to_list',
+          action: 'addWordToVocabularyList',
           word: 'hello'
         })
       );

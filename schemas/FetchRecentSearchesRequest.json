@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FetchRecentSearchesRequest",
+  "description": "Request to fetch recent searches.",
+  "type": "object",
+  "required": ["action"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "fetchRecentSearches",
+      "description": "The action to be performed. Must be 'fetchRecentSearches'."
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 10,
+      "description": "Maximum number of recent searches to return."
+    }
+  }
+}

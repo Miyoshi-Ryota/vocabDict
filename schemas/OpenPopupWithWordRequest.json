@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenPopupWithWordRequest",
+  "description": "Request to open the extension popup with a prefilled word.",
+  "type": "object",
+  "required": ["action", "word"],
+  "additionalProperties": false,
+  "properties": {
+    "action": { "type": "string", "const": "openPopupWithWord" },
+    "word": { "type": "string", "minLength": 1 }
+  }
+}

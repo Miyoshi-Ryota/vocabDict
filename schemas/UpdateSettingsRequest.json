@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UpdateSettingsRequest",
+  "description": "Request to update user settings.",
+  "type": "object",
+  "required": ["action", "settings"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "updateSettings",
+      "description": "The action to be performed. Must be 'updateSettings'."
+    },
+    "settings": { "$ref": "./common/domain.json#/$defs/UserSettingsDTO", "description": "Settings to update." }
+  }
+}

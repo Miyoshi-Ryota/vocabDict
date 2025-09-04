@@ -22,18 +22,18 @@ const ThemeManager = {
   loadTheme() {
     // Check for saved theme preference
     browser.runtime.sendMessage({
-      type: 'get_settings'
+      action: 'fetchSettings'
     }).then(response => {
-      if (response.success) {
-        const theme = response.data.theme || 'dark';
-        this.applyTheme(theme);
+      const theme = (response && response.success && response.settings && response.settings.theme) ? response.settings.theme : 'dark';
+      this.applyTheme(theme);
 
-        // Update theme selector if it exists
-        const themeSelect = document.getElementById('theme-select');
-        if (themeSelect) {
-          themeSelect.value = theme;
-        }
+      // Update theme selector if it exists
+      const themeSelect = document.getElementById('theme-select');
+      if (themeSelect) {
+        themeSelect.value = theme;
       }
+    }).catch(() => {
+      this.applyTheme('dark');
     });
   },
 
@@ -52,7 +52,7 @@ const ThemeManager = {
 
         // Save preference
         await browser.runtime.sendMessage({
-          type: 'update_settings',
+          action: 'updateSettings',
           settings: { theme }
         });
       });
@@ -125,7 +125,7 @@ const SearchTab = {
   async checkPendingContextSearch() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_pending_context_search'
+        action: 'getPendingContextSearch'
       });
 
       if (response.success && response.data) {
@@ -179,7 +179,7 @@ const SearchTab = {
     try {
       // Send search request to background
       const response = await browser.runtime.sendMessage({
-        type: 'lookup_word',
+        action: 'lookupWord',
         word: query
       });
 
@@ -336,9 +336,9 @@ const SearchTab = {
     try {
       // Get default list
       const listsResponse = await browser.runtime.sendMessage({
-        type: 'get_lists'
+        action: 'fetchAllVocabularyLists'
       });
-      const lists = listsResponse.success ? listsResponse.data : [];
+      const lists = listsResponse && listsResponse.success ? (listsResponse.vocabularyLists || []) : [];
       const defaultList = lists.find(l => l.isDefault) || lists[0];
 
       if (!defaultList) {
@@ -348,9 +348,10 @@ const SearchTab = {
 
       // Send add to list request
       const addResponse = await browser.runtime.sendMessage({
-        type: 'add_to_list',
+        action: 'addWordToVocabularyList',
         word: wordData.word,
-        listId: defaultList.id
+        listId: defaultList.id,
+        metadata: { difficulty: 5000 }
       });
 
       if (addResponse.success) {
@@ -365,18 +366,18 @@ const SearchTab = {
   },
 
   async loadRecentSearches() {
-    const response = await browser.runtime.sendMessage({
-      type: 'get_recent_searches'
-    });
+      const response = await browser.runtime.sendMessage({
+        action: 'fetchRecentSearches'
+      });
     if (response.success) {
-      this.recentSearches = response.data;
+      this.recentSearches = response.recentSearches || [];
       this.displayRecentSearches();
     }
   },
 
   displayRecentSearches() {
     const container = document.querySelector('.recent-searches-list');
-    if (!container || this.recentSearches.length === 0) return;
+    if (!container || !this.recentSearches || this.recentSearches.length === 0) return;
 
     container.innerHTML = this.recentSearches
       .slice(0, 5)
@@ -409,11 +410,11 @@ const ListsTab = {
   async loadLists() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_lists'
+        action: 'fetchAllVocabularyLists'
       });
 
       if (response.success) {
-        this.displayLists(response.data);
+        this.displayLists(response.vocabularyLists || []);
       }
     } catch (error) {
       console.error('Load lists error:', error);
@@ -422,6 +423,7 @@ const ListsTab = {
 
   displayLists(lists) {
     const container = document.querySelector('.lists-container');
+    lists = Array.isArray(lists) ? lists : [];
     if (lists.length === 0) {
       container.innerHTML = '<p class="text-center">No vocabulary lists yet</p>';
       return;
@@ -434,7 +436,7 @@ const ListsTab = {
           <span class="list-name">${list.name}</span>
           <span class="list-count">${Object.keys(list.words).length} words</span>
         </div>
-        <div class="list-updated">Last updated: ${this.formatDate(list.updated || list.created)}</div>
+        <div class="list-updated">Last updated: ${this.formatDate(list.createdAt || list.created)}</div>
       </div>
     `).join('');
 
@@ -460,11 +462,11 @@ const ListsTab = {
   async loadListWords(listId) {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_lists'
+        action: 'fetchAllVocabularyLists'
       });
 
       if (response.success) {
-        const list = response.data.find(l => l.id === listId);
+        const list = (response.vocabularyLists || []).find(l => l.id === listId);
         if (list) {
           this.currentList = list;
           this.displayListWords(list);
@@ -495,7 +497,7 @@ const ListsTab = {
       }
 
       const response = await browser.runtime.sendMessage({
-        type: 'get_list_words',
+        action: 'fetchVocabularyListWords',
         listId: list.id,
         sortBy,
         sortOrder,
@@ -507,7 +509,9 @@ const ListsTab = {
         return;
       }
 
-      const words = response.data || [];
+      const { words = [], lookupStats = {} } = response.data || {};
+      // Keep current lookup stats for rendering (e.g., when sortBy is lookupCount)
+      this.currentLookupStats = lookupStats;
 
       // Show status section
       this.updateStatusSection(words.length);
@@ -542,7 +546,7 @@ const ListsTab = {
       alphabetical: 'Alphabetical (A-Z)',
       dateAdded: 'Date Added (newest first)',
       lastReviewed: 'Last Reviewed (newest first)',
-      difficulty: 'Difficulty (easy to hard)',
+      difficulty: 'Difficulty (low to high)',
       lookupCount: 'Lookup Count (least to most)'
     };
     sortIndicator.textContent = `Sorted by: ${sortLabels[this.currentSort] || 'Most Recent'}`;
@@ -570,7 +574,7 @@ const ListsTab = {
     // Base word item structure
     let wordItem = `
       <div class="word-list-item">
-        <div class="difficulty-indicator difficulty-${word.difficulty || 'medium'}"></div>
+        <div class="difficulty-indicator"></div>
         <div class="word-list-text">
           <div class="word-list-word">${word.word}</div>
           <div class="word-list-status">
@@ -578,7 +582,7 @@ const ListsTab = {
 
     // Add sort-specific information
     if (sortBy === 'lookupCount') {
-      const count = word.lookupCount || 0;
+      const count = (this.currentLookupStats && this.currentLookupStats[word.word] && this.currentLookupStats[word.word].count) || 0;
       wordItem += `
         <span class="lookup-count">${count} lookup${count !== 1 ? 's' : ''}</span>
       `;
@@ -587,9 +591,9 @@ const ListsTab = {
         <span class="date-added">Added: ${this.formatDate(word.dateAdded)}</span>
       `;
     } else if (sortBy === 'difficulty') {
-      const difficultyMap = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+      const diffVal = (typeof word.difficulty === 'number') ? word.difficulty : '';
       wordItem += `
-        <span class="difficulty-badge">${difficultyMap[word.difficulty] || 'Medium'}</span>
+        <span class="difficulty-badge">${diffVal}</span>
       `;
     } else {
       // Default status
@@ -689,7 +693,7 @@ const ListsTab = {
 
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'create_list',
+        action: 'createVocabularyList',
         name
       });
 
@@ -804,11 +808,11 @@ const LearnTab = {
   async loadReviewQueue() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_review_queue'
+        action: 'fetchReviewQueue'
       });
 
-      if (response.success) {
-        const dueWordsCount = response.data.length;
+      if (response && response.success) {
+        const dueWordsCount = Array.isArray(response.data) ? response.data.length : 0;
         this.updateDueWordsCount(dueWordsCount);
         this.displayReviewStatus(dueWordsCount);
       }
@@ -876,10 +880,10 @@ const LearnTab = {
   async startReviewSession() {
     try {
       const response = await browser.runtime.sendMessage({
-        type: 'get_review_queue'
+        action: 'fetchReviewQueue'
       });
 
-      if (!response.success || response.data.length === 0) {
+      if (!response || !response.success || !Array.isArray(response.data) || response.data.length === 0) {
         NotificationManager.show('No words available for review', 'info');
         return;
       }
@@ -1039,10 +1043,11 @@ const LearnTab = {
     try {
       // Send review result to background
       await browser.runtime.sendMessage({
-        type: 'process_review',
+        action: 'submitReview',
         word: word.word,
-        result: action,
-        listId: word.listId || null
+        reviewResult: action,
+        listId: word.listId || null,
+        timeSpent: 0.0
       });
 
       // Move to next word
@@ -1130,24 +1135,21 @@ const SettingsTab = {
   },
 
   async loadSettings() {
-    const response = await browser.runtime.sendMessage({
-      type: 'get_settings'
-    });
-    const settings = response.success
-      ? response.data
-      : {
-          theme: 'dark',
-          autoAddLookups: true,
-          dailyReviewLimit: 30,
-          textSelectionMode: 'inline'
-        };
+    let response = null;
+    try {
+      response = await browser.runtime.sendMessage({ action: 'fetchSettings' });
+    } catch (_) { /* ignore */ }
+    const settings = (response && response.success && response.settings) ? response.settings : {
+      theme: 'dark',
+      autoAddLookups: true,
+      textSelectionMode: 'inline'
+    };
 
     // Update UI
     const autoAddToggle = document.getElementById('auto-add-toggle');
     if (autoAddToggle) autoAddToggle.checked = settings.autoAddLookups;
 
-    const reviewLimit = document.getElementById('review-limit');
-    if (reviewLimit) reviewLimit.value = settings.dailyReviewLimit;
+    // dailyReviewLimit is not part of the current settings contract; omit.
 
     // Text selection mode radio buttons
     const textSelectionMode = settings.textSelectionMode || 'inline';
@@ -1171,13 +1173,7 @@ const SettingsTab = {
       });
     }
 
-    // Review limit
-    const reviewLimit = document.getElementById('review-limit');
-    if (reviewLimit) {
-      reviewLimit.addEventListener('change', (e) => {
-        this.updateSetting('dailyReviewLimit', parseInt(e.target.value));
-      });
-    }
+    // Review limit setting removed from contract; no-op.
 
     // Text selection mode radio buttons
     const inlineRadio = document.getElementById('text-selection-inline');
@@ -1204,7 +1200,7 @@ const SettingsTab = {
 
   async updateSetting(key, value) {
     await browser.runtime.sendMessage({
-      type: 'update_settings',
+      action: 'updateSettings',
       settings: { [key]: value }
     });
   }

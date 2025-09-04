@@ -11,13 +11,13 @@ import Foundation
 final class UserSpecificData: Codable {
     var word: String
     var dateAdded: Date
-    var difficulty: String
+    var difficulty: Int
     var customNotes: String
     var lastReviewed: Date?
     var nextReview: Date
     var reviewHistory: [ReviewHistoryEntry]
     
-    init(word: String, dateAdded: Date = Date(), difficulty: String = "medium", customNotes: String = "", lastReviewed: Date? = nil, nextReview: Date = Date(timeIntervalSinceNow: 86400), reviewHistory: [ReviewHistoryEntry] = []) {
+    init(word: String, dateAdded: Date = Date(), difficulty: Int = 5000, customNotes: String = "", lastReviewed: Date? = nil, nextReview: Date = Date(timeIntervalSinceNow: 86400), reviewHistory: [ReviewHistoryEntry] = []) {
         self.word = word
         self.dateAdded = dateAdded
         self.difficulty = difficulty
@@ -181,7 +181,7 @@ final class VocabularyList {
         return [
             "id": id.uuidString,
             "name": name,
-            "created": ISO8601DateFormatter().string(from: created),
+            "createdAt": ISO8601DateFormatter().string(from: created),
             "isDefault": isDefault,
             "words": words.mapValues { $0.toDictionary() }
         ]

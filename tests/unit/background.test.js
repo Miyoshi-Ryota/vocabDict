@@ -20,23 +20,51 @@ describe('Background Message Handler', () => {
     
     // Setup comprehensive mock for native messages
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
-      if (message.action === 'getVocabularyLists') {
+      if (message.action === 'fetchAllVocabularyLists') {
+        const j = mockList.toJSON();
+        const { created, ...rest } = j;
         return Promise.resolve({ 
-          vocabularyLists: [mockList.toJSON()]
+          success: true,
+          vocabularyLists: [{ ...rest, createdAt: created }]
         });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'fetchVocabularyListWords') {
+        // Build native-style response: { success, data: { words, lookupStats } }
+        const all = Object.values(mockList.words || {});
+        // Filter by bucket
+        const bucket = (d) => (typeof d === 'number' ? d : Number.MAX_SAFE_INTEGER) <= 3000 ? 'easy' : ((typeof d === 'number' ? d : Number.MAX_SAFE_INTEGER) < 10000 ? 'medium' : 'hard');
+        const filtered = (message.filterBy && message.filterBy !== 'all') ? all.filter(w => bucket(w.difficulty) === message.filterBy) : all;
+        // Lookup stats map (simple counts for the test)
+        const lookupStats = {};
+        for (const w of filtered) {
+          const now = new Date();
+          lookupStats[w.word] = {
+            word: w.word,
+            count: w.word === 'hello' ? 5 : (w.word === 'world' ? 2 : 0),
+            firstLookup: new Date(now.getTime() - 7 * 86400000).toISOString(),
+            lastLookup: now.toISOString()
+          };
+        }
+        // Sort by lookupCount desc if requested
+        let words = [...filtered];
+        if (message.sortBy === 'lookupCount') {
+          const factor = (message.sortOrder || 'asc') === 'desc' ? -1 : 1;
+          words.sort((a, b) => factor * ((lookupStats[a.word]?.count || 0) - (lookupStats[b.word]?.count || 0)));
+        }
+        return Promise.resolve({ success: true, data: { words, lookupStats } });
+      }
+      if (message.action === 'addWordToVocabularyList') {
         const word = message.word;
         if (!dictionary.getDictionaryData(word)) {
-          return Promise.resolve({ error: 'Word not found in dictionary' });
+          return Promise.resolve({ success: false, error: 'Word not found in dictionary' });
         }
         if (mockList.words[word.toLowerCase()]) {
-          return Promise.resolve({ error: 'Word already exists in list' });
+          return Promise.resolve({ success: false, error: 'Word already exists in list' });
         }
         const wordEntry = {
           word: word,
           dateAdded: new Date().toISOString(),
-          difficulty: message.metadata?.difficulty || 'medium',
+          difficulty: message.metadata?.difficulty || 5000,
           customNotes: message.metadata?.customNotes || '',
           lastReviewed: null,
           nextReview: new Date(Date.now() + 86400000).toISOString(),
@@ -50,10 +78,11 @@ describe('Background Message Handler', () => {
       }
       if (message.action === 'createVocabularyList') {
         return Promise.resolve({ 
+          success: true,
           vocabularyList: {
             id: 'new-list-id',
             name: message.name,
-            created: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             isDefault: message.isDefault || false,
             words: {}
           }
@@ -64,23 +93,33 @@ describe('Background Message Handler', () => {
         if (!wordData) {
           return Promise.resolve({ error: 'Word not found' });
         }
-        const nextInterval = message.result === 'mastered' ? null : 
-                           message.result === 'unknown' ? 1 :
-                           message.result === 'known' ? 3 : 1;
+        const nextInterval = message.reviewResult === 'mastered' ? null :
+                             message.reviewResult === 'unknown' ? 1 :
+                             message.reviewResult === 'known' ? 3 : 1;
         const nextReview = nextInterval ? 
           new Date(Date.now() + nextInterval * 86400000).toISOString() : 
           null;
+        const last = new Date().toISOString();
         return Promise.resolve({ 
+          success: true,
           data: {
-            word: message.word,
-            lastReviewed: new Date().toISOString(),
-            nextReview: nextReview,
-            nextInterval: nextInterval
+            word: {
+              word: message.word,
+              dateAdded: new Date().toISOString(),
+              difficulty: wordData?.difficulty || 5000,
+              customNotes: wordData?.customNotes || '',
+              lastReviewed: last,
+              nextReview,
+              reviewHistory: []
+            },
+            nextReview,
+            nextInterval
           }
         });
       }
-      if (message.action === 'getSettings') {
+      if (message.action === 'fetchSettings') {
         return Promise.resolve({ 
+          success: true,
           settings: {
             theme: 'dark',  
             autoPlayPronunciation: false,
@@ -90,21 +129,28 @@ describe('Background Message Handler', () => {
         });
       }
       if (message.action === 'updateSettings') {
-        return Promise.resolve({
-          settings: message.settings
-        });
+        return Promise.resolve({ success: true, settings: message.settings });
       }
       if (message.action === 'addRecentSearch') {
         return Promise.resolve({ success: true });
       }
+      if (message.action === 'fetchRecentSearches') {
+        return Promise.resolve({ success: true, recentSearches: [] });
+      }
       if (message.action === 'updateWord') {
         if (message.word === 'errorWord') {
-          return Promise.resolve({ error: 'Update failed' });
+          return Promise.resolve({ success: false, error: 'Update failed' });
         }
         return Promise.resolve({
+          success: true,
           data: {
             word: message.word,
-            ...message.updates
+            dateAdded: new Date().toISOString(),
+            difficulty: message.updates?.difficulty || 5000,
+            customNotes: '',
+            lastReviewed: null,
+            nextReview: new Date(Date.now() + 86400000).toISOString(),
+            reviewHistory: []
           }
         });
       }
@@ -119,7 +165,7 @@ describe('Background Message Handler', () => {
   describe('LOOKUP_WORD message', () => {
     test('should return word data for valid word', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+        action: MessageTypes.LOOKUP_WORD,
         word: 'hello'
       }, { dictionary });
 
@@ -132,7 +178,7 @@ describe('Background Message Handler', () => {
 
     test('should return error for invalid word', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+        action: MessageTypes.LOOKUP_WORD,
         word: 'xyznotaword123'
       }, { dictionary });
 
@@ -142,7 +188,7 @@ describe('Background Message Handler', () => {
 
     test('should handle fuzzy search suggestions', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD,
+        action: MessageTypes.LOOKUP_WORD,
         word: 'hllo'
       }, { dictionary });
 
@@ -154,20 +200,20 @@ describe('Background Message Handler', () => {
 
     test('should require word parameter', async () => {
       const result = await handleMessage({
-        type: MessageTypes.LOOKUP_WORD
+        action: MessageTypes.LOOKUP_WORD
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Word parameter is required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
-  describe('ADD_TO_LIST message', () => {
+  describe('ADD_WORD_TO_VOCABULARY_LIST message', () => {
     test('should add word to specified list', async () => {
       const listId = mockList.id;
 
       const result = await handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello',
         listId
       }, { dictionary });
@@ -177,7 +223,7 @@ describe('Background Message Handler', () => {
       expect(result.data.word).toBe('hello');
 
       expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
-        action: 'addWordToList',
+        action: 'addWordToVocabularyList',
         listId: listId,
         word: 'hello',
         metadata: {}
@@ -188,7 +234,7 @@ describe('Background Message Handler', () => {
       const listId = mockList.id;
 
       const result = await handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'notaword',
         listId
       }, { dictionary });
@@ -199,11 +245,11 @@ describe('Background Message Handler', () => {
 
     test('should handle list not found', async () => {
       browser.runtime.sendNativeMessage
-        .mockImplementationOnce(() => Promise.resolve({})) // incrementLookupCount
-        .mockImplementationOnce(() => Promise.resolve({ error: 'List not found' }));
+        .mockImplementationOnce(() => Promise.resolve({ success: true })) // incrementLookupCount
+        .mockImplementationOnce(() => Promise.resolve({ success: false, error: 'List not found' }));
 
       await expect(handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello',
         listId: 'non-existent-id'
       }, { dictionary })).resolves.toEqual({
@@ -213,57 +259,57 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('GET_LISTS message', () => {
+  describe('FETCH_ALL_VOCABULARY_LISTS message', () => {
     test('should return all lists', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].name).toBe('My Vocabulary');
-      expect(result.data[0].isDefault).toBe(true);
+      expect(result.vocabularyLists).toHaveLength(1);
+      expect(result.vocabularyLists[0].name).toBe('My Vocabulary');
+      expect(result.vocabularyLists[0].isDefault).toBe(true);
     });
 
     test('should return empty array if no lists', async () => {
       browser.runtime.sendNativeMessage.mockImplementationOnce(() => 
-        Promise.resolve({ vocabularyLists: [] })
+        Promise.resolve({ success: true, vocabularyLists: [] })
       );
       
       const result = await handleMessage({
-        type: MessageTypes.GET_LISTS
+        action: MessageTypes.FETCH_ALL_VOCABULARY_LISTS
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual([]);
+      expect(result.vocabularyLists).toEqual([]);
     });
   });
 
-  describe('CREATE_LIST message', () => {
+  describe('CREATE_VOCABULARY_LIST message', () => {
     test('should create new list', async () => {
       const result = await handleMessage({
-        type: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_VOCABULARY_LIST,
         name: 'New List'
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(result.data.name).toBe('New List');
-      expect(result.data.id).toBeDefined();
+      expect(result.vocabularyList).toBeDefined();
+      expect(result.vocabularyList.name).toBe('New List');
+      expect(result.vocabularyList.id).toBeDefined();
     });
 
     test('should require list name', async () => {
       const result = await handleMessage({
-        type: MessageTypes.CREATE_LIST
+        action: MessageTypes.CREATE_VOCABULARY_LIST
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('name is required');
+      expect(result.error).toContain('Invalid request');
     });
 
     test('should handle empty list name', async () => {
       const result = await handleMessage({
-        type: MessageTypes.CREATE_LIST,
+        action: MessageTypes.CREATE_VOCABULARY_LIST,
         name: '   '
       }, { dictionary });
 
@@ -277,13 +323,13 @@ describe('Background Message Handler', () => {
       // First add the word
       const listId = mockList.id;
       await handleMessage({
-        type: MessageTypes.ADD_TO_LIST,
+        action: MessageTypes.ADD_WORD_TO_VOCABULARY_LIST,
         word: 'hello',
         listId
       }, { dictionary });
 
       const result = await handleMessage({
-        type: MessageTypes.SUBMIT_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         listId: listId,
         word: 'hello',
         reviewResult: 'known',
@@ -292,68 +338,66 @@ describe('Background Message Handler', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(result.data.lastReviewed).toBeDefined();
+      expect(result.data.word.lastReviewed).toBeDefined();
       expect(result.data.nextReview).toBeDefined();
     });
 
     test('should require all parameters', async () => {
       const result = await handleMessage({
-        type: MessageTypes.SUBMIT_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         word: 'hello'
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
-  describe('GET_SETTINGS message', () => {
+  describe('FETCH_SETTINGS message', () => {
     test('should return settings', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_SETTINGS
+        action: MessageTypes.FETCH_SETTINGS
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(result.data.theme).toBeDefined();
-      expect(result.data.autoPlayPronunciation).toBeDefined();
+      expect(result.settings).toBeDefined();
+      expect(result.settings.theme).toBeDefined();
+      expect(result.settings.autoPlayPronunciation).toBeDefined();
     });
   });
 
   describe('UPDATE_SETTINGS message', () => {
     test('should update settings', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_SETTINGS,
+        action: MessageTypes.UPDATE_SETTINGS,
         settings: { theme: 'light' }
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(result.data.theme).toBe('light');
+      expect(result.settings).toBeDefined();
+      expect(result.settings.theme).toBe('light');
     });
 
     test('should require settings object', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_SETTINGS
+        action: MessageTypes.UPDATE_SETTINGS
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
-  describe('GET_LIST_WORDS message', () => {
+  describe('FETCH_VOCABULARY_LIST_WORDS message', () => {
     test('should return filtered and sorted words', async () => {
-      await mockList.addWord('hello', { difficulty: 'medium' });
-      await mockList.addWord('world', { difficulty: 'medium' });
-      await mockList.addWord('apple', { difficulty: 'easy' });
+      await mockList.addWord('hello', { difficulty: 5000 });
+      await mockList.addWord('world', { difficulty: 5000 });
+      await mockList.addWord('apple', { difficulty: 1000 });
 
-      dictionary.getLookupCount = jest.fn().mockImplementation(word => {
-        return word === 'hello' ? 5 : word === 'world' ? 2 : 0;
-      });
+      // Native handler will compute lookupStats; dictionary.getLookupCount is not used here
 
       const result = await handleMessage({
-        type: MessageTypes.GET_LIST_WORDS,
+        action: MessageTypes.FETCH_VOCABULARY_LIST_WORDS,
         listId: mockList.id,
         filterBy: 'medium',
         sortBy: 'lookupCount',
@@ -361,47 +405,50 @@ describe('Background Message Handler', () => {
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(2);
-      expect(result.data[0].word).toBe('hello');
-      expect(result.data[1].word).toBe('world');
-      expect(dictionary.getLookupCount).toHaveBeenCalledWith('hello');
+      // New response shape: { words: UserWordData[], lookupStats: { [word]: LookupStat } }
+      expect(Array.isArray(result.data.words)).toBe(true);
+      expect(result.data.words).toHaveLength(2);
+      expect(result.data.words[0].word).toBe('hello');
+      expect(result.data.words[1].word).toBe('world');
+      // lookupStats is included in response data keyed by word
+      expect(result.data.lookupStats).toBeDefined();
     });
 
     test('should require listId', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_LIST_WORDS
+        action: MessageTypes.FETCH_VOCABULARY_LIST_WORDS
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('ListId is required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
   describe('UPDATE_WORD message', () => {
     test('should update word in list', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_WORD,
+        action: MessageTypes.UPDATE_WORD,
         listId: mockList.id,
         word: 'hello',
-        updates: { difficulty: 'hard' }
+        updates: { difficulty: 10000 }
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data.difficulty).toBe('hard');
+      expect(result.data.difficulty).toBe(10000);
       expect(browser.runtime.sendNativeMessage).toHaveBeenCalledWith({
         action: 'updateWord',
         listId: mockList.id,
         word: 'hello',
-        updates: { difficulty: 'hard' }
+        updates: { difficulty: 10000 }
       });
     });
 
     test('should handle native error', async () => {
       const result = await handleMessage({
-        type: MessageTypes.UPDATE_WORD,
+        action: MessageTypes.UPDATE_WORD,
         listId: mockList.id,
         word: 'errorWord',
-        updates: { difficulty: 'easy' }
+        updates: { difficulty: 1000 }
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -409,15 +456,16 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('PROCESS_REVIEW message', () => {
+  describe('SUBMIT_REVIEW message', () => {
     test('should forward review to native handler', async () => {
-      await mockList.addWord('hello', { difficulty: 'medium' });
+      await mockList.addWord('hello', { difficulty: 5000 });
 
       const result = await handleMessage({
-        type: MessageTypes.PROCESS_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         listId: mockList.id,
         word: 'hello',
-        result: 'known'
+        reviewResult: 'known',
+        timeSpent: 0.0
       }, { dictionary });
 
       expect(result.success).toBe(true);
@@ -425,20 +473,20 @@ describe('Background Message Handler', () => {
         action: 'submitReview',
         listId: mockList.id,
         word: 'hello',
-        result: 'known',
+        reviewResult: 'known',
         timeSpent: 0.0
       });
     });
 
     test('should require all parameters', async () => {
       const result = await handleMessage({
-        type: MessageTypes.PROCESS_REVIEW,
+        action: MessageTypes.SUBMIT_REVIEW,
         listId: mockList.id,
         word: 'hello'
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('required');
+      expect(result.error).toContain('Invalid request');
     });
   });
 
@@ -446,7 +494,7 @@ describe('Background Message Handler', () => {
     test('should return pending word when available', async () => {
       popupWordState.getPendingSearch.mockReturnValue('queued');
       const result = await handleMessage({
-        type: MessageTypes.GET_PENDING_CONTEXT_SEARCH
+        action: MessageTypes.GET_PENDING_CONTEXT_SEARCH
       }, { dictionary, popupWordState });
 
       expect(result.success).toBe(true);
@@ -455,7 +503,7 @@ describe('Background Message Handler', () => {
 
     test('should error when popupWordState missing', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_PENDING_CONTEXT_SEARCH
+        action: MessageTypes.GET_PENDING_CONTEXT_SEARCH
       }, { dictionary });
 
       expect(result.success).toBe(false);
@@ -468,7 +516,7 @@ describe('Background Message Handler', () => {
       browser.action.openPopup.mockResolvedValue();
 
       const result = await handleMessage({
-        type: MessageTypes.OPEN_POPUP_WITH_WORD,
+        action: MessageTypes.OPEN_POPUP_WITH_WORD,
         word: 'hello'
       }, { dictionary, popupWordState });
 
@@ -481,7 +529,7 @@ describe('Background Message Handler', () => {
       browser.action.openPopup.mockRejectedValue(new Error('fail'));
 
       const result = await handleMessage({
-        type: MessageTypes.OPEN_POPUP_WITH_WORD,
+        action: MessageTypes.OPEN_POPUP_WITH_WORD,
         word: 'hello'
       }, { dictionary, popupWordState });
 
@@ -490,26 +538,26 @@ describe('Background Message Handler', () => {
     });
   });
 
-  describe('GET_RECENT_SEARCHES message', () => {
+  describe('FETCH_RECENT_SEARCHES message', () => {
     test('should return recent searches', async () => {
       const result = await handleMessage({
-        type: MessageTypes.GET_RECENT_SEARCHES
+        action: MessageTypes.FETCH_RECENT_SEARCHES
       }, { dictionary });
 
       expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(Array.isArray(result.data)).toBe(true);
+      expect(result.recentSearches).toBeDefined();
+      expect(Array.isArray(result.recentSearches)).toBe(true);
     });
   });
 
   describe('Unknown message type', () => {
     test('should handle unknown message type', async () => {
       const result = await handleMessage({
-        type: 'UNKNOWN_TYPE'
+        action: 'UNKNOWN_TYPE'
       }, { dictionary });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unknown message type');
+      expect(result.error).toContain('Invalid request');
     });
   });
 });

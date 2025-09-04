@@ -25,12 +25,12 @@ describe('Content Script User Flow Integration Tests', () => {
     const dictionary = new DictionaryService(dictionaryData);
     const defaultList = new VocabularyList('My Vocabulary', dictionary, true);
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
-      if (message.action === 'getVocabularyLists') {
-        return Promise.resolve({ 
-          vocabularyLists: [defaultList.toJSON()]
-        });
+      if (message.action === 'fetchAllVocabularyLists') {
+        const j = defaultList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
       }
-      if (message.action === 'addWordToList') {
+      if (message.action === 'addWordToVocabularyList') {
         return Promise.resolve({ 
           success: true,
           data: {
@@ -38,6 +38,37 @@ describe('Content Script User Flow Integration Tests', () => {
             dateAdded: new Date().toISOString()
           }
         });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    // Mock runtime sendMessage for UI→background actions
+    browser.runtime.sendMessage.mockImplementation((message) => {
+      if (message.action === 'lookupWord') {
+        const result = dictionary.getDictionaryData(message.word);
+        return Promise.resolve(result ? { success: true, data: result } : { success: false, error: 'Word not found' });
+      }
+      if (message.action === 'fetchAllVocabularyLists') {
+        const j = defaultList.toJSON();
+        const { created, ...rest } = j;
+        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+      }
+      if (message.action === 'addWordToVocabularyList') {
+        return browser.runtime.sendNativeMessage({
+          action: 'addWordToVocabularyList',
+          listId: message.listId,
+          word: message.word,
+          metadata: message.metadata || {}
+        }).then(response => (response.error ? { success: false, error: response.error } : { success: true, data: response.data }));
+      }
+      if (message.action === 'fetchRecentSearches') {
+        return Promise.resolve({ success: true, data: [] });
+      }
+      if (message.action === 'fetchSettings') {
+        return Promise.resolve({ success: true, settings: { textSelectionMode: 'inline' } });
+      }
+      if (message.action === 'openPopupWithWord') {
+        return Promise.resolve({ success: true, data: { popupOpened: true } });
       }
       return Promise.resolve({ success: true });
     });
@@ -126,7 +157,7 @@ describe('Content Script User Flow Integration Tests', () => {
       expect(overlay).toBeTruthy();
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'lookup_word',
+          action: 'lookupWord',
           word: 'vocabulary'
         })
       );
@@ -217,13 +248,13 @@ describe('Content Script User Flow Integration Tests', () => {
       // Wait for the add to list flow to complete
       await waitFor(() => {
         const calls = browser.runtime.sendMessage.mock.calls;
-        return calls.some(call => call[0].type === 'add_to_list');
+        return calls.some(call => call[0].action === 'addWordToVocabularyList');
       });
 
       // Verify that add to list message was sent
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'add_to_list',
+          action: 'addWordToVocabularyList',
           word: 'ephemeral'
         })
       );
@@ -417,8 +448,14 @@ describe('Content Script User Flow Integration Tests', () => {
       // Mock get_settings to return popup mode
       const originalSendMessage = browser.runtime.sendMessage;
       browser.runtime.sendMessage = jest.fn((message) => {
-        if (message.type === 'get_settings') {
-          return Promise.resolve({ success: true, data: { textSelectionMode: 'popup' } });
+        if (message.action === 'fetchSettings') {
+          return Promise.resolve({ success: true, settings: { textSelectionMode: 'popup' } });
+        }
+        if (message.action === 'openPopupWithWord') {
+          browser.action.openPopup.mockResolvedValue();
+          // Simulate background actually opening the popup
+          browser.action.openPopup();
+          return Promise.resolve({ success: true, data: { popupOpened: true } });
         }
         return originalSendMessage(message);
       });
@@ -457,7 +494,7 @@ describe('Content Script User Flow Integration Tests', () => {
       // Verify message to open popup with selected word
       expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'open_popup_with_word',
+          action: 'openPopupWithWord',
           word: 'hello'
         })
       );
@@ -470,7 +507,7 @@ describe('Content Script User Flow Integration Tests', () => {
     test('should show inline overlay with selected word definition when user clicks lookup button in inline mode', async () => {
       // Set text selection mode to inline
       await browser.runtime.sendMessage({
-        type: 'update_settings',
+        action: 'updateSettings',
         settings: { textSelectionMode: 'inline' }
       });
 

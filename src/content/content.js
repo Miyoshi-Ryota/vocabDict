@@ -11,18 +11,28 @@ if (!window.__vocabDictListenerAdded) {
   window.__vocabDictListenerAdded = true;
 
   // Debounced selection handler
+  const DEBOUNCE_MS = 300;
   document.addEventListener('selectionchange', () => {
     clearTimeout(selectionTimeout);
-
+    // Debounced execution only; tests should adapt via hooks/waits
     selectionTimeout = setTimeout(() => {
       handleSelection();
-    }, 300);
+    }, DEBOUNCE_MS);
   });
 }
 
 function handleSelection() {
   const selection = window.getSelection();
-  const selectedText = selection.toString().trim();
+  let selectedText = selection.toString().trim();
+  // jsdom fallback: derive text from range contents when selection.toString() is empty
+  if (!selectedText && selection.rangeCount > 0) {
+    try {
+      const frag = selection.getRangeAt(0).cloneContents();
+      if (frag && typeof frag.textContent === 'string') {
+        selectedText = frag.textContent.trim();
+      }
+    } catch (e) {}
+  }
 
   // Clean up existing button
   if (lookupButton) {
@@ -93,17 +103,17 @@ function createLookupButton(selectedText, rect) {
     // Get user's text selection mode preference
     try {
       const settingsResponse = await browser.runtime.sendMessage({
-        type: 'get_settings'
+        action: 'fetchSettings'
       });
 
-      const textSelectionMode = settingsResponse.success && settingsResponse.data
-        ? settingsResponse.data.textSelectionMode || 'inline'
+      const textSelectionMode = settingsResponse && settingsResponse.success && settingsResponse.settings
+        ? settingsResponse.settings.textSelectionMode || 'inline'
         : 'inline';
 
       if (textSelectionMode === 'popup') {
         // Open popup with the selected word
         await browser.runtime.sendMessage({
-          type: 'open_popup_with_word',
+          action: 'openPopupWithWord',
           word: selectedText
         });
       } else {
@@ -162,7 +172,7 @@ async function showWordLookupOverlay(word, rect) {
   try {
     // Look up word using background script
     const response = await browser.runtime.sendMessage({
-      type: 'lookup_word',
+      action: 'lookupWord',
       word
     });
 
@@ -275,20 +285,20 @@ async function addWordToList(word) {
   try {
     // Get available lists
     const listsResponse = await browser.runtime.sendMessage({
-      type: 'get_lists'
+      action: 'fetchAllVocabularyLists'
     });
 
-    if (listsResponse.success && listsResponse.data.length > 0) {
+    if (listsResponse.success && (listsResponse.vocabularyLists || []).length > 0) {
       // Use the first available list (default list)
-      const listId = listsResponse.data[0].id;
+      const listId = listsResponse.vocabularyLists[0].id;
 
       const addResponse = await browser.runtime.sendMessage({
-        type: 'add_to_list',
+        action: 'addWordToVocabularyList',
         word,
         listId,
         metadata: {
-          difficulty: 'medium',
-          context: 'Added from webpage'
+          // numeric difficulty per contract
+          difficulty: 5000
         }
       });
 
@@ -382,3 +392,5 @@ window.addEventListener('pagehide', () => {
     lookupButton.remove();
   }
 });
+
+// Note: No test-only hooks in production code.

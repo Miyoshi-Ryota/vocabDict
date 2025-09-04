@@ -31,7 +31,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
     
     func testGetVocabularyListsMessage() {
         // Given
-        let message: [String: Any] = ["action": "getVocabularyLists"]
+        let message: [String: Any] = ["action": "fetchAllVocabularyLists"]
         mockContext.setupInputItem(with: message)
         
         // When
@@ -85,10 +85,10 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         
         // When - Add word to list
         let addWordMessage: [String: Any] = [
-            "action": "addWordToList",
+            "action": "addWordToVocabularyList",
             "listId": listId,
             "word": "hello",
-            "metadata": ["difficulty": "easy", "customNotes": "test note"]
+            "metadata": ["difficulty": 1000, "customNotes": "test note"]
         ]
         
         let newContext = MockExtensionContext()
@@ -120,10 +120,10 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         }
 
         let addMessage: [String: Any] = [
-            "action": "addWordToList",
+            "action": "addWordToVocabularyList",
             "listId": listId,
             "word": "hello",
-            "metadata": ["difficulty": "easy", "customNotes": "note"]
+            "metadata": ["difficulty": 1000, "customNotes": "note"]
         ]
 
         let addContext = MockExtensionContext()
@@ -135,7 +135,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
             "action": "updateWord",
             "listId": listId,
             "word": "hello",
-            "updates": ["difficulty": "hard", "customNotes": "updated"]
+            "updates": ["difficulty": 10000, "customNotes": "updated"]
         ]
 
         let updateContext = MockExtensionContext()
@@ -147,7 +147,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         if let response = updateContext.extractResponse() {
             XCTAssertTrue(response["success"] as? Bool ?? false)
             if let data = response["data"] as? [String: Any] {
-                XCTAssertEqual(data["difficulty"] as? String, "hard")
+                XCTAssertEqual(data["difficulty"] as? Int, 10000)
                 XCTAssertEqual(data["customNotes"] as? String, "updated")
             }
         }
@@ -164,7 +164,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         // Then
         XCTAssertNotNil(mockContext.completedItems)
         if let response = mockContext.extractResponse() {
-            XCTAssertEqual(response["error"] as? String, "Invalid parameters: listId, word, and updates are required")
+            XCTAssertTrue((response["error"] as? String)?.contains("Invalid request format") ?? false)
         }
     }
 
@@ -196,7 +196,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         XCTAssertNotNil(mockContext.completedItems)
         if let response = mockContext.extractResponse() {
             XCTAssertNotNil(response["error"])
-            XCTAssertEqual(response["error"] as? String, "Name is required")
+            XCTAssertTrue((response["error"] as? String)?.contains("Invalid request format") ?? false)
         }
     }
 
@@ -235,7 +235,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         
         // Add word
         let addWordMessage: [String: Any] = [
-            "action": "addWordToList",
+            "action": "addWordToVocabularyList",
             "listId": listId,
             "word": "hello",
             "metadata": [:]
@@ -250,7 +250,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
             "action": "submitReview",
             "listId": listId,
             "word": "hello",
-            "result": "known",
+            "reviewResult": "known",
             "timeSpent": 10.5
         ]
         
@@ -274,7 +274,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
     
     func testGetSettingsMessage() {
         // Given
-        let message: [String: Any] = ["action": "getSettings"]
+        let message: [String: Any] = ["action": "fetchSettings"]
         mockContext.setupInputItem(with: message)
         
         // When
@@ -346,7 +346,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         handler.beginRequest(with: mockContext)
         
         // When - Get recent searches
-        let getMessage: [String: Any] = ["action": "getRecentSearches"]
+        let getMessage: [String: Any] = ["action": "fetchRecentSearches"]
         let getContext = MockExtensionContext()
         getContext.setupInputItem(with: getMessage)
         handler.beginRequest(with: getContext)
@@ -392,7 +392,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         
         // When - Get count
         let getMessage: [String: Any] = [
-            "action": "getLookupCount",
+            "action": "fetchLookupCount",
             "word": "hello"
         ]
         let getContext = MockExtensionContext()
@@ -417,7 +417,7 @@ class SafariWebExtensionHandlerTests: XCTestCase {
         handler.beginRequest(with: mockContext)
 
         // When - Get lookup statistics
-        let statsMessage: [String: Any] = ["action": "getLookupStats"]
+        let statsMessage: [String: Any] = ["action": "fetchLookupStats"]
         let statsContext = MockExtensionContext()
         statsContext.setupInputItem(with: statsMessage)
         handler.beginRequest(with: statsContext)

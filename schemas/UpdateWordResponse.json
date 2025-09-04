@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UpdateWordResponse",
+  "description": "Response from updating a word in a vocabulary list.",
+  "type": "object",
+  "required": ["success"],
+  "additionalProperties": false,
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the word was successfully updated."
+    },
+    "data": {
+      "$ref": "./common/domain.json#/$defs/UserWordDataDTO",
+      "description": "The updated word entry."
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if the operation failed."
+    }
+  }
+}

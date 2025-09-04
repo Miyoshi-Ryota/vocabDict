@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DomainTypes",
+  "description": "Common domain types shared across requests and responses.",
+  "$defs": {
+    "UUID": { "type": "string", "format": "uuid" },
+    "ISODateTime": { "type": "string", "format": "date-time" },
+
+    "ReviewResultDTO": {
+      "type": "string",
+      "enum": ["known", "unknown", "mastered", "skipped"]
+    },
+
+    "ReviewHistoryEntryDTO": {
+      "type": "object",
+      "properties": {
+        "date": { "$ref": "#/$defs/ISODateTime" },
+        "result": { "$ref": "#/$defs/ReviewResultDTO" },
+        "timeSpent": { "type": "number", "minimum": 0 }
+      },
+      "required": ["date", "result", "timeSpent"],
+      "additionalProperties": false
+    },
+
+    "UserWordDataDTO": {
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "dateAdded": { "$ref": "#/$defs/ISODateTime" },
+        "difficulty": { "type": "integer", "minimum": 1 },
+        "customNotes": { "type": "string" },
+        "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+        "nextReview": { "$ref": "#/$defs/ISODateTime" },
+        "reviewHistory": { "type": "array", "items": { "$ref": "#/$defs/ReviewHistoryEntryDTO" } }
+      },
+      "required": ["word", "dateAdded", "difficulty", "nextReview"],
+      "additionalProperties": false
+    },
+
+    "VocabularyListDTO": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/UUID" },
+        "name": { "type": "string" },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "$ref": "#/$defs/ISODateTime" },
+        "words": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/UserWordDataDTO" }
+        }
+      },
+      "required": ["id", "name", "isDefault", "createdAt", "words"],
+      "additionalProperties": false
+    },
+
+    "UserSettingsDTO": {
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string", "enum": ["light", "dark", "auto"] },
+        "autoPlayPronunciation": { "type": "boolean" },
+        "showExampleSentences": { "type": "boolean" },
+        "textSelectionMode": { "type": "string", "enum": ["inline", "popup"] },
+        "autoAddLookups": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
+    "DefinitionDTO": {
+      "type": "object",
+      "properties": {
+        "partOfSpeech": { "type": "string" },
+        "meaning": { "type": "string" },
+        "definition": { "type": "string" },
+        "examples": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["partOfSpeech", "meaning", "examples"],
+      "additionalProperties": false
+    },
+
+    "LookupStatDTO": {
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 },
+        "firstLookup": { "$ref": "#/$defs/ISODateTime" },
+        "lastLookup": { "$ref": "#/$defs/ISODateTime" }
+      },
+      "required": ["word", "count", "firstLookup", "lastLookup"],
+      "additionalProperties": false
+    },
+
+    "ReviewQueueItemDTO": {
+      "type": "object",
+      "properties": {
+        "word": { "type": "string" },
+        "listId": { "$ref": "#/$defs/UUID" },
+        "listName": { "type": "string" },
+        "nextReview": { "$ref": "#/$defs/ISODateTime" },
+        "difficulty": { "type": "integer", "minimum": 1 },
+
+        "pronunciation": { "type": "string" },
+        "definitions": { "type": "array", "items": { "$ref": "#/$defs/DefinitionDTO" } },
+        "synonyms": { "type": "array", "items": { "type": "string" } },
+        "antonyms": { "type": "array", "items": { "type": "string" } },
+        "dateAdded": { "$ref": "#/$defs/ISODateTime" },
+        "customNotes": { "type": "string" },
+        "lastReviewed": { "type": ["string", "null"], "format": "date-time" },
+        "reviewHistory": { "type": "array", "items": { "$ref": "#/$defs/ReviewHistoryEntryDTO" } }
+      },
+      "required": ["word", "listId", "listName", "nextReview", "difficulty"],
+      "additionalProperties": false
+    }
+
+    
+  }
+}
