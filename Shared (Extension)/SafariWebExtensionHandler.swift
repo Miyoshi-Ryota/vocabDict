@@ -97,15 +97,24 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             context: ModelContext,
             make: (Request, ModelContext) throws -> Response
         ) {
+            // First: strict request decoding
+            let req: Request
             do {
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601
-                let req = try decoder.decode(Request.self, from: data)
+                req = try decoder.decode(Request.self, from: data)
+            } catch {
+                fail("Invalid request format: \(error.localizedDescription)")
+                return
+            }
+
+            // Second: command execution
+            do {
                 let resp = try make(req, context)
                 let dict = try encodeCodableToDict(resp)
                 complete(dict)
             } catch {
-                fail("Invalid request or command error: \(error.localizedDescription)")
+                fail("Command execution failed: \(error.localizedDescription)")
             }
         }
 
@@ -200,19 +209,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
         case "createVocabularyList":
-            // Decode and validate request
-            let createRequest: ProtoCreateVocabularyListRequest
-            do {
-                createRequest = try JSONDecoder().decode(ProtoCreateVocabularyListRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoCreateVocabularyListRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try CreateVocabularyListCommand.fromProto(req, context: ctx).execute()
             }
-            
-            let newList = cloudKitStore.createVocabularyList(name: createRequest.name, isDefault: createRequest.isDefault ?? false)
-            validateAndComplete([ "success": true, "vocabularyList": newList.toDictionary() ], as: ProtoCreateVocabularyListResponse.self)
             
         case "addWordToVocabularyList":
             // Decode and validate request

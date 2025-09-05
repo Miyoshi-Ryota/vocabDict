@@ -229,12 +229,7 @@ class CloudKitStore {
         }
     }
     
-    func createVocabularyList(name: String, isDefault: Bool = false) -> VocabularyList {
-        let vocabularyList = VocabularyList(name: name, isDefault: isDefault)
-        modelContext.insert(vocabularyList)
-        save()
-        return vocabularyList
-    }
+    // createVocabularyList: コマンド化により廃止（CreateVocabularyListCommand を使用）
     
     func addWordToVocabularyList(word: String, metadata: [String: Any], to vocabularyListId: UUID) -> UserSpecificData? {
         guard let vocabularyList = getVocabularyList(id: vocabularyListId) else {
