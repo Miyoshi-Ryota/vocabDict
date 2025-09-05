@@ -366,37 +366,8 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             validateAndComplete(reviewResponse, as: ProtoSubmitReviewResponse.self)
             
         case "updateWord":
-            // Decode and validate request
-            let updateWordRequest: ProtoUpdateWordRequest
-            do {
-                updateWordRequest = try JSONDecoder().decode(ProtoUpdateWordRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
-            }
-            
-            guard let listUUID = UUID(uuidString: updateWordRequest.listID) else {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid list ID format" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
-            }
-            
-            // Convert updates to dictionary
-            var updates: [String: Any] = [:]
-            if let difficulty = updateWordRequest.updates.difficulty {
-                updates["difficulty"] = difficulty
-            }
-            if let customNotes = updateWordRequest.updates.customNotes {
-                updates["customNotes"] = customNotes
-            }
-            
-            if let updatedWord = cloudKitStore.updateWord(word: updateWordRequest.word, updates: updates, in: listUUID) {
-                validateAndComplete([ "success": true, "data": updatedWord.toDictionary() ], as: ProtoUpdateWordResponse.self)
-            } else {
-                fail("Failed to update word")
+            runCommand(jsonData, reqType: ProtoUpdateWordRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try UpdateWordCommand.fromProto(req, context: ctx).execute()
             }
             
         default:
