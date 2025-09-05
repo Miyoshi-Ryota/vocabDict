@@ -35,7 +35,7 @@ class CloudKitStoreTests: XCTestCase {
         XCTAssertEqual(list.name, name)
         XCTAssertFalse(list.isDefault)
         XCTAssertNotNil(list.id)
-        XCTAssertNotNil(list.created)
+        XCTAssertNotNil(list.createdAt)
     }
     
     func testAddWordToVocabularyList() {
