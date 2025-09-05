@@ -8,9 +8,23 @@
 
 /* Begin PBXBuildFile section */
 		2D2CBB432E6057AE001BEC7C /* SafariWebExtensionHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2CBB412E604ACB001BEC7C /* SafariWebExtensionHandlerTests.swift */; };
-		2D2CBB442E6057B2001BEC7C /* CloudKitStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2CBB3F2E604ACB001BEC7C /* CloudKitStoreTests.swift */; };
 		2DA2901F2E2B9B2800263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DA290292E2B9B2900263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DD974092E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974082E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift */; };
+		2DD974122E6ABA6600E8BC00 /* CreateVocabularyListCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974112E6ABA6600E8BC00 /* CreateVocabularyListCommandTests.swift */; };
+		2DD974142E6ABA6600E8BC00 /* AddWordToVocabularyListCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974132E6ABA6600E8BC00 /* AddWordToVocabularyListCommandTests.swift */; };
+		2DD974162E6ABA6600E8BC00 /* UpdateWordCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974152E6ABA6600E8BC00 /* UpdateWordCommandTests.swift */; };
+		2DD9741A2E6ABA6600E8BC00 /* FetchVocabularyListWordsCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974172E6ABA6600E8BC00 /* FetchVocabularyListWordsCommandTests.swift */; };
+			2DE000012E6ABB0000E8BC00 /* FetchSettingsCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD9741D2E6ABA6600E8BC00 /* FetchSettingsCommandTests.swift */; };
+			2DE000022E6ABB0000E8BC00 /* UpdateSettingsCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD9741E2E6ABA6600E8BC00 /* UpdateSettingsCommandTests.swift */; };
+			2DE000032E6ABB0000E8BC00 /* AddRecentSearchCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD9741F2E6ABA6600E8BC00 /* AddRecentSearchCommandTests.swift */; };
+			2DE000042E6ABB0000E8BC00 /* FetchRecentSearchesCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974202E6ABA6600E8BC00 /* FetchRecentSearchesCommandTests.swift */; };
+			2DE000052E6ABB0000E8BC00 /* IncrementLookupCountCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974212E6ABA6600E8BC00 /* IncrementLookupCountCommandTests.swift */; };
+			2DE000062E6ABB0000E8BC00 /* FetchLookupCountCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974222E6ABA6600E8BC00 /* FetchLookupCountCommandTests.swift */; };
+			2DE000072E6ABB0000E8BC00 /* FetchLookupStatsCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974232E6ABA6600E8BC00 /* FetchLookupStatsCommandTests.swift */; };
+			2DE000082E6ABB0000E8BC00 /* SubmitReviewCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974242E6ABA6600E8BC00 /* SubmitReviewCommandTests.swift */; };
+		/* SettingsAndRecentCommandsTests removed */
+		/* LookupAndReviewCommandsTests removed */
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,32 +78,74 @@
 
 /* Begin PBXFileReference section */
 		2D2CBACC2E5E16E9001BEC7C /* vocabDictTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = vocabDictTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2D2CBB3F2E604ACB001BEC7C /* CloudKitStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitStoreTests.swift; sourceTree = "<group>"; };
 		2D2CBB402E604ACB001BEC7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2D2CBB412E604ACB001BEC7C /* SafariWebExtensionHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandlerTests.swift; sourceTree = "<group>"; };
 		2DA290002E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290122E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DD974082E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchAllVocabularyListsCommandTests.swift; sourceTree = "<group>"; };
+		2DD974112E6ABA6600E8BC00 /* CreateVocabularyListCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVocabularyListCommandTests.swift; sourceTree = "<group>"; };
+		2DD974132E6ABA6600E8BC00 /* AddWordToVocabularyListCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddWordToVocabularyListCommandTests.swift; sourceTree = "<group>"; };
+            2DD974152E6ABA6600E8BC00 /* UpdateWordCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateWordCommandTests.swift; sourceTree = "<group>"; };
+            2DD974172E6ABA6600E8BC00 /* FetchVocabularyListWordsCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchVocabularyListWordsCommandTests.swift; sourceTree = "<group>"; };
+            2DD9741D2E6ABA6600E8BC00 /* FetchSettingsCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchSettingsCommandTests.swift; sourceTree = "<group>"; };
+            2DD9741E2E6ABA6600E8BC00 /* UpdateSettingsCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateSettingsCommandTests.swift; sourceTree = "<group>"; };
+            2DD9741F2E6ABA6600E8BC00 /* AddRecentSearchCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRecentSearchCommandTests.swift; sourceTree = "<group>"; };
+            2DD974202E6ABA6600E8BC00 /* FetchRecentSearchesCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchRecentSearchesCommandTests.swift; sourceTree = "<group>"; };
+            2DD974212E6ABA6600E8BC00 /* IncrementLookupCountCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementLookupCountCommandTests.swift; sourceTree = "<group>"; };
+            2DD974222E6ABA6600E8BC00 /* FetchLookupCountCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchLookupCountCommandTests.swift; sourceTree = "<group>"; };
+            2DD974232E6ABA6600E8BC00 /* FetchLookupStatsCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchLookupStatsCommandTests.swift; sourceTree = "<group>"; };
+            2DD974242E6ABA6600E8BC00 /* SubmitReviewCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitReviewCommandTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		2D2CBA652E5B063F001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDict Extension (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Generated/AllTypes.swift,
-				Models.swift,
-			);
+                membershipExceptions = (
+                    CloudKitStore.swift,
+                    Commands/AddRecentSearchCommand.swift,
+                    Commands/AddWordToVocabularyListCommand.swift,
+                    Commands/AppCommand.swift,
+                    Commands/CreateVocabularyListCommand.swift,
+                    Commands/FetchAllVocabularyListsCommand.swift,
+                    Commands/FetchLookupCountCommand.swift,
+                    Commands/FetchLookupStatsCommand.swift,
+                    Commands/FetchRecentSearchesCommand.swift,
+                    Commands/FetchSettingsCommand.swift,
+                    Commands/FetchVocabularyListWordsCommand.swift,
+                    Commands/IncrementLookupCountCommand.swift,
+                    Commands/SubmitReviewCommand.swift,
+                    Commands/UpdateSettingsCommand.swift,
+                    Commands/UpdateWordCommand.swift,
+                    Generated/AllTypes.swift,
+                    Models.swift,
+                    Utilities/DataResetter.swift,
+                );
 			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
 		};
 		2D2CBA662E5B063F001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDict Extension (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Generated/AllTypes.swift,
-				Models.swift,
-			);
+                membershipExceptions = (
+                    CloudKitStore.swift,
+                    Commands/AddRecentSearchCommand.swift,
+                    Commands/AddWordToVocabularyListCommand.swift,
+                    Commands/AppCommand.swift,
+                    Commands/CreateVocabularyListCommand.swift,
+                    Commands/FetchAllVocabularyListsCommand.swift,
+                    Commands/FetchLookupCountCommand.swift,
+                    Commands/FetchLookupStatsCommand.swift,
+                    Commands/FetchRecentSearchesCommand.swift,
+                    Commands/FetchSettingsCommand.swift,
+                    Commands/FetchVocabularyListWordsCommand.swift,
+                    Commands/IncrementLookupCountCommand.swift,
+                    Commands/SubmitReviewCommand.swift,
+                    Commands/UpdateSettingsCommand.swift,
+                    Commands/UpdateWordCommand.swift,
+                    Generated/AllTypes.swift,
+                    Models.swift,
+                    Utilities/DataResetter.swift,
+                );
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
 		};
 		2D2CBB462E605951001BEC7C /* Exceptions for "Shared (Extension)" folder in "vocabDictTests" target */ = {
@@ -101,25 +157,55 @@
 		};
 		2D2CBB482E60596B001BEC7C /* Exceptions for "Shared (App)" folder in "vocabDictTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CloudKitStore.swift,
-				Generated/AllTypes.swift,
-				Models.swift,
-			);
+                membershipExceptions = (
+                    CloudKitStore.swift,
+                    Commands/AddRecentSearchCommand.swift,
+                    Commands/AddWordToVocabularyListCommand.swift,
+                    Commands/AppCommand.swift,
+                    Commands/CreateVocabularyListCommand.swift,
+                    Commands/FetchAllVocabularyListsCommand.swift,
+                    Commands/FetchLookupCountCommand.swift,
+                    Commands/FetchLookupStatsCommand.swift,
+                    Commands/FetchRecentSearchesCommand.swift,
+                    Commands/FetchSettingsCommand.swift,
+                    Commands/FetchVocabularyListWordsCommand.swift,
+                    Commands/IncrementLookupCountCommand.swift,
+                    Commands/SubmitReviewCommand.swift,
+                    Commands/UpdateSettingsCommand.swift,
+                    Commands/UpdateWordCommand.swift,
+                    Generated/AllTypes.swift,
+                    Models.swift,
+                    Utilities/DataResetter.swift,
+                );
 			target = 2D2CBACB2E5E16E9001BEC7C /* vocabDictTests */;
 		};
 		2DA2904D2E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (iOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"/Localized: Resources/Main.html",
-				Assets.xcassets,
-				CloudKitStore.swift,
-				Generated/AllTypes.swift,
-				Models.swift,
-				Resources/Icon.png,
-				Resources/Script.js,
-				Resources/Style.css,
-			);
+                membershipExceptions = (
+                    "/Localized: Resources/Main.html",
+                    Assets.xcassets,
+                    CloudKitStore.swift,
+                    Commands/AddRecentSearchCommand.swift,
+                    Commands/AddWordToVocabularyListCommand.swift,
+                    Commands/AppCommand.swift,
+                    Commands/CreateVocabularyListCommand.swift,
+                    Commands/FetchAllVocabularyListsCommand.swift,
+                    Commands/FetchLookupCountCommand.swift,
+                    Commands/FetchLookupStatsCommand.swift,
+                    Commands/FetchRecentSearchesCommand.swift,
+                    Commands/FetchSettingsCommand.swift,
+                    Commands/FetchVocabularyListWordsCommand.swift,
+                    Commands/IncrementLookupCountCommand.swift,
+                    Commands/SubmitReviewCommand.swift,
+                    Commands/UpdateSettingsCommand.swift,
+                    Commands/UpdateWordCommand.swift,
+                    Generated/AllTypes.swift,
+                    Models.swift,
+                    Resources/Icon.png,
+                    Resources/Script.js,
+                    Resources/Style.css,
+                    Utilities/DataResetter.swift,
+                );
 			target = 2DA28FFF2E2B9B2800263BCA /* vocabDict (iOS) */;
 		};
 		2DA290512E2B9B2900263BCA /* Exceptions for "iOS (Extension)" folder in "vocabDict Extension (iOS)" target */ = {
@@ -138,16 +224,31 @@
 		};
 		2DA290572E2B9B2900263BCA /* Exceptions for "Shared (App)" folder in "vocabDict (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"/Localized: Resources/Main.html",
-				Assets.xcassets,
-				CloudKitStore.swift,
-				Generated/AllTypes.swift,
-				Models.swift,
-				Resources/Icon.png,
-				Resources/Script.js,
-				Resources/Style.css,
-			);
+                membershipExceptions = (
+                    "/Localized: Resources/Main.html",
+                    Assets.xcassets,
+                    CloudKitStore.swift,
+                    Commands/AddRecentSearchCommand.swift,
+                    Commands/AddWordToVocabularyListCommand.swift,
+                    Commands/AppCommand.swift,
+                    Commands/CreateVocabularyListCommand.swift,
+                    Commands/FetchAllVocabularyListsCommand.swift,
+                    Commands/FetchLookupCountCommand.swift,
+                    Commands/FetchLookupStatsCommand.swift,
+                    Commands/FetchRecentSearchesCommand.swift,
+                    Commands/FetchSettingsCommand.swift,
+                    Commands/FetchVocabularyListWordsCommand.swift,
+                    Commands/IncrementLookupCountCommand.swift,
+                    Commands/SubmitReviewCommand.swift,
+                    Commands/UpdateSettingsCommand.swift,
+                    Commands/UpdateWordCommand.swift,
+                    Generated/AllTypes.swift,
+                    Models.swift,
+                    Resources/Icon.png,
+                    Resources/Script.js,
+                    Resources/Style.css,
+                    Utilities/DataResetter.swift,
+                );
 			target = 2DA290112E2B9B2800263BCA /* vocabDict (macOS) */;
 		};
 		2DA2905B2E2B9B2900263BCA /* Exceptions for "macOS (Extension)" folder in "vocabDict Extension (macOS)" target */ = {
@@ -292,11 +393,23 @@
 /* Begin PBXGroup section */
 		2D2CBB422E604ACB001BEC7C /* vocabDictTests */ = {
 			isa = PBXGroup;
-			children = (
-				2D2CBB3F2E604ACB001BEC7C /* CloudKitStoreTests.swift */,
-				2D2CBB402E604ACB001BEC7C /* Info.plist */,
-				2D2CBB412E604ACB001BEC7C /* SafariWebExtensionHandlerTests.swift */,
-			);
+            children = (
+                2DD974132E6ABA6600E8BC00 /* AddWordToVocabularyListCommandTests.swift */,
+                2DD9741F2E6ABA6600E8BC00 /* AddRecentSearchCommandTests.swift */,
+                2DD974112E6ABA6600E8BC00 /* CreateVocabularyListCommandTests.swift */,
+                2DD974082E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift */,
+                2DD974222E6ABA6600E8BC00 /* FetchLookupCountCommandTests.swift */,
+                2DD974232E6ABA6600E8BC00 /* FetchLookupStatsCommandTests.swift */,
+                2DD974202E6ABA6600E8BC00 /* FetchRecentSearchesCommandTests.swift */,
+                2DD9741D2E6ABA6600E8BC00 /* FetchSettingsCommandTests.swift */,
+                2DD974172E6ABA6600E8BC00 /* FetchVocabularyListWordsCommandTests.swift */,
+                2DD974212E6ABA6600E8BC00 /* IncrementLookupCountCommandTests.swift */,
+                2DD974242E6ABA6600E8BC00 /* SubmitReviewCommandTests.swift */,
+                2DD9741E2E6ABA6600E8BC00 /* UpdateSettingsCommandTests.swift */,
+                2DD974152E6ABA6600E8BC00 /* UpdateWordCommandTests.swift */,
+                2D2CBB402E604ACB001BEC7C /* Info.plist */,
+                2D2CBB412E604ACB001BEC7C /* SafariWebExtensionHandlerTests.swift */,
+            );
 			path = vocabDictTests;
 			sourceTree = "<group>";
 		};
@@ -536,10 +649,22 @@
 		2D2CBAC82E5E16E9001BEC7C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (
-				2D2CBB442E6057B2001BEC7C /* CloudKitStoreTests.swift in Sources */,
-				2D2CBB432E6057AE001BEC7C /* SafariWebExtensionHandlerTests.swift in Sources */,
-			);
+            files = (
+                2DD974122E6ABA6600E8BC00 /* CreateVocabularyListCommandTests.swift in Sources */,
+                2D2CBB432E6057AE001BEC7C /* SafariWebExtensionHandlerTests.swift in Sources */,
+                2DD974092E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift in Sources */,
+                2DD974142E6ABA6600E8BC00 /* AddWordToVocabularyListCommandTests.swift in Sources */,
+                2DD974162E6ABA6600E8BC00 /* UpdateWordCommandTests.swift in Sources */,
+                2DD9741A2E6ABA6600E8BC00 /* FetchVocabularyListWordsCommandTests.swift in Sources */,
+                2DE000012E6ABB0000E8BC00 /* FetchSettingsCommandTests.swift in Sources */,
+                2DE000022E6ABB0000E8BC00 /* UpdateSettingsCommandTests.swift in Sources */,
+                2DE000032E6ABB0000E8BC00 /* AddRecentSearchCommandTests.swift in Sources */,
+                2DE000042E6ABB0000E8BC00 /* FetchRecentSearchesCommandTests.swift in Sources */,
+                2DE000052E6ABB0000E8BC00 /* IncrementLookupCountCommandTests.swift in Sources */,
+                2DE000062E6ABB0000E8BC00 /* FetchLookupCountCommandTests.swift in Sources */,
+                2DE000072E6ABB0000E8BC00 /* FetchLookupStatsCommandTests.swift in Sources */,
+                2DE000082E6ABB0000E8BC00 /* SubmitReviewCommandTests.swift in Sources */,
+            );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2DA28FFC2E2B9B2800263BCA /* Sources */ = {

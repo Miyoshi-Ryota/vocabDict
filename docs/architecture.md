@@ -1,167 +1,177 @@
-# VocabDict アーキテクチャ v2
+# vocabDict アーキテクチャ概要
 
-## 概要
+このドキュメントは「長寿命で陳腐化しにくい観点」に絞って、vocabDict の全体アーキテクチャを説明します。個別機能や実装詳細（具体的なコマンド名の列挙など）は意図的に含めません。
 
-VocabDictは、英語学習者向けのSafari Web Extensionです。統合された辞書検索、語彙管理、間隔反復学習を通じて語彙力向上を支援します。
+## 全体像
 
-v2アーキテクチャでは、データ永続化層を完全にSwiftData+CloudKitに移行し、JavaScriptの責務を最小限にしました。
-
-## コアアーキテクチャ
+vocabDict は Safari Web Extension とネイティブ App（iOS/macOS 共通）で構成されます。ネイティブ側のデータは SwiftData をベースに CloudKit でミラーリングされます。UI は JS 側（content/popup）と SwiftUI 側の双方が存在し、どちらからでも同じ「コマンド」層を呼び出してロジックを実行します。
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                 ユーザーインターフェース                │
-│  ┌────────────┐  ┌──────────────┐  ┌─────────────┐ │
-│  │   Popup    │  │Content Script│  │Context Menu │ │
-│  │  (400x600) │  │  (iOS button)│  │   (macOS)   │ │
-│  └────────────┘  └──────────────┘  └─────────────┘ │
-└──────────────────────────────────────────────────────┘
-                           │
-                   メッセージパッシング
-                   (browser.runtime)
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│              Background Service Worker                │
-│         メッセージをNativeへルーティングのみ           │
-└──────────────────────────────────────────────────────┘
-                           │
-               browser.runtime.sendNativeMessage
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│           Native Layer (Swift)                        │
-│         SafariWebExtensionHandler                     │
-└──────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│              CloudKitStore (Swift)                    │
-│         すべてのビジネスロジックとデータ操作            │
-└──────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│           データ永続化層 (SwiftData)                   │
-│         App Group共有ストレージ                        │
-└──────────────────────────────────────────────────────┘
-                           │
-                   CloudKit自動同期
-                   (.automatic mode)
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│              CloudKit (iCloud)                        │
-│         全デバイス間でのデータ同期                      │
-└──────────────────────────────────────────────────────┘
++-------------------------+                 +------------------------------+
+|  JS (content/popup)     |  sendMessage    |  JS background               |
+|  - UI / 交互            +---------------->+  - ルーティング/送受信       |
+|                         |                 |  - sendNativeMessage         |
++-------------------------+                 +--------------+---------------+
+                                                            |
+                                                            | Native Messaging
+                                                            v
+                                           +----------------+----------------+
+                                           | SafariWebExtensionHandler.swift |
+                                           |  - runCommand(Request)          |
+                                           |  - JSON (Codable) 検証/整形      |
+                                           +----------------+----------------+
+                                                            |
+                                                            | Command.fromProto(req, ctx)
+                                                            v
+                                      +---------------------+----------------------+
+                                      |        Commands 層（ドメインロジック）       |
+                                      |  - SwiftData(ModelContext) を受け取って実行   |
+                                      |  - execute() -> Response (Codable)         |
+                                      +---------------------+----------------------+
+                                                            |
+                                                            | SwiftData / CloudKit Mirror
+                                                            v
+                                      +---------------------+----------------------+
+                                      |   データ層（SwiftData + CloudKitStore 最小化） |
+                                      |  - モデル定義（VocabularyList 等）            |
+                                      |  - App Group 上に永続化                      |
+                                      +---------------------------------------------+
 ```
 
-## 主要な変更点（v1 → v2）
+ポイント:
+- Safari 側ハンドラは「薄い」レイヤです。受信 JSON を生成型（Codable）で復元し、コマンドに委譲して結果をそのまま返すだけです。
+- コマンド層にドメインロジックを集約。SwiftUI/App からも同じコマンドを直接呼び出せます。
+- SwiftData/CloudKit は「保管/同期の基盤」。CloudKitStore はコンテキスト生成や開発ユーティリティ中心に薄く保ちます。
 
-### 1. データ永続化層の完全移行
-- **削除**: `browser.storage.local` APIとStorageManager
-- **導入**: SwiftData + CloudKit
-- **利点**: ストレージ制限解消、デバイス間自動同期
+## 型の一元化（SSOT: Single Source of Truth）
 
-### 2. ビジネスロジックのSwift移行
-- **削除**: JavaScript側のサービスレイヤー（SpacedRepetition等）
-- **移行先**: CloudKitStore（Swift）
-- **利点**: JavaScriptは純粋なメッセージングレイヤーに
+UI-Extension-ネイティブ間の境界を跨ぐデータは JSON Schema を起点にコード生成された「プロト型（Proto）」で統一します。
 
-### 3. 簡素化されたメッセージフロー
-- **旧**: JS → Services → StorageManager → browser.storage
-- **新**: JS → Native Handler → CloudKitStore → SwiftData
+```
+ JSON Schema  --->  JS: バリデータ/デコーダ
+                  \->  Swift: Codable 型（Proto*）
 
-## コンポーネントの責務
-
-### JavaScript層（最小限の責務）
-- **UI表示**: Popup、Content Script、Context Menu
-- **メッセージング**: ユーザー操作をNativeへ転送
-- **辞書データ**: 読み取り専用の辞書サービス（DictionaryService）のみ残存
-
-### Native層（Swift）
-- **SafariWebExtensionHandler**: JSからのメッセージ受信とルーティング
-- **CloudKitStore**: すべてのビジネスロジックとデータ操作
-  - 語彙リスト管理
-  - 間隔反復学習アルゴリズム
-  - 検索履歴
-  - ユーザー設定
-  - 統計情報
-
-### データ層
-- **SwiftData**: ローカルデータ永続化
-- **App Group**: AppとExtension間でのデータ共有
-- **CloudKit**: デバイス間での自動同期
-
-## メッセージフロー
-
-### 単語追加の例
-```mermaid
-sequenceDiagram
-    User->>Popup: 単語を追加
-    Popup->>MessageHandler: ADD_TO_LIST
-    MessageHandler->>NativeHandler: sendNativeMessage
-    NativeHandler->>CloudKitStore: addWordToList()
-    CloudKitStore->>SwiftData: save
-    SwiftData->>CloudKit: 自動同期
-    CloudKitStore-->>Popup: 結果
+  利用原則:
+   - 送受信は常に Proto 型（Codable）をデコード/エンコード
+   - SafariWebExtensionHandler では round-trip 検証（decode -> encode）で不正形を排除
+   - JS でも validator を通して型の整合性を担保
 ```
 
-### レビュー送信の例
-```mermaid
-sequenceDiagram
-    User->>LearnTab: レビュー結果選択
-    LearnTab->>NativeHandler: SUBMIT_REVIEW
-    NativeHandler->>CloudKitStore: submitReview()
-    Note over CloudKitStore: 間隔反復計算
-    CloudKitStore->>SwiftData: save
-    CloudKitStore-->>LearnTab: 次回復習日
+これにより、
+- 「境界の多重定義（Dictionary や ad-hoc JSON 乱立）」を回避
+- 実装差分やパラメータ名のブレを機械的に抑止
+
+## コマンドパターン
+
+全てのユースケースは「コマンド」として表現されます。コマンドは以下の共通インターフェイスに従います。
+
+```
+protocol AppCommand {
+  associatedtype Request: Codable
+  associatedtype Response: Codable
+  static func fromProto(_ request: Request, context: ModelContext) -> Self
+  func execute() throws -> Response
+}
 ```
 
-## データ同期メカニズム
+特徴:
+- Request/Response は Proto（生成型）を使用し、境界面の契約を強制。
+- SwiftData の `ModelContext` を DI で受け取り、テスタブル（インメモリ）に。
+- SafariWebExtensionHandler からも SwiftUI からも「同一のコマンド」を呼び出すため、重複実装を排除。
 
-### ローカル同期（App Group）
-- `ModelContext.save()` で即座に保存
-- 同一デバイス内のApp/Extension間で共有
+### 実行フロー（ハンドラ側）
 
-### クラウド同期（CloudKit）
-- `.automatic` モードで自動同期
-- プロセスが動作中に同期実行
-- iOS/macOS間でシームレスに共有
+```
+message(JSON)              // JS -> background -> native
+  -> decode to Request     // Codable + ISO8601 date
+  -> Command.fromProto(req, ctx)
+  -> execute() -> Response
+  -> encode JSON + validate round-trip
+  -> send back to JS
+```
 
-## 主要な設計原則
+エラー処理:
+- デコード失敗は `"Invalid request format: ..."` として即時応答。
+- 実行時例外は `"Command execution failed: ..."` として応答。
 
-1. **Swift First**: ビジネスロジックはSwift側に集約
-2. **メッセージ駆動**: コンポーネント間は疎結合
-3. **自動同期**: ユーザーは同期を意識しない
-4. **最小限のJS**: JavaScriptは表示とメッセージングのみ
+## データ層（SwiftData + CloudKit）
 
-## プラットフォーム考慮事項
+SwiftData の `ModelContainer/ModelContext` を中心に構成し、App Group のストア上に永続化します。CloudKit はミラーリングで外部同期を担い、**コマンドはストアの存在を抽象化した `ModelContext` のみ**に依存します。
 
-### Safari Extension制限
-- ES6モジュール非対応（webpack必須）
-- browser.* APIのみ使用
-- テーマ自動検出不可
+```
++----------------------+     +-------------------+
+| ModelContainer       |<--->| CloudKit Mirror   |
++----------+-----------+     +-------------------+
+           |
+           v
+   +-------+--------+
+   | ModelContext   |
+   +-------+--------+
+           |
+           v
+   +-------+---------------+
+   | SwiftData Models      |  // VocabularyList / UserSettings / ...
+   +-----------------------+
+```
 
-### iOS vs macOS
-- **iOS**: テキスト選択ボタンUI
-- **macOS**: コンテキストメニュー統合
-- 両プラットフォームで同一データストア共有
+CloudKitStore は「コンテナ/コンテキストの初期化」と「開発ユーティリティ（データリセット等）」に役割を限定し、ロジックはコマンドへ集約します。
 
-## 開発ガイド
+## テスト戦略
 
-### 新機能追加の流れ
-1. SwiftDataモデルを定義
-2. CloudKitStoreにビジネスロジック実装
-3. SafariWebExtensionHandlerにルーティング追加
-4. JavaScript側でUIとメッセージング実装
+テストは次の2層で構成します。
 
-### デバッグポイント
-- JS側: console.logでメッセージ確認
-- Native側: SafariWebExtensionHandlerでログ出力
-- データ: CloudKit Dashboardで同期状態確認
+1) コマンド単体テスト（Swift）
+- `ModelContext(inMemory)` を注入し、各コマンドが Request -> Response を正しく処理することを検証。
+- 副作用（保存・整列・フィルタ・集計）の期待値を最小ケースで担保。
 
-## まとめ
+2) ハンドラ統合テスト（Swift）
+- `SafariWebExtensionHandler` に対し「JSON メッセージ」を渡して応答 JSON を検証。
+- 生成型での decode/encode 成功と、エラーメッセージの整合性を確認。
 
-VocabDict v2は以下を実現：
-- **データ永続化をSwiftDataに統一** - browser.storageの制限から解放
-- **ビジネスロジックをSwiftに集約** - メンテナンス性の向上
-- **CloudKitで自動同期** - シームレスなマルチデバイス体験
-- **シンプルなアーキテクチャ** - 理解しやすく拡張しやすい設計
+この分離により、境界（JSON）とドメイン（SwiftData）の双方を壊しにくくします。
+
+## 新しいユースケースを追加する手順（高レベル）
+
+1. JSON Schema を更新（Request/Response を追加）
+2. 生成スクリプトで Swift/JS の Proto 型を再生成
+3. `Shared (App)/Commands/` にコマンドを追加（fromProto/execute を実装）
+4. `SafariWebExtensionHandler` の `switch action` に `runCommand(...) { Command.fromProto(...).execute() }` を1行追加
+5. コマンド単体テストを追加し、必要に応じてハンドラ統合テストも更新
+
+上記により、**境界契約（型）→ コマンド実装 → ハンドラ配線 → テスト**の最短経路を保ちます。
+
+## 依存・責務の分離
+
+- JS と Swift の「UI レイヤ」は自由に進化可能。ユースケースの契約は Proto 型で固定。
+- ハンドラは「変換と委譲」に限定。
+- コマンドがビジネスルールを持ち、SwiftData で永続化。
+- データストアの作法（App Group, CloudKit）変更は CloudKitStore/初期化コードへ限定的に波及。
+
+## バージョニングと互換性
+
+- Proto 型（Schema）を変更する際は「後方互換」を基本とし、optional フィールド追加を優先。
+- 破壊的変更が必要な場合、`action` の新設や `version` フィールド導入で段階的移行を可能にします。
+
+## 図: メッセージ流路（要約）
+
+```
+JS UI                background            Handler                 Command                Data
+-----                ----------            -------                 -------                ----
+sendMessage  --->    route/action  --->    decode(Request)  --->   execute(ctx)  --->     SwiftData
+                                 <---      encode(Response)  <---  return         <---    (CloudKit mirror)
+```
+
+## 図: レイヤの責務
+
+```
+Presentation  : JS(content/popup), SwiftUI
+Boundary      : SafariWebExtensionHandler (decode/encode/dispatch)
+Domain        : Commands (fromProto/execute), Mapping
+Persistence   : SwiftData (ModelContext), CloudKit mirror
+Infra         : CloudKitStore(初期化/開発ユーティリティ), App Group
+```
+
+---
+
+この構成により、境界の型安全性とロジックの単一実装（コマンド集約）を両立し、JS と App の二重実装負債を最小化しながら、テスト容易性と段階的な機能拡張を可能にします。
+

@@ -40,8 +40,7 @@ describe('Popup Integration Tests', () => {
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
         const j = mockList.toJSON();
-        const { created, ...rest } = j;
-        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+        return Promise.resolve({ success: true, vocabularyLists: [j] });
       }
       if (message.action === 'addWordToVocabularyList') {
         const wordEntry = {
@@ -93,8 +92,7 @@ describe('Popup Integration Tests', () => {
       }
       if (message.action === 'fetchAllVocabularyLists') {
         const j = mockList.toJSON();
-        const { created, ...rest } = j;
-        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+        return Promise.resolve({ success: true, vocabularyLists: [j] });
       }
       if (message.action === 'addWordToVocabularyList') {
         return browser.runtime.sendNativeMessage({

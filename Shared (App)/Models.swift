@@ -165,14 +165,14 @@ final class UserSettings {
 final class VocabularyList {
     var id: UUID = UUID()
     var name: String = ""
-    var created: Date = Date()
+    var createdAt: Date = Date()
     var isDefault: Bool = false
     var words: [String: UserSpecificData] = [:] // Key: word (lowercase), Value: user-specific data
 
-    init(id: UUID = UUID(), name: String = "", created: Date = Date(), isDefault: Bool = false, words: [String: UserSpecificData] = [:]) {
+    init(id: UUID = UUID(), name: String = "", createdAt: Date = Date(), isDefault: Bool = false, words: [String: UserSpecificData] = [:]) {
         self.id = id
         self.name = name
-        self.created = created
+        self.createdAt = createdAt
         self.isDefault = isDefault
         self.words = words
     }
@@ -181,7 +181,7 @@ final class VocabularyList {
         return [
             "id": id.uuidString,
             "name": name,
-            "createdAt": ISO8601DateFormatter().string(from: created),
+            "createdAt": ISO8601DateFormatter().string(from: createdAt),
             "isDefault": isDefault,
             "words": words.mapValues { $0.toDictionary() }
         ]

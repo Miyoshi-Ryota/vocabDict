@@ -323,7 +323,6 @@ class VocabularyList {
   static fromJSON(json, dictionary) {
     const list = new VocabularyList(json.name, dictionary, json.isDefault);
     list.id = json.id;
-    // Strict: only accept createdAt
     list.createdAt = json.createdAt;
     list.words = json.words || {};
     return list;

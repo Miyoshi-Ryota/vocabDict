@@ -20,11 +20,7 @@ describe('Background Service Integration Tests', () => {
     // Mock native message responses
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
-        const lists = Object.values(mockLists).map(list => {
-          const j = list.toJSON();
-          const { created, ...rest } = j;
-          return { ...rest, createdAt: created };
-        });
+        const lists = Object.values(mockLists).map(list => list.toJSON());
         return Promise.resolve({ success: true, vocabularyLists: lists });
       }
       if (message.action === 'addWordToVocabularyList') {
@@ -55,8 +51,7 @@ describe('Background Service Integration Tests', () => {
         const newList = new VocabularyList(message.name, dictionary, message.isDefault || false);
         mockLists[newList.id] = newList;
         const j = newList.toJSON();
-        const { created, ...rest } = j;
-        return Promise.resolve({ success: true, vocabularyList: { ...rest, createdAt: created } });
+        return Promise.resolve({ success: true, vocabularyList: j });
       }
       if (message.action === 'submitReview') {
         const targetList = mockLists[message.listId];
@@ -166,8 +161,7 @@ describe('Background Service Integration Tests', () => {
       // Mock getVocabularyLists to return list with words
       browser.runtime.sendNativeMessage.mockImplementationOnce(() => {
         const j = mockList.toJSON();
-        const { created, ...rest } = j;
-        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+        return Promise.resolve({ success: true, vocabularyLists: [j] });
       });
 
       // 1. Get review queue
