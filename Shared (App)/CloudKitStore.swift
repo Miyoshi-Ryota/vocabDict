@@ -332,219 +332,25 @@ class CloudKitStore {
         return max(1, daysSinceLastReview)
     }
     
-    func submitReview(word: String, result: String, timeSpent: Double, in vocabularyListId: UUID) -> [String: Any] {
-        guard let vocabularyList = getVocabularyList(id: vocabularyListId) else {
-            os_log(.default, "Vocabulary list with ID %{public}@ not found", vocabularyListId.uuidString)
-            return ["error": "Vocabulary list not found"]
-        }
-        
-        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let wordData = vocabularyList.words[normalizedWord] else {
-            os_log(.default, "Word '%{public}@' not found in list", normalizedWord)
-            return ["error": "Word not found in list"]
-        }
-        
-        // Calculate intervals
-        let currentInterval = getCurrentInterval(lastReviewed: wordData.lastReviewed)
-        let nextInterval = calculateNextInterval(currentInterval: currentInterval, result: result)
-        
-        // Create new review history entry
-        let reviewEntry = ReviewHistoryEntry(
-            date: Date(),
-            result: result,
-            timeSpent: timeSpent
-        )
-        
-        // Calculate next review date
-        let nextReviewDate: Date
-        if let nextInterval = nextInterval {
-            nextReviewDate = Calendar.current.date(
-                byAdding: .day,
-                value: nextInterval,
-                to: Date()
-            ) ?? Date()
-        } else {
-            // Mastered - set to distant future
-            nextReviewDate = Date.distantFuture
-        }
-        
-        // Create new UserSpecificData object for proper change detection
-        let updatedWordData = UserSpecificData(
-            word: wordData.word,
-            dateAdded: wordData.dateAdded,
-            difficulty: wordData.difficulty,
-            customNotes: wordData.customNotes,
-            lastReviewed: Date(),
-            nextReview: nextReviewDate,
-            reviewHistory: wordData.reviewHistory + [reviewEntry]
-        )
-        
-        // Replace the old object with the new one
-        vocabularyList.words[normalizedWord] = updatedWordData
-        
-        save()
-        
-        // Return response with calculated interval
-        return [
-            "success": true,
-            "data": [
-                "nextInterval": nextInterval as Any,
-                "nextReview": ISO8601DateFormatter().string(from: updatedWordData.nextReview),
-                "word": updatedWordData.toDictionary()
-            ]
-        ]
-    }
+    // submitReview: コマンド化により廃止（SubmitReviewCommand を使用）
     
     // MARK: - Recent Search History
     
-    func addRecentSearch(word: String) {
-        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // First, remove any existing entry for the same word
-        do {
-            let predicate = #Predicate<RecentSearchHistory> { search in
-                search.word == normalizedWord
-            }
-            let existingSearches = try modelContext.fetch(FetchDescriptor(predicate: predicate))
-            for search in existingSearches {
-                modelContext.delete(search)
-            }
-        } catch {
-            os_log(.default, "Failed to check for existing searches: \(error)")
-        }
-        
-        // Add the new search
-        let newSearch = RecentSearchHistory(word: normalizedWord, searchedAt: Date())
-        modelContext.insert(newSearch)
-        
-        // Keep only the most recent 10 searches
-        do {
-            var descriptor = FetchDescriptor<RecentSearchHistory>(
-                sortBy: [SortDescriptor(\.searchedAt, order: .reverse)]
-            )
-            let allSearches = try modelContext.fetch(descriptor)
-            
-            if allSearches.count > 10 {
-                // Delete the older searches
-                for i in 10..<allSearches.count {
-                    modelContext.delete(allSearches[i])
-                }
-            }
-        } catch {
-            os_log(.default, "Failed to limit recent searches: \(error)")
-        }
-        
-        save()
-    }
+    // addRecentSearch: コマンド化により廃止（AddRecentSearchCommand を使用）
     
-    func getRecentSearches() -> [String] {
-        do {
-            var descriptor = FetchDescriptor<RecentSearchHistory>(
-                sortBy: [SortDescriptor(\.searchedAt, order: .reverse)]
-            )
-            descriptor.fetchLimit = 10
-            let searches = try modelContext.fetch(descriptor)
-            return searches.map { $0.word }
-        } catch {
-            os_log(.default, "Failed to fetch recent searches: \(error)")
-            return []
-        }
-    }
+    // getRecentSearches: コマンド化により廃止（FetchRecentSearchesCommand を使用）
     
     // MARK: - User Settings
     
-    func getSettings() -> UserSettings {
-        do {
-            let descriptor = FetchDescriptor<UserSettings>()
-            if let settings = try modelContext.fetch(descriptor).first {
-                return settings
-            }
-            
-            // Create default settings if none exist
-            let defaultSettings = UserSettings()
-            modelContext.insert(defaultSettings)
-            save()
-            return defaultSettings
-        } catch {
-            os_log(.default, "Failed to fetch settings: \(error)")
-            // Return default settings on error
-            return UserSettings()
-        }
-    }
+    // getSettings: コマンド化により廃止（FetchSettingsCommand を使用）
     
-    func updateSettings(_ updates: [String: Any]) -> UserSettings {
-        let settings = getSettings()
-        settings.update(from: updates)
-        save()
-        return settings
-    }
+    // updateSettings: コマンド化により廃止（UpdateSettingsCommand を使用）
     
     // MARK: - Dictionary Lookup Stats
     
-    func incrementLookupCount(for word: String) {
-        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        do {
-            let predicate = #Predicate<DictionaryLookupStats> { stats in
-                stats.word == normalizedWord
-            }
-            let descriptor = FetchDescriptor(predicate: predicate)
-            
-            if let existingStats = try modelContext.fetch(descriptor).first {
-                // Update existing stats
-                existingStats.count += 1
-                existingStats.lastLookup = Date()
-            } else {
-                // Create new stats entry
-                let newStats = DictionaryLookupStats(
-                    word: normalizedWord,
-                    count: 1,
-                    firstLookup: Date(),
-                    lastLookup: Date()
-                )
-                modelContext.insert(newStats)
-            }
-            
-            save()
-        } catch {
-            os_log(.default, "Failed to increment lookup count: \(error)")
-        }
-    }
+    // incrementLookupCount: コマンド化により廃止（IncrementLookupCountCommand を使用）
     
-    func getLookupStats() -> [String: [String: Any]] {
-        do {
-            let descriptor = FetchDescriptor<DictionaryLookupStats>()
-            let allStats = try modelContext.fetch(descriptor)
-            
-            var statsDict: [String: [String: Any]] = [:]
-            for stat in allStats {
-                statsDict[stat.word] = stat.toDictionary()
-            }
-            
-            return statsDict
-        } catch {
-            os_log(.default, "Failed to fetch lookup stats: \(error)")
-            return [:]
-        }
-    }
+    // getLookupStats: コマンド化により廃止（FetchLookupStatsCommand を使用）
     
-    func getLookupCount(for word: String) -> Int {
-        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        do {
-            let predicate = #Predicate<DictionaryLookupStats> { stats in
-                stats.word == normalizedWord
-            }
-            let descriptor = FetchDescriptor(predicate: predicate)
-            
-            if let stats = try modelContext.fetch(descriptor).first {
-                return stats.count
-            }
-            
-            return 0
-        } catch {
-            os_log(.default, "Failed to get lookup count: \(error)")
-            return 0
-        }
-    }
+    // getLookupCount: コマンド化により廃止（FetchLookupCountCommand を使用）
 }

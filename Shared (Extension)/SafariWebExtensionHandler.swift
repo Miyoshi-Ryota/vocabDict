@@ -126,82 +126,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             complete(["success": true, "data": results])
 
         case "fetchVocabularyListWords":
-            // Decode and validate request
-            let req: ProtoFetchVocabularyListWordsRequest
-            do {
-                req = try JSONDecoder().decode(ProtoFetchVocabularyListWordsRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoFetchVocabularyListWordsRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try FetchVocabularyListWordsCommand.fromProto(req, context: ctx).execute()
             }
-
-            // NOTE:
-            //  - 将来的にこの SafariWebExtensionHandler は「極力薄く」保つ方針です。
-            //  - コマンドパターン採用後は、本ケースのフィルタ/ソート/lookupStats 構築などのロジックは
-            //    SomeCommand.from_proto(req, ctx).execute() 側へ移し、ここでは
-            //      受信 → デコード → コマンド実行 → エンコード（検証）
-            //    のみを担う予定です。
-            //  - 現時点では JS 側からの素通し要件に合わせて、最小限の組み立てをこのハンドラ内で実施しています。
-
-            guard let listUUID = UUID(uuidString: req.listID), let vocabularyList = cloudKitStore.getVocabularyList(id: listUUID) else {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "List not found" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
-            }
-
-            // Start from model objects for filtering/sorting fidelity
-            var items = Array(vocabularyList.words.values)
-
-            // Filter by difficulty bucket if requested
-            if let filter = req.filterBy?.rawValue, filter != "all" {
-                func bucket(_ d: Int) -> String { return d <= 3000 ? "easy" : (d < 10000 ? "medium" : "hard") }
-                items = items.filter { bucket($0.difficulty) == filter }
-            }
-
-            // Build lookup stats map for current words
-            let allStats = cloudKitStore.getLookupStats() // [word: dict]
-            var filteredStats: [String: Any] = [:]
-            let wordsSet = Set(items.map { $0.word.lowercased() })
-            for (word, stat) in allStats where wordsSet.contains(word) {
-                filteredStats[word] = stat
-            }
-
-            // Sorting
-            if let sortBy = req.sortBy?.rawValue {
-                let desc = (req.sortOrder?.rawValue == "desc")
-                func cmp<T: Comparable>(_ a: T, _ b: T) -> Bool { return desc ? (a > b) : (a < b) }
-                switch sortBy {
-                case "alphabetical":
-                    items.sort { cmp($0.word, $1.word) }
-                case "dateAdded":
-                    items.sort { cmp($0.dateAdded, $1.dateAdded) }
-                case "lastReviewed":
-                    // Keep nils at the end regardless of order
-                    let reviewed = items.filter { $0.lastReviewed != nil }
-                    let notReviewed = items.filter { $0.lastReviewed == nil }
-                    let sorted = reviewed.sorted { (a, b) in
-                        guard let la = a.lastReviewed, let lb = b.lastReviewed else { return false }
-                        return desc ? (la > lb) : (la < lb)
-                    }
-                    items = sorted + notReviewed
-                case "difficulty":
-                    items.sort { cmp($0.difficulty, $1.difficulty) }
-                case "lookupCount":
-                    func count(_ w: String) -> Int { (filteredStats[w.lowercased()] as? [String: Any])? ["count"] as? Int ?? 0 }
-                    items.sort { cmp(count($0.word), count($1.word)) }
-                default:
-                    break
-                }
-            }
-
-            let wordsPayload = items.map { $0.toDictionary() }
-            validateAndComplete([ "success": true, "data": [
-                "words": wordsPayload,
-                "lookupStats": filteredStats
-            ]], as: ProtoFetchVocabularyListWordsResponse.self)
 
         case "fetchAllVocabularyLists":
             runCommand(jsonData, reqType: ProtoFetchAllVocabularyListsRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
@@ -219,151 +146,44 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
         case "addRecentSearch":
-            // Decode and validate request
-            let recentSearchRequest: ProtoAddRecentSearchRequest
-            do {
-                recentSearchRequest = try JSONDecoder().decode(ProtoAddRecentSearchRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoAddRecentSearchRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try AddRecentSearchCommand.fromProto(req, context: ctx).execute()
             }
-            
-            cloudKitStore.addRecentSearch(word: recentSearchRequest.word)
-            validateAndComplete([ "success": true ], as: ProtoAddRecentSearchResponse.self)
             
         case "fetchRecentSearches":
-            // Validate request using Codable
-            do {
-                _ = try JSONDecoder().decode(ProtoFetchRecentSearchesRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoFetchRecentSearchesRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try FetchRecentSearchesCommand.fromProto(req, context: ctx).execute()
             }
-            
-            let searches = cloudKitStore.getRecentSearches()
-            validateAndComplete([ "success": true, "recentSearches": searches ], as: ProtoFetchRecentSearchesResponse.self)
             
         case "fetchSettings":
-            // Validate request using Codable
-            do {
-                _ = try JSONDecoder().decode(ProtoFetchSettingsRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoFetchSettingsRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try FetchSettingsCommand.fromProto(req, context: ctx).execute()
             }
-            
-            let settings = cloudKitStore.getSettings()
-            validateAndComplete([ "success": true, "settings": settings.toDictionary() ], as: ProtoFetchSettingsResponse.self)
             
         case "updateSettings":
-            // Decode and validate request
-            let updateSettingsRequest: ProtoUpdateSettingsRequest
-            do {
-                updateSettingsRequest = try JSONDecoder().decode(ProtoUpdateSettingsRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoUpdateSettingsRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try UpdateSettingsCommand.fromProto(req, context: ctx).execute()
             }
-            
-            // Convert Settings to dictionary for CloudKitStore
-            var updates: [String: Any] = [:]
-            if let theme = updateSettingsRequest.settings.theme {
-                updates["theme"] = theme.rawValue
-            }
-            if let autoPlay = updateSettingsRequest.settings.autoPlayPronunciation {
-                updates["autoPlayPronunciation"] = autoPlay
-            }
-            if let showExamples = updateSettingsRequest.settings.showExampleSentences {
-                updates["showExampleSentences"] = showExamples
-            }
-            if let selectionMode = updateSettingsRequest.settings.textSelectionMode {
-                updates["textSelectionMode"] = selectionMode.rawValue
-            }
-            if let autoAdd = updateSettingsRequest.settings.autoAddLookups {
-                updates["autoAddLookups"] = autoAdd
-            }
-            
-            let updatedSettings = cloudKitStore.updateSettings(updates)
-            validateAndComplete([ "success": true, "settings": updatedSettings.toDictionary() ], as: ProtoUpdateSettingsResponse.self)
             
         case "incrementLookupCount":
-            // Decode and validate request
-            let incrementRequest: ProtoIncrementLookupCountRequest
-            do {
-                incrementRequest = try JSONDecoder().decode(ProtoIncrementLookupCountRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoIncrementLookupCountRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try IncrementLookupCountCommand.fromProto(req, context: ctx).execute()
             }
-            
-            cloudKitStore.incrementLookupCount(for: incrementRequest.word)
-            validateAndComplete([ "success": true ], as: ProtoIncrementLookupCountResponse.self)
             
         case "fetchLookupStats": // Currently not used from JS side, reserved for future use
-            // Validate request using Codable
-            do {
-                _ = try JSONDecoder().decode(ProtoFetchLookupStatsRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoFetchLookupStatsRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try FetchLookupStatsCommand.fromProto(req, context: ctx).execute()
             }
-            
-            let stats = cloudKitStore.getLookupStats()
-            validateAndComplete([ "success": true, "stats": stats ], as: ProtoFetchLookupStatsResponse.self)
             
         case "fetchLookupCount":
-            // Decode and validate request
-            let lookupCountRequest: ProtoFetchLookupCountRequest
-            do {
-                lookupCountRequest = try JSONDecoder().decode(ProtoFetchLookupCountRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoFetchLookupCountRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try FetchLookupCountCommand.fromProto(req, context: ctx).execute()
             }
-            
-            let count = cloudKitStore.getLookupCount(for: lookupCountRequest.word)
-            validateAndComplete([ "success": true, "count": count ], as: ProtoFetchLookupCountResponse.self)
             
         case "submitReview":
-            // Decode and validate request
-            let submitReviewRequest: ProtoSubmitReviewRequest
-            do {
-                submitReviewRequest = try JSONDecoder().decode(ProtoSubmitReviewRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoSubmitReviewRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try SubmitReviewCommand.fromProto(req, context: ctx).execute()
             }
-            
-            guard let listUUID = UUID(uuidString: submitReviewRequest.listID) else {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid list ID format" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
-            }
-            
-            let reviewResponse = cloudKitStore.submitReview(
-                word: submitReviewRequest.word,
-                result: submitReviewRequest.reviewResult.rawValue,
-                timeSpent: submitReviewRequest.timeSpent ?? 0.0,
-                in: listUUID
-            )
-            validateAndComplete(reviewResponse, as: ProtoSubmitReviewResponse.self)
             
         case "updateWord":
             runCommand(jsonData, reqType: ProtoUpdateWordRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
