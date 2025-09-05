@@ -231,45 +231,7 @@ class CloudKitStore {
     
     // createVocabularyList: コマンド化により廃止（CreateVocabularyListCommand を使用）
     
-    func addWordToVocabularyList(word: String, metadata: [String: Any], to vocabularyListId: UUID) -> UserSpecificData? {
-        guard let vocabularyList = getVocabularyList(id: vocabularyListId) else {
-            os_log(.default, "Vocabulary list with ID \(vocabularyListId.uuidString) not found")
-            return nil
-        }
-        
-        let normalizedWord = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Check if word already exists
-        if vocabularyList.words[normalizedWord] != nil {
-            os_log(.default, "Word '\(normalizedWord)' already exists in list")
-            return nil
-        }
-        
-        // Create new UserSpecificData with automatic values
-        let difficulty: Int
-        if let diff = metadata["difficulty"] as? Int {
-            difficulty = diff
-        } else if let diffStr = metadata["difficulty"] as? String,
-                  let diffInt = Int(diffStr) {
-            difficulty = diffInt
-        } else {
-            difficulty = 5000 // Default medium difficulty
-        }
-        
-        let userData = UserSpecificData(
-            word: word,
-            dateAdded: Date(),
-            difficulty: difficulty,
-            customNotes: (metadata["customNotes"] as? String) ?? "",
-            lastReviewed: nil,
-            nextReview: Date(timeIntervalSinceNow: 86400),  // Tomorrow
-            reviewHistory: []
-        )
-        
-        vocabularyList.words[normalizedWord] = userData
-        save()
-        return userData
-    }
+    // addWordToVocabularyList: コマンド化により廃止（AddWordToVocabularyListCommand を使用）
     
     func updateWord(word: String, updates: [String: Any], in vocabularyListId: UUID) -> UserSpecificData? {
         os_log(.default, "[DEBUG] updateWord called - word: %{public}@, listId: %{public}@", word, vocabularyListId.uuidString)

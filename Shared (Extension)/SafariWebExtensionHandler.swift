@@ -214,40 +214,8 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
             
         case "addWordToVocabularyList":
-            // Decode and validate request
-            let addWordRequest: ProtoAddWordToVocabularyListRequest
-            do {
-                addWordRequest = try JSONDecoder().decode(ProtoAddWordToVocabularyListRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
-            }
-            
-            guard let listUUID = UUID(uuidString: addWordRequest.listID) else {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid list ID format" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
-            }
-            
-            // Convert metadata to [String: Any] for CloudKitStore
-            var metadata: [String: Any] = [:]
-            if let difficulty = addWordRequest.metadata?.difficulty {
-                metadata["difficulty"] = difficulty
-            }
-            if let customNotes = addWordRequest.metadata?.customNotes {
-                metadata["customNotes"] = customNotes
-            }
-            
-            // Add word to list
-            if let wordEntry = cloudKitStore.addWordToVocabularyList(word: addWordRequest.word, metadata: metadata, to: listUUID) {
-                validateAndComplete([ "success": true, "data": wordEntry.toDictionary() ], as: ProtoAddWordToVocabularyListResponse.self)
-            } else {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Failed to add word to list" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
+            runCommand(jsonData, reqType: ProtoAddWordToVocabularyListRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try AddWordToVocabularyListCommand.fromProto(req, context: ctx).execute()
             }
             
         case "addRecentSearch":
