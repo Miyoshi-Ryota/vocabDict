@@ -437,6 +437,8 @@ class SafariWebExtensionHandlerTests: XCTestCase {
             }
         }
     }
+
+    
 }
 
 // MARK: - Mock Extension Context

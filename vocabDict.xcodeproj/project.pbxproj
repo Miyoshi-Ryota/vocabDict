@@ -11,6 +11,7 @@
 		2D2CBB442E6057B2001BEC7C /* CloudKitStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2CBB3F2E604ACB001BEC7C /* CloudKitStoreTests.swift */; };
 		2DA2901F2E2B9B2800263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2DA290292E2B9B2900263BCA /* vocabDict Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DD974092E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD974082E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +72,7 @@
 		2DA290122E2B9B2800263BCA /* vocabDict.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vocabDict.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA2901E2E2B9B2800263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DA290282E2B9B2900263BCA /* vocabDict Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "vocabDict Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DD974082E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchAllVocabularyListsCommandTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -78,8 +80,11 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CloudKitStore.swift,
+				Commands/AppCommand.swift,
+				Commands/FetchAllVocabularyListsCommand.swift,
 				Generated/AllTypes.swift,
 				Models.swift,
+				Utilities/DataResetter.swift,
 			);
 			target = 2DA2901D2E2B9B2800263BCA /* vocabDict Extension (iOS) */;
 		};
@@ -87,8 +92,11 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CloudKitStore.swift,
+				Commands/AppCommand.swift,
+				Commands/FetchAllVocabularyListsCommand.swift,
 				Generated/AllTypes.swift,
 				Models.swift,
+				Utilities/DataResetter.swift,
 			);
 			target = 2DA290272E2B9B2900263BCA /* vocabDict Extension (macOS) */;
 		};
@@ -103,8 +111,11 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CloudKitStore.swift,
+				Commands/AppCommand.swift,
+				Commands/FetchAllVocabularyListsCommand.swift,
 				Generated/AllTypes.swift,
 				Models.swift,
+				Utilities/DataResetter.swift,
 			);
 			target = 2D2CBACB2E5E16E9001BEC7C /* vocabDictTests */;
 		};
@@ -114,11 +125,14 @@
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
 				CloudKitStore.swift,
+				Commands/AppCommand.swift,
+				Commands/FetchAllVocabularyListsCommand.swift,
 				Generated/AllTypes.swift,
 				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
+				Utilities/DataResetter.swift,
 			);
 			target = 2DA28FFF2E2B9B2800263BCA /* vocabDict (iOS) */;
 		};
@@ -142,11 +156,14 @@
 				"/Localized: Resources/Main.html",
 				Assets.xcassets,
 				CloudKitStore.swift,
+				Commands/AppCommand.swift,
+				Commands/FetchAllVocabularyListsCommand.swift,
 				Generated/AllTypes.swift,
 				Models.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
+				Utilities/DataResetter.swift,
 			);
 			target = 2DA290112E2B9B2800263BCA /* vocabDict (macOS) */;
 		};
@@ -293,6 +310,7 @@
 		2D2CBB422E604ACB001BEC7C /* vocabDictTests */ = {
 			isa = PBXGroup;
 			children = (
+				2DD974082E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift */,
 				2D2CBB3F2E604ACB001BEC7C /* CloudKitStoreTests.swift */,
 				2D2CBB402E604ACB001BEC7C /* Info.plist */,
 				2D2CBB412E604ACB001BEC7C /* SafariWebExtensionHandlerTests.swift */,
@@ -539,6 +557,7 @@
 			files = (
 				2D2CBB442E6057B2001BEC7C /* CloudKitStoreTests.swift in Sources */,
 				2D2CBB432E6057AE001BEC7C /* SafariWebExtensionHandlerTests.swift in Sources */,
+				2DD974092E6ABA6600E8BC00 /* FetchAllVocabularyListsCommandTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

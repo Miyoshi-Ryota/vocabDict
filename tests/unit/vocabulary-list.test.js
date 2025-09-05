@@ -20,7 +20,7 @@ describe('VocabularyList', () => {
     test('should create list with name and dictionary reference', () => {
       expect(list.name).toBe('Test List');
       expect(list.id).toBeDefined();
-      expect(list.created).toBeDefined();
+      expect(list.createdAt).toBeDefined();
       expect(list.isDefault).toBe(false);
       expect(list.words).toEqual({});
       expect(list.dictionary).toBe(dictionary);
@@ -378,7 +378,7 @@ describe('VocabularyList', () => {
       const json = list.toJSON();
       expect(json).toHaveProperty('id');
       expect(json).toHaveProperty('name', 'Test List');
-      expect(json).toHaveProperty('created');
+      expect(json).toHaveProperty('createdAt');
       expect(json).toHaveProperty('isDefault', false);
       expect(json).toHaveProperty('words');
       expect(Object.keys(json.words).length).toBe(1);
@@ -389,7 +389,7 @@ describe('VocabularyList', () => {
       const json = {
         id: 'list-123',
         name: 'Imported List',
-        created: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         isDefault: true,
         words: {
           hello: {

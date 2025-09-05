@@ -8,6 +8,7 @@
 import SafariServices
 import CloudKit
 import os.log
+import SwiftData
 
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     // Access CloudKitStore via computed property so we can swap instances during dev reset
@@ -78,136 +79,42 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
         }
 
+        // MARK: - Generic Command Runner Helpers
+        func encodeCodableToDict<T: Encodable>(_ model: T) throws -> [String: Any] {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let encoded = try encoder.encode(model)
+            let jsonObject = try JSONSerialization.jsonObject(with: encoded, options: [])
+            guard let dict = jsonObject as? [String: Any] else {
+                throw NSError(domain: "EncodeCodableToDict", code: -1, userInfo: [NSLocalizedDescriptionKey: "Response encoding produced non-dictionary JSON"])
+            }
+            return dict
+        }
+
+        func runCommand<Request: Decodable, Response: Encodable>(
+            _ data: Data,
+            reqType: Request.Type,
+            context: ModelContext,
+            make: (Request, ModelContext) throws -> Response
+        ) {
+            do {
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                let req = try decoder.decode(Request.self, from: data)
+                let resp = try make(req, context)
+                let dict = try encodeCodableToDict(resp)
+                complete(dict)
+            } catch {
+                fail("Invalid request or command error: \(error.localizedDescription)")
+            }
+        }
+
         switch action {
         case "devResetAllData":
-            // Development-only: prefer official container deletion, then purge files + CloudKit for multiple containers.
-            do {
-                var results: [String: Any] = [:]
-                // 0) Try container-level deletion first (official API)
-                results["containerDelete"] = CloudKitStore.shared.deleteAllDataUsingContainer()
-
-                // 1) Remove on-disk store files under App Group directly (belt-and-suspenders)
-                var localSummary: [String: Any] = [:]
-                if let appGroupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.vocabdict.shared") {
-                    let base = appGroupURL.appendingPathComponent("VocabDict.store")
-                    let candidates = [base, URL(fileURLWithPath: base.path + "-wal"), URL(fileURLWithPath: base.path + "-shm")]
-                    var removed: [String] = []
-                    var notFound: [String] = []
-                    var errors: [String] = []
-                    for url in candidates {
-                        if FileManager.default.fileExists(atPath: url.path) {
-                            do { try FileManager.default.removeItem(at: url); removed.append(url.lastPathComponent) }
-                            catch { errors.append("\(url.lastPathComponent): \(error.localizedDescription)") }
-                        } else { notFound.append(url.lastPathComponent) }
-                    }
-                    localSummary["removed"] = removed
-                    if !notFound.isEmpty { localSummary["notFound"] = notFound }
-                    if !errors.isEmpty { localSummary["errors"] = errors }
-                } else {
-                    localSummary["error"] = "app_group_not_found"
-                }
-                results["localStore"] = localSummary
-
-                // 2) Multi-container CloudKit purge
-                let requestedContainers = (messageDict["containers"] as? [String])
-                let defaultCandidates = [
-                    "iCloud.com.vocabdict.sync",
-                    "iCloud.com.ryota.miyoshi.vocabdict",
-                    "iCloud.com.ryota.miyoshi.vocabdict.extension"
-                ]
-                let containerIDs = requestedContainers ?? defaultCandidates
-                let outer = DispatchGroup()
-                var ckAll: [String: Any] = [:]
-
-                for id in containerIDs {
-                    outer.enter()
-                    let container = CKContainer(identifier: id)
-                    let db = container.privateCloudDatabase
-                    var summary: [String: Any] = [:]
-                    let inner = DispatchGroup()
-
-                    // 2a) Delete non-default zones
-                    inner.enter()
-                    db.fetchAllRecordZones { zones, error in
-                        if let error = error {
-                            summary["zones"] = ["error": error.localizedDescription]
-                            inner.leave()
-                            return
-                        }
-                        guard let zones = zones else {
-                            summary["zones"] = ["deleted": 0]
-                            inner.leave()
-                            return
-                        }
-                        let nonDefault = zones.filter { $0.zoneID.zoneName != CKRecordZone.ID.defaultZoneName }
-                        if nonDefault.isEmpty {
-                            summary["zones"] = ["deleted": 0]
-                            inner.leave()
-                        } else {
-                            let op = CKModifyRecordZonesOperation(recordZonesToSave: nil, recordZoneIDsToDelete: nonDefault.map { $0.zoneID })
-                            op.modifyRecordZonesCompletionBlock = { _, deleted, err in
-                                if let err = err {
-                                    summary["zones"] = ["error": err.localizedDescription]
-                                } else {
-                                    summary["zones"] = ["deleted": deleted?.count ?? nonDefault.count]
-                                }
-                                inner.leave()
-                            }
-                            db.add(op)
-                        }
-                    }
-
-                    // 2b) Delete records in default zone for known mirrored types (best-effort)
-                    let recordTypes = [
-                        "VocabularyList",
-                        "RecentSearchHistory",
-                        "UserSettings",
-                        "DictionaryLookupStats",
-                        // Common CoreData/SwiftData mirrored naming often starts with 'CD_'
-                        "CD_VocabularyList",
-                        "CD_RecentSearchHistory",
-                        "CD_UserSettings",
-                        "CD_DictionaryLookupStats"
-                    ]
-                    for type in recordTypes {
-                        inner.enter()
-                        let query = CKQuery(recordType: type, predicate: NSPredicate(value: true))
-                        let op = CKQueryOperation(query: query)
-                        op.resultsLimit = 200
-                        var fetchedIDs: [CKRecord.ID] = []
-                        op.recordFetchedBlock = { record in fetchedIDs.append(record.recordID) }
-                        op.queryCompletionBlock = { _, _ in
-                            if fetchedIDs.isEmpty {
-                                summary[type] = ["deleted": 0]
-                                inner.leave()
-                                return
-                            }
-                            let delOp = CKModifyRecordsOperation(recordsToSave: nil, recordIDsToDelete: fetchedIDs)
-                            delOp.modifyRecordsCompletionBlock = { _, deletedIDs, error in
-                                if let error = error {
-                                    summary[type] = ["error": error.localizedDescription]
-                                } else {
-                                    summary[type] = ["deleted": deletedIDs?.count ?? fetchedIDs.count]
-                                }
-                                inner.leave()
-                            }
-                            db.add(delOp)
-                        }
-                        db.add(op)
-                    }
-
-                    inner.notify(queue: .main) {
-                        ckAll[id] = summary
-                        outer.leave()
-                    }
-                }
-
-                outer.notify(queue: .main) {
-                    results["cloudKit"] = ckAll
-                    results["note"] = "Restart the app/extension to fully apply reset"
-                    complete(["success": true, "data": results])
-                }
-            }
+            // Development-only: run the same logic via shared utility for parity with macOS app
+            let requestedContainers = (messageDict["containers"] as? [String])
+            let results = DataResetter.runFullReset(containers: requestedContainers)
+            complete(["success": true, "data": results])
 
         case "fetchVocabularyListWords":
             // Decode and validate request
@@ -288,18 +195,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             ]], as: ProtoFetchVocabularyListWordsResponse.self)
 
         case "fetchAllVocabularyLists":
-            // Validate request using Codable
-            do {
-                _ = try JSONDecoder().decode(ProtoFetchAllVocabularyListsRequest.self, from: jsonData)
-            } catch {
-                let response = NSExtensionItem()
-                response.userInfo = [ SFExtensionMessageKey: [ "success": false, "error": "Invalid request format: \(error.localizedDescription)" ] ]
-                context.completeRequest(returningItems: [ response ], completionHandler: nil)
-                return
+            runCommand(jsonData, reqType: ProtoFetchAllVocabularyListsRequest.self, context: CloudKitStore.shared.modelContext) { req, ctx in
+                try FetchAllVocabularyListsCommand.fromProto(req, context: ctx).execute()
             }
-            let lists = cloudKitStore.getVocabularyLists()
-            let listsData = lists.map { $0.toDictionary() }
-            validateAndComplete([ "success": true, "vocabularyLists": listsData ], as: ProtoFetchAllVocabularyListsResponse.self)
             
         case "createVocabularyList":
             // Decode and validate request

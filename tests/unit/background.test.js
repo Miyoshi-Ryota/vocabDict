@@ -22,10 +22,9 @@ describe('Background Message Handler', () => {
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
         const j = mockList.toJSON();
-        const { created, ...rest } = j;
         return Promise.resolve({ 
           success: true,
-          vocabularyLists: [{ ...rest, createdAt: created }]
+          vocabularyLists: [j]
         });
       }
       if (message.action === 'fetchVocabularyListWords') {

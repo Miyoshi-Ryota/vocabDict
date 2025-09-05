@@ -436,7 +436,7 @@ const ListsTab = {
           <span class="list-name">${list.name}</span>
           <span class="list-count">${Object.keys(list.words).length} words</span>
         </div>
-        <div class="list-updated">Last updated: ${this.formatDate(list.createdAt || list.created)}</div>
+        <div class="list-updated">Last updated: ${this.formatDate(list.createdAt)}</div>
       </div>
     `).join('');
 

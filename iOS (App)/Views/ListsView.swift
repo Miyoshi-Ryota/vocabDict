@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ListsView: View {
-    @Query(sort: \VocabularyList.created, order: .reverse)
+    @Query(sort: \VocabularyList.createdAt, order: .reverse)
     private var vocabularyLists: [VocabularyList]
     
     @State private var showNewListDialog = false
@@ -127,7 +127,7 @@ struct ListsView: View {
         case "alphabetical":
             lists.sort { $0.name < $1.name }
         case "dateAdded":
-            lists.sort { $0.created > $1.created }
+            lists.sort { $0.createdAt > $1.createdAt }
         default: // "recent"
             break // Already sorted by query
         }
@@ -138,7 +138,7 @@ struct ListsView: View {
     private func createNewList() {
         let newList = VocabularyList(
             name: newListName.isEmpty ? "Vocabulary List" : newListName,
-            created: Date()
+            createdAt: Date()
         )
         modelContext.insert(newList)
         
@@ -165,7 +165,7 @@ struct VocabularyListCard: View {
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text("Last updated: \(formatDate(list.created))")
+                    Text("Last updated: \(formatDate(list.createdAt))")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

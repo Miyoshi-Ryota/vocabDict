@@ -213,14 +213,7 @@ class CloudKitStore {
         return summary
     }
 
-    func getVocabularyLists() -> [VocabularyList] {
-        do {
-            return try modelContext.fetch(FetchDescriptor<VocabularyList>())
-        } catch {
-            os_log(.default, "Failed to fetch vocabulary lists: \(error)")
-            return []
-        }
-    }
+    // getVocabularyLists: コマンド化に伴い廃止
 
     func getVocabularyList(id: UUID) -> VocabularyList? {
         do {

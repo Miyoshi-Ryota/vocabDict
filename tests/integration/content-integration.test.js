@@ -27,8 +27,7 @@ describe('Content Script User Flow Integration Tests', () => {
     browser.runtime.sendNativeMessage.mockImplementation((message) => {
       if (message.action === 'fetchAllVocabularyLists') {
         const j = defaultList.toJSON();
-        const { created, ...rest } = j;
-        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+        return Promise.resolve({ success: true, vocabularyLists: [j] });
       }
       if (message.action === 'addWordToVocabularyList') {
         return Promise.resolve({ 
@@ -50,8 +49,7 @@ describe('Content Script User Flow Integration Tests', () => {
       }
       if (message.action === 'fetchAllVocabularyLists') {
         const j = defaultList.toJSON();
-        const { created, ...rest } = j;
-        return Promise.resolve({ success: true, vocabularyLists: [{ ...rest, createdAt: created }] });
+        return Promise.resolve({ success: true, vocabularyLists: [j] });
       }
       if (message.action === 'addWordToVocabularyList') {
         return browser.runtime.sendNativeMessage({
